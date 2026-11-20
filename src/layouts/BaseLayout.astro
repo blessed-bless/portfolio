@@ -4,6 +4,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import SiteCursor from '../components/SiteCursor.astro';
 import Preloader from '../components/Preloader.astro';
+import Metrika from '../components/Metrika.astro';
 import { defaultDescription, siteName, siteUrl } from '../lib/site';
 import { isFilled } from '../lib/fill';
 import { hasPublishedNotes } from '../lib/notes';
@@ -93,6 +94,7 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
         <script type="application/ld+json" set:html={JSON.stringify(block)} />
       ))
     }
+    <Metrika />
     <ClientRouter />
     <title>{title}</title>
   </head>
