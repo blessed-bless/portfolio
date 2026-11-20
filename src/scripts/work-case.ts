@@ -1,7 +1,3 @@
-function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
 export function mountReadingProgress(bar: HTMLElement): () => void {
   const onScroll = (): void => {
     const doc = document.documentElement;
@@ -53,26 +49,3 @@ export function mountCodeCopy(root: HTMLElement): () => void {
   return () => cleanups.forEach((fn) => fn());
 }
 
-export function mountNextCase(trigger: HTMLElement, href: string): () => void {
-  if (prefersReducedMotion() || !href) return () => undefined;
-
-  let armed = false;
-  let navigating = false;
-
-  const go = (): void => {
-    if (navigating) return;
-    navigating = true;
-    void import('astro:transitions/client').then(({ navigate }) => {
-      navigate(href);
-    });
-  };
-
-  const onScroll = (): void => {
-    const rect = trigger.getBoundingClientRect();
-    if (rect.top < window.innerHeight * 0.72) armed = true;
-    if (armed && rect.top < window.innerHeight * 0.35) go();
-  };
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  return () => window.removeEventListener('scroll', onScroll);
-}

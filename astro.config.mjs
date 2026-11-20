@@ -6,6 +6,7 @@ import mdx from '@astrojs/mdx';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://dubstepmolitva.ru',
+  trailingSlash: 'always',
   integrations: [mdx()],
   prefetch: true,
   build: { inlineStylesheets: 'always' },

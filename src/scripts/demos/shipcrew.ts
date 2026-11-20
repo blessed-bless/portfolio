@@ -52,13 +52,13 @@ export function mountShipcrewDemo(root: HTMLElement): () => void {
       const item = el('li', 'demo-ui__item');
       const left = el('div');
       left.append(el('div', '', step.title), el('span', 'demo-ui__meta', step.role));
-      let label = 'waiting';
+      let label = 'ожидает';
       let tone = 'warn';
       if (index < done || (done === PIPELINE.length && index < PIPELINE.length)) {
-        label = 'finished';
+        label = 'готово';
         tone = 'ok';
       } else if (index === active) {
-        label = 'running';
+        label = 'работает';
         tone = 'warn';
       }
       const status = el('span', 'demo-ui__status', label);

@@ -1,22 +1,32 @@
 import { button, clear, el, wait } from './shared';
 
-type WorkerStatus = 'online' | 'paused' | 'offline';
-type JobStatus = 'queued' | 'running' | 'done' | 'failed';
+type WorkerStatus = 'работает' | 'пауза' | 'офлайн';
+type JobStatus = 'ожидает' | 'работает' | 'готово' | 'ошибка';
 
 type Worker = { id: string; name: string; status: WorkerStatus };
 type Job = { id: string; name: string; status: JobStatus; attempt: number };
 type DeadLetter = { id: string; jobName: string; error: string; requeued: boolean };
 
+const STATUS_LABEL: Record<JobStatus | WorkerStatus | 'вернули', string> = {
+  работает: 'работает',
+  пауза: 'пауза',
+  офлайн: 'офлайн',
+  ожидает: 'ожидает',
+  готово: 'готово',
+  ошибка: 'ошибка',
+  вернули: 'вернули',
+};
+
 export function mountFleetkitDemo(root: HTMLElement): () => void {
   clear(root);
   const ui = el('div', 'demo-ui');
   const workersPanel = el('div', 'demo-ui__panel');
-  workersPanel.append(el('p', 'demo-ui__label', 'Workers'));
+  workersPanel.append(el('p', 'demo-ui__label', 'Воркеры'));
   const workersList = el('ul', 'demo-ui__list');
   workersPanel.append(workersList);
 
   const jobsPanel = el('div', 'demo-ui__panel');
-  jobsPanel.append(el('p', 'demo-ui__label', 'Jobs'));
+  jobsPanel.append(el('p', 'demo-ui__label', 'Очередь'));
   const jobsList = el('ul', 'demo-ui__list');
   const actions = el('div', 'demo-ui__row');
   jobsPanel.append(actions, jobsList);
@@ -27,19 +37,23 @@ export function mountFleetkitDemo(root: HTMLElement): () => void {
   dlqPanel.append(dlqList);
 
   const workers: Worker[] = [
-    { id: 'w1', name: 'bot-alpha', status: 'online' },
-    { id: 'w2', name: 'cron-beta', status: 'online' },
-    { id: 'w3', name: 'hook-gamma', status: 'paused' },
+    { id: 'w1', name: 'bot-alpha', status: 'работает' },
+    { id: 'w2', name: 'cron-beta', status: 'работает' },
+    { id: 'w3', name: 'hook-gamma', status: 'пауза' },
   ];
-  const jobs: Job[] = [];
+  let seq = 4;
+  const jobs: Job[] = [
+    { id: 'job-1', name: 'demo.task-1', status: 'ожидает', attempt: 0 },
+    { id: 'job-2', name: 'demo.task-2', status: 'ожидает', attempt: 0 },
+    { id: 'job-3', name: 'demo.task-3', status: 'ожидает', attempt: 0 },
+  ];
   const dlq: DeadLetter[] = [];
-  let seq = 1;
   let timer = 0;
   let disposed = false;
 
   const tone = (status: string): string => {
-    if (status === 'online' || status === 'done') return 'ok';
-    if (status === 'running' || status === 'queued' || status === 'paused') return 'warn';
+    if (status === 'работает' || status === 'готово' || status === 'вернули') return 'ok';
+    if (status === 'ожидает' || status === 'пауза') return 'warn';
     return 'danger';
   };
 
@@ -50,19 +64,19 @@ export function mountFleetkitDemo(root: HTMLElement): () => void {
       const left = el('div');
       left.append(el('div', '', worker.name), el('span', 'demo-ui__meta', worker.id));
       const right = el('div', 'demo-ui__row');
-      const status = el('span', 'demo-ui__status', worker.status);
+      const status = el('span', 'demo-ui__status', STATUS_LABEL[worker.status]);
       status.dataset.tone = tone(worker.status);
-      const pause = button(worker.status === 'paused' ? 'resume' : 'pause');
+      const pause = button(worker.status === 'пауза' ? 'Продолжить' : 'Пауза');
       pause.addEventListener('click', () => {
-        worker.status = worker.status === 'paused' ? 'online' : 'paused';
+        worker.status = worker.status === 'пауза' ? 'работает' : 'пауза';
         renderWorkers();
       });
-      const restart = button('restart');
+      const restart = button('Перезапустить');
       restart.addEventListener('click', async () => {
-        worker.status = 'offline';
+        worker.status = 'офлайн';
         renderWorkers();
         await wait(400);
-        worker.status = 'online';
+        worker.status = 'работает';
         renderWorkers();
       });
       right.append(status, pause, restart);
@@ -79,9 +93,9 @@ export function mountFleetkitDemo(root: HTMLElement): () => void {
     }
     for (const job of jobs) {
       const item = el('li', 'demo-ui__item');
-      const status = el('span', 'demo-ui__status', job.status);
+      const status = el('span', 'demo-ui__status', STATUS_LABEL[job.status]);
       status.dataset.tone = tone(job.status);
-      item.append(el('span', '', `${job.name} · attempt ${job.attempt}`), status);
+      item.append(el('span', '', `${job.name} · попытка ${job.attempt}`), status);
       jobsList.append(item);
     }
   };
@@ -98,13 +112,13 @@ export function mountFleetkitDemo(root: HTMLElement): () => void {
       left.append(el('div', '', item.jobName), el('span', 'demo-ui__meta', item.error));
       const right = el('div', 'demo-ui__row');
       if (!item.requeued) {
-        const requeue = button('requeue');
+        const requeue = button('Вернуть в очередь');
         requeue.addEventListener('click', () => {
           item.requeued = true;
           jobs.unshift({
             id: `job-${seq++}`,
             name: item.jobName,
-            status: 'queued',
+            status: 'ожидает',
             attempt: 0,
           });
           renderDlq();
@@ -112,7 +126,7 @@ export function mountFleetkitDemo(root: HTMLElement): () => void {
         });
         right.append(requeue);
       } else {
-        right.append(el('span', 'demo-ui__status', 'requeued'));
+        right.append(el('span', 'demo-ui__status', STATUS_LABEL.вернули));
         right.querySelector('.demo-ui__status')?.setAttribute('data-tone', 'ok');
       }
       row.append(left, right);
@@ -121,24 +135,24 @@ export function mountFleetkitDemo(root: HTMLElement): () => void {
   };
 
   const enqueue = (name: string, fail = false): void => {
-    jobs.unshift({ id: `job-${seq++}`, name, status: 'queued', attempt: 0 });
+    jobs.unshift({ id: `job-${seq++}`, name, status: 'ожидает', attempt: 0 });
     renderJobs();
     void tick(fail ? name : null);
   };
 
   const tick = async (forceFailName: string | null = null): Promise<void> => {
     if (disposed) return;
-    const online = workers.some((w) => w.status === 'online');
-    const job = jobs.find((j) => j.status === 'queued');
+    const online = workers.some((w) => w.status === 'работает');
+    const job = jobs.find((j) => j.status === 'ожидает');
     if (!job || !online) return;
-    job.status = 'running';
+    job.status = 'работает';
     job.attempt += 1;
     renderJobs();
     await wait(700);
     if (disposed) return;
     const shouldFail = forceFailName === job.name || (job.name.includes('fail') && job.attempt < 2);
     if (shouldFail && job.attempt >= 1 && (forceFailName === job.name || job.attempt >= 2)) {
-      job.status = 'failed';
+      job.status = 'ошибка';
       renderJobs();
       await wait(350);
       dlq.unshift({
@@ -154,18 +168,18 @@ export function mountFleetkitDemo(root: HTMLElement): () => void {
       return;
     }
     if (job.name.includes('fail') && job.attempt === 1) {
-      job.status = 'queued';
+      job.status = 'ожидает';
       renderJobs();
       await wait(400);
       return tick(null);
     }
-    job.status = 'done';
+    job.status = 'готово';
     renderJobs();
   };
 
-  const enqueueBtn = button('Enqueue job', { primary: true });
+  const enqueueBtn = button('В очередь', { primary: true });
   enqueueBtn.addEventListener('click', () => enqueue(`demo.task-${seq}`));
-  const failBtn = button('Enqueue failing job');
+  const failBtn = button('Добавить падающую задачу');
   failBtn.addEventListener('click', () => enqueue(`demo.fail-${seq}`, true));
   actions.append(enqueueBtn, failBtn);
 

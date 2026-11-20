@@ -1,9 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
-import Manifest from '../components/Manifest.astro';
 import FeaturedWork from '../components/FeaturedWork.astro';
-import Services from '../components/Services.astro';
+import BusinessOffers from '../components/BusinessOffers.astro';
 import StackMarquee from '../components/StackMarquee.astro';
 import Contact from '../components/Contact.astro';
 import {
@@ -17,46 +16,53 @@ import { contactLinks } from '../data/home';
 
 const sameAs = [contactLinks.github, contactLinks.telegram].filter(isFilled);
 
-const personLd = {
+const professionalServiceLd = {
   '@context': 'https://schema.org',
-  '@type': 'Person',
-  name: personName,
-  jobTitle: personJobTitle,
+  '@type': 'ProfessionalService',
+  name: siteUrl.includes('dubstepmolitva') ? 'Богдан — разработка для бизнеса' : personName,
+  description: defaultDescription,
   url: siteUrl,
-  ...(sameAs.length ? { sameAs } : {}),
+  provider: {
+    '@type': 'Person',
+    name: personName,
+    jobTitle: personJobTitle,
+    url: siteUrl,
+    ...(sameAs.length ? { sameAs } : {}),
+  },
+  areaServed: 'RU',
+  availableLanguage: ['ru'],
 };
 ---
 
 <BaseLayout
-  title="Богдан — портфолио"
+  title="Богдан — сайты, боты и CRM для бизнеса"
   description={defaultDescription}
   canonicalPath="/"
-  ogImage="/og/home.svg"
-  jsonLd={personLd}
+  ogImage="/og/home.png"
+  jsonLd={professionalServiceLd}
 >
   <Hero />
-  <Manifest />
+  <BusinessOffers />
   <FeaturedWork />
-  <Services />
   <StackMarquee />
   <Contact />
 </BaseLayout>
 
 <script>
-  let manifest: HTMLElement | null = null;
+  let offers: HTMLElement | null = null;
   let observer: IntersectionObserver | null = null;
   let unmountHomePage: (() => void) | null = null;
 
   function scheduleHome(): void {
-    const root = document.querySelector<HTMLElement>('[data-manifest]');
-    if (!root || root === manifest) return;
-    manifest = root;
+    const root = document.querySelector<HTMLElement>('[data-offers]');
+    if (!root || root === offers) return;
+    offers = root;
 
     observer = new IntersectionObserver(async ([entry]) => {
       if (!entry?.isIntersecting) return;
       observer?.disconnect();
       const home = await import('../scripts/home-page');
-      if (manifest !== root) return;
+      if (offers !== root) return;
       home.mountHomePage();
       unmountHomePage = home.unmountHomePage;
     }, { rootMargin: '0px 0px -10% 0px' });
@@ -68,7 +74,7 @@ const personLd = {
   document.addEventListener('astro:before-swap', () => {
     observer?.disconnect();
     observer = null;
-    manifest = null;
+    offers = null;
     unmountHomePage?.();
     unmountHomePage = null;
   });

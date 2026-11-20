@@ -14,7 +14,8 @@ import {
   WebGLRenderer,
 } from 'three';
 import type { Project } from '../lib/work-types';
-import { applyTextureQuality, rasterizeCover } from './cover-texture';
+import { applyTextureQuality, rasterizeCoverUrl } from './cover-texture';
+import { getLenis } from './lenis-scroll';
 
 export type SceneHandle = {
   dispose: () => void;
@@ -86,8 +87,10 @@ export async function mountHeroScene(
   if (!canWebGL) return null;
 
   const root = canvas.closest('[data-hero]');
-  const covers = Array.from(root?.querySelectorAll<SVGSVGElement>('[data-hero-cover] .project-cover') ?? []);
-  if (covers.length !== projects.length) return null;
+  const coverUrls = Array.from(
+    root?.querySelectorAll<HTMLImageElement>('[data-hero-cover] .project-cover') ?? [],
+  ).map((img) => img.dataset.coverSrc || img.currentSrc || img.src);
+  if (coverUrls.length !== projects.length || coverUrls.some((url) => !url)) return null;
 
   const renderer = new WebGLRenderer({
     canvas,
@@ -115,9 +118,9 @@ export async function mountHeroScene(
   const loadCovers = async () => {
     const size = coverRasterSize();
     const layers = await Promise.allSettled(
-      covers.flatMap((cover) => [
-        rasterizeCover(cover, 'base', { ...size, anisotropy: maxAnisotropy }),
-        rasterizeCover(cover, 'art', { ...size, anisotropy: maxAnisotropy }),
+      coverUrls.flatMap((url) => [
+        rasterizeCoverUrl(url, 'base', { ...size, anisotropy: maxAnisotropy }),
+        rasterizeCoverUrl(url, 'art', { ...size, anisotropy: maxAnisotropy }),
       ]),
     );
     const next = layers.flatMap((layer) => (layer.status === 'fulfilled' ? [layer.value] : []));
@@ -147,14 +150,14 @@ export async function mountHeroScene(
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(isMobile ? 46 : 34, 1, 0.1, 40);
-  camera.position.set(0, 0, isMobile ? 6.35 : 5.1);
+  camera.position.set(0, isMobile ? 0 : -0.22, isMobile ? 6.35 : 5.1);
 
   const clock = new Clock();
   const pointerNdc = new Vector2(0, 0);
   const raycaster = new Raycaster();
 
   const carousel = new Group();
-  carousel.position.set(0, 0.05, 0);
+  carousel.position.set(0, isMobile ? 0.05 : -0.42, 0);
   scene.add(carousel);
 
   const cardWidth = isMobile ? 3.35 : 3.55;
@@ -171,6 +174,7 @@ export async function mountHeroScene(
   let dragDistance = 0;
   let dragOrigin = 0;
   let dragOffset = 0;
+  let activePointerId: number | null = null;
   let hoverIndex = -1;
   const hoverProgress = projects.map(() => 0);
   let frame = 0;
@@ -334,20 +338,17 @@ export async function mountHeroScene(
   };
 
   const onPointerMove = (event: PointerEvent): void => {
+    if (dragging && activePointerId !== null && event.pointerId !== activePointerId) return;
     setPointer(event.clientX, event.clientY);
     if (dragging) {
+      event.preventDefault();
       const dx = event.clientX - lastX;
       lastX = event.clientX;
       dragDistance += Math.abs(dx);
-      // One gesture stays within ±1 slide from origin.
       const parentWidth = Math.max(canvas.parentElement?.clientWidth ?? 360, 280);
-      dragOffset = MathUtils.clamp(
-        dragOffset - dx / (parentWidth * 0.55),
-        -1,
-        1,
-      );
+      dragOffset = MathUtils.clamp(dragOffset - dx / (parentWidth * 0.42), -1, 1);
       current = dragOrigin + dragOffset;
-      if (dragDistance > 10) markBrowsed();
+      if (dragDistance > 6) markBrowsed();
     } else {
       const hit = pickCard();
       hoverIndex = hit && event.pointerType === 'mouse' ? Number(hit.userData.index) : -1;
@@ -356,12 +357,14 @@ export async function mountHeroScene(
   };
 
   const onPointerLeave = (): void => {
-    hoverIndex = -1;
+    if (!dragging) hoverIndex = -1;
   };
 
   const onPointerDown = (event: PointerEvent): void => {
     if (event.button !== 0) return;
+    event.preventDefault();
     dragging = true;
+    activePointerId = event.pointerId;
     hoverIndex = -1;
     lastX = event.clientX;
     dragStartX = event.clientX;
@@ -369,13 +372,21 @@ export async function mountHeroScene(
     dragOrigin = Math.round(current);
     dragOffset = current - dragOrigin;
     active = dragOrigin;
-    canvas.setPointerCapture(event.pointerId);
+    getLenis()?.stop();
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch {
+      /* ignore */
+    }
     canvas.style.cursor = 'grabbing';
   };
 
   const onPointerUp = (event: PointerEvent): void => {
     if (!dragging) return;
+    if (activePointerId !== null && event.pointerId !== activePointerId) return;
     dragging = false;
+    activePointerId = null;
+    getLenis()?.start();
     try {
       canvas.releasePointerCapture(event.pointerId);
     } catch {
@@ -391,15 +402,14 @@ export async function mountHeroScene(
           const project = projects[index];
           if (project?.hasPage) onSelect(project);
         } else {
-          // Side plane: step toward the clicked card (one slide).
           const offset = shortestOffset(index, currentIndex, projects.length);
           active = currentIndex + Math.sign(offset);
           markBrowsed();
         }
       }
     } else {
-      if (dragOffset > 0.28) active = dragOrigin + 1;
-      else if (dragOffset < -0.28) active = dragOrigin - 1;
+      if (dragOffset > 0.12) active = dragOrigin + 1;
+      else if (dragOffset < -0.12) active = dragOrigin - 1;
       else active = dragOrigin;
       markBrowsed();
     }
@@ -482,11 +492,12 @@ export async function mountHeroScene(
   resize();
   layoutCards();
   window.addEventListener('resize', resize);
-  canvas.addEventListener('pointermove', onPointerMove, { passive: true });
+  canvas.addEventListener('pointermove', onPointerMove, { passive: false });
+  window.addEventListener('pointermove', onPointerMove, { passive: false });
   canvas.addEventListener('pointerleave', onPointerLeave);
   canvas.addEventListener('pointerdown', onPointerDown);
-  canvas.addEventListener('pointerup', onPointerUp);
-  canvas.addEventListener('pointercancel', onPointerUp);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', onPointerUp);
   canvas.addEventListener('keydown', onKey);
   frame = requestAnimationFrame(render);
   canvas.dataset.ready = 'true';
@@ -519,10 +530,12 @@ export async function mountHeroScene(
       window.removeEventListener('resize', resize);
       canvas.removeEventListener('keydown', onKey);
       canvas.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('pointerdown', onPointerDown);
-      canvas.removeEventListener('pointerup', onPointerUp);
-      canvas.removeEventListener('pointercancel', onPointerUp);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+      getLenis()?.start();
       themeObserver.disconnect();
       cardGeo.dispose();
       materials.forEach((material) => material.dispose());

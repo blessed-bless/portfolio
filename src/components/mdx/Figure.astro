@@ -12,7 +12,15 @@ const { src, alt, caption } = Astro.props;
 ---
 
 <figure class="mdx-figure">
-  <Image class="mdx-figure__img" src={src} alt={alt} widths={[480, 800, 1200].filter((width) => width < src.width).concat(src.width)} sizes="(max-width: 800px) 92vw, 760px" loading="lazy" decoding="async" />
+  <Image
+    class="mdx-figure__img"
+    src={src}
+    alt={alt}
+    widths={[480, 800, 1200, 1600].filter((width) => width <= Math.min(src.width, 1600)).concat(Math.min(src.width, 1600)).filter((width, index, list) => list.indexOf(width) === index)}
+    sizes="(max-width: 800px) 92vw, 760px"
+    loading="lazy"
+    decoding="async"
+  />
   {caption ? <figcaption class="mdx-figure__caption mono">{caption}</figcaption> : null}
 </figure>
 

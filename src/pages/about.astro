@@ -24,8 +24,8 @@ const photoSizes = '(max-width: 900px) min(22rem, 100vw), min(28vw, 22rem)';
 <BaseLayout
   title={`Обо мне — ${siteName}`}
   description="Бэкенд на Python, боты и автоматизация, веб-интерфейсы. Как работаю и чем пользуюсь."
-  canonicalPath="/about"
-  ogImage="/og/home.svg"
+  canonicalPath="/about/"
+  ogImage="/og/home.png"
 >
   <article class="about page-pad">
     <header class="about__hero">
@@ -52,10 +52,10 @@ const photoSizes = '(max-width: 900px) min(22rem, 100vw), min(28vw, 22rem)';
             src={portrait}
             alt="Богдан"
             formats={['avif', 'webp']}
-            widths={[320, 480, 640, 800]}
+            widths={[400, 800, 1200]}
             sizes={photoSizes}
-            width={480}
-            height={600}
+            width={400}
+            height={Math.round((400 * portrait.height) / portrait.width)}
             quality={85}
             loading="eager"
             decoding="async"

@@ -6,6 +6,10 @@ import SiteCursor from '../components/SiteCursor.astro';
 import Preloader from '../components/Preloader.astro';
 import { defaultDescription, siteName, siteUrl } from '../lib/site';
 import { isFilled } from '../lib/fill';
+import { hasPublishedNotes } from '../lib/notes';
+import { withTrailingSlash } from '../lib/paths';
+import bricolageWoff2 from '@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2?url';
+import plexMonoWoff2 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-cyrillic-400-normal.woff2?url';
 import '../styles/global.css';
 
 interface Props {
@@ -22,16 +26,16 @@ const {
   title,
   description,
   canonicalPath = Astro.url.pathname,
-  ogImage = '/og/home.svg',
+  ogImage = '/og/home.png',
   noindex = false,
   jsonLd,
   printCase = false,
 } = Astro.props;
 
+const showNotesRss = await hasPublishedNotes();
 const resolvedDescription = isFilled(description) ? description : defaultDescription;
-const canonical = new URL(canonicalPath, siteUrl).href;
+const canonical = new URL(withTrailingSlash(canonicalPath), siteUrl).href;
 const ogImageUrl = new URL(ogImage, siteUrl).href;
-const fontStylesheet = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,560;12..96,650;12..96,750&family=IBM+Plex+Mono:wght@400;500&display=swap';
 const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 ---
 
@@ -50,17 +54,20 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta property="og:description" content={resolvedDescription} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={resolvedDescription} />
     <meta name="twitter:image" content={ogImageUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="alternate" type="application/rss+xml" title="Заметки" href="/rss.xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href={fontStylesheet} media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href={fontStylesheet} /></noscript>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    {showNotesRss ? (
+      <link rel="alternate" type="application/rss+xml" title="Заметки" href="/rss.xml" />
+    ) : null}
+    <link rel="preload" href={bricolageWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={plexMonoWoff2} as="font" type="font/woff2" crossorigin />
     <script is:inline>
       (() => {
         try {

@@ -1,6 +1,7 @@
 ---
 import ProjectCover from '../../components/ProjectCover.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { withTrailingSlash } from '../../lib/paths';
 import { getProjects } from '../../lib/work';
 import type { WorkTag } from '../../lib/work-types';
 
@@ -19,8 +20,8 @@ const tagLabels: Record<string, string> = {
 <BaseLayout
   title="Работы — Богдан"
   description="Кейсы и проекты: Python, TypeScript, боты, infra, веб."
-  canonicalPath="/work"
-  ogImage="/og/work.svg"
+  canonicalPath="/work/"
+  ogImage="/og/work.png"
 >
   <section class="work-index page-pad" data-work-index data-view="grid">
     <header class="work-index__head">
@@ -56,7 +57,7 @@ const tagLabels: Record<string, string> = {
     <div class="work-index__list" data-work-list>
       {
         listed.map((project, index) => {
-          const href = project.hasPage ? `/work/${project.slug}` : '#';
+          const href = project.hasPage ? withTrailingSlash(`/work/${project.slug}`) : '#';
           const Tag = project.hasPage ? 'a' : 'div';
           return (
             <Tag
