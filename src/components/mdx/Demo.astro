@@ -1,0 +1,243 @@
+---
+interface Props {
+  id: 'priemnaya' | 'fleetkit' | 'crawlnet' | 'ai-funnel-ecosystem' | 'shipcrew';
+}
+
+const { id } = Astro.props;
+---
+
+<section class="case-demo" data-case-demo={id} aria-label="Интерактивное демо">
+  <header class="case-demo__head">
+    <h2 class="case-demo__title">Попробовать</h2>
+    <p class="case-demo__badge mono">Демо на тестовых данных</p>
+  </header>
+  <div class="case-demo__stage" data-demo-mount>
+    <p class="case-demo__loading mono">Загружаем демо…</p>
+  </div>
+</section>
+
+<style is:global>
+  .case-demo {
+    margin: var(--space-7) 0;
+    padding: var(--space-5);
+    border: var(--stroke) solid var(--border);
+    background: var(--bg-elevated);
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .case-demo__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .case-demo__title {
+    margin: 0;
+    font-size: var(--text-lg);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .case-demo__badge {
+    margin: 0;
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .case-demo__stage {
+    min-height: 12rem;
+  }
+
+  .case-demo__loading {
+    margin: 0;
+    color: var(--fg-faint);
+    font-size: var(--text-xs);
+  }
+
+  .demo-ui {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .demo-ui__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .demo-ui__label {
+    margin: 0;
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+  }
+
+  .demo-ui__btn {
+    min-height: 44px;
+    padding: 0.4rem 0.85rem;
+    border: var(--stroke) solid var(--border);
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+
+  .demo-ui__btn:hover,
+  .demo-ui__btn:focus-visible {
+    border-color: var(--border-strong);
+    color: var(--accent-strong);
+  }
+
+  .demo-ui__btn[aria-pressed='true'],
+  .demo-ui__btn.is-active {
+    background: var(--bg);
+    border-color: var(--border-strong);
+  }
+
+  .demo-ui__btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .demo-ui__btn--primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  .demo-ui__select,
+  .demo-ui__input {
+    min-height: 44px;
+    padding: 0.35rem 0.7rem;
+    border: var(--stroke) solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+    font: inherit;
+    font-size: var(--text-sm);
+    max-width: 100%;
+  }
+
+  .demo-ui__panel {
+    border: var(--stroke) solid var(--border);
+    background: var(--bg);
+    padding: var(--space-4);
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .demo-ui__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .demo-ui__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    align-items: center;
+    padding: var(--space-3);
+    border: var(--stroke) solid var(--border);
+    font-size: var(--text-sm);
+  }
+
+  .demo-ui__meta {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+  }
+
+  .demo-ui__status {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+  }
+
+  .demo-ui__status[data-tone='ok'] {
+    color: var(--ok);
+  }
+
+  .demo-ui__status[data-tone='warn'] {
+    color: var(--accent-strong);
+  }
+
+  .demo-ui__status[data-tone='danger'] {
+    color: var(--danger);
+  }
+
+  .demo-ui__log {
+    margin: 0;
+    max-height: 14rem;
+    overflow: auto;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+    color: var(--fg-muted);
+    white-space: pre-wrap;
+  }
+
+  .demo-ui__chat {
+    display: grid;
+    gap: var(--space-2);
+    max-height: 16rem;
+    overflow: auto;
+  }
+
+  .demo-ui__bubble {
+    max-width: 92%;
+    padding: var(--space-3);
+    border: var(--stroke) solid var(--border);
+    font-size: var(--text-sm);
+  }
+
+  .demo-ui__bubble[data-from='bot'] {
+    justify-self: start;
+    background: var(--bg-elevated);
+  }
+
+  .demo-ui__bubble[data-from='user'] {
+    justify-self: end;
+    border-color: var(--border-strong);
+  }
+
+  .demo-ui__graph {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border: var(--stroke) solid var(--border);
+    background: var(--bg-elevated);
+  }
+
+  .demo-ui__table-wrap {
+    overflow-x: auto;
+  }
+
+  .demo-ui__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-xs);
+  }
+
+  .demo-ui__table th,
+  .demo-ui__table td {
+    border-bottom: var(--stroke) solid var(--border);
+    padding: 0.45rem 0.5rem;
+    text-align: left;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .case-demo * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>

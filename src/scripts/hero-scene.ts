@@ -8,17 +8,19 @@ import {
   Raycaster,
   Scene,
   ShaderMaterial,
+  SRGBColorSpace,
   Texture,
   Vector2,
   WebGLRenderer,
 } from 'three';
 import type { Project } from '../lib/work-types';
-import { rasterizeCover } from './cover-texture';
+import { applyTextureQuality, rasterizeCover } from './cover-texture';
 
 export type SceneHandle = {
   dispose: () => void;
   playIntro: () => Promise<void>;
   getActiveIndex: () => number;
+  goBy: (delta: number) => void;
 };
 
 type MountOptions = {
@@ -87,21 +89,45 @@ export async function mountHeroScene(
   const covers = Array.from(root?.querySelectorAll<SVGSVGElement>('[data-hero-cover] .project-cover') ?? []);
   if (covers.length !== projects.length) return null;
 
-  const textureWidth = isMobile ? 480 : 960;
+  const renderer = new WebGLRenderer({
+    canvas,
+    antialias: true,
+    alpha: true,
+    premultipliedAlpha: false,
+    powerPreference: isMobile ? 'low-power' : 'high-performance',
+  });
+  renderer.setClearColor(0x000000, 0);
+  renderer.outputColorSpace = SRGBColorSpace;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+  const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+
+  const coverRasterSize = (): { width: number; height: number } => {
+    const parent = canvas.parentElement;
+    const planeCss = Math.max((parent?.clientWidth ?? 360) * 0.85, isMobile ? 360 : 480);
+    const dpr = window.devicePixelRatio || 1;
+    // Floor keeps SVG type/lines sharp on high-DPR phones even when the CSS plane is narrow.
+    const width = Math.min(2048, Math.max(isMobile ? 1024 : 1280, Math.round(planeCss * dpr)));
+    const height = Math.round((width * 10) / 16);
+    return { width, height };
+  };
+
   const loadCovers = async () => {
+    const size = coverRasterSize();
     const layers = await Promise.allSettled(
       covers.flatMap((cover) => [
-        rasterizeCover(cover, 'base', textureWidth),
-        rasterizeCover(cover, 'art', textureWidth),
+        rasterizeCover(cover, 'base', { ...size, anisotropy: maxAnisotropy }),
+        rasterizeCover(cover, 'art', { ...size, anisotropy: maxAnisotropy }),
       ]),
     );
-    const textures = layers.flatMap((layer) => layer.status === 'fulfilled' ? [layer.value] : []);
+    const next = layers.flatMap((layer) => (layer.status === 'fulfilled' ? [layer.value] : []));
     const failure = layers.find((layer) => layer.status === 'rejected');
     if (failure?.status === 'rejected') {
-      textures.forEach((texture) => texture.dispose());
+      next.forEach((texture) => texture.dispose());
       throw failure.reason;
     }
-    return textures;
+    next.forEach((texture) => applyTextureQuality(texture, maxAnisotropy));
+    return next;
   };
 
   let textures: Texture[];
@@ -110,22 +136,14 @@ export async function mountHeroScene(
     textures = await loadCovers();
   } catch (error) {
     console.warn('Could not load carousel covers', error);
+    renderer.dispose();
     return null;
   }
   if (!canvas.isConnected) {
     textures.forEach((texture) => texture.dispose());
+    renderer.dispose();
     return null;
   }
-
-  const renderer = new WebGLRenderer({
-    canvas,
-    antialias: !isMobile,
-    alpha: true,
-    premultipliedAlpha: false,
-    powerPreference: isMobile ? 'low-power' : 'high-performance',
-  });
-  renderer.setClearColor(0x000000, 0);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.25 : 1.6));
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(isMobile ? 46 : 34, 1, 0.1, 40);
@@ -147,11 +165,12 @@ export async function mountHeroScene(
 
   let active = 0;
   let current = 0;
-  let velocity = 0;
   let dragging = false;
   let lastX = 0;
   let dragStartX = 0;
   let dragDistance = 0;
+  let dragOrigin = 0;
+  let dragOffset = 0;
   let hoverIndex = -1;
   const hoverProgress = projects.map(() => 0);
   let frame = 0;
@@ -160,6 +179,8 @@ export async function mountHeroScene(
   let introDone = false;
   let lastCaption = 0;
   let browsed = false;
+  /** Soft settle toward integer slide (~700ms). */
+  const SNAP_DAMP = 7.2;
 
   const radius = isMobile ? 2.75 : 3.55;
   const step = isMobile ? 0.78 : 0.7;
@@ -306,13 +327,26 @@ export async function mountHeroScene(
     return hits[0]?.object instanceof Mesh ? hits[0].object : null;
   };
 
+  const goBy = (delta: number): void => {
+    if (!delta) return;
+    active = Math.round(active) + Math.sign(delta);
+    markBrowsed();
+  };
+
   const onPointerMove = (event: PointerEvent): void => {
     setPointer(event.clientX, event.clientY);
     if (dragging) {
       const dx = event.clientX - lastX;
       lastX = event.clientX;
       dragDistance += Math.abs(dx);
-      velocity += -dx * 0.0035;
+      // One gesture stays within ±1 slide from origin.
+      const parentWidth = Math.max(canvas.parentElement?.clientWidth ?? 360, 280);
+      dragOffset = MathUtils.clamp(
+        dragOffset - dx / (parentWidth * 0.55),
+        -1,
+        1,
+      );
+      current = dragOrigin + dragOffset;
       if (dragDistance > 10) markBrowsed();
     } else {
       const hit = pickCard();
@@ -332,7 +366,9 @@ export async function mountHeroScene(
     lastX = event.clientX;
     dragStartX = event.clientX;
     dragDistance = 0;
-    velocity = 0;
+    dragOrigin = Math.round(current);
+    dragOffset = current - dragOrigin;
+    active = dragOrigin;
     canvas.setPointerCapture(event.pointerId);
     canvas.style.cursor = 'grabbing';
   };
@@ -349,32 +385,35 @@ export async function mountHeroScene(
     if (isClick) {
       const hit = pickCard();
       if (hit) {
-        const project = projects[Number(hit.userData.index)];
-        if (project?.hasPage) onSelect(project);
+        const index = Number(hit.userData.index);
+        const currentIndex = wrapIndex(Math.round(current), projects.length);
+        if (index === currentIndex) {
+          const project = projects[index];
+          if (project?.hasPage) onSelect(project);
+        } else {
+          // Side plane: step toward the clicked card (one slide).
+          const offset = shortestOffset(index, currentIndex, projects.length);
+          active = currentIndex + Math.sign(offset);
+          markBrowsed();
+        }
       }
     } else {
-      active = Math.round(current);
+      if (dragOffset > 0.28) active = dragOrigin + 1;
+      else if (dragOffset < -0.28) active = dragOrigin - 1;
+      else active = dragOrigin;
       markBrowsed();
     }
     canvas.style.cursor = 'grab';
   };
 
-  const onWheel = (event: WheelEvent): void => {
-    event.preventDefault();
-    velocity += Math.sign(event.deltaY) * 0.08 + event.deltaY * 0.00045;
-    markBrowsed();
-  };
-
   const onKey = (event: KeyboardEvent): void => {
     if (event.key === 'ArrowRight') {
-      active += 1;
-      velocity = 0;
-      markBrowsed();
+      event.preventDefault();
+      goBy(1);
     }
     if (event.key === 'ArrowLeft') {
-      active -= 1;
-      velocity = 0;
-      markBrowsed();
+      event.preventDefault();
+      goBy(-1);
     }
     if (event.key === 'Enter') {
       const project = projects[wrapIndex(Math.round(current), projects.length)];
@@ -415,21 +454,8 @@ export async function mountHeroScene(
     const dt = Math.min(elapsed, 0.033);
 
     if (!dragging) {
-      const target = active;
-      current = MathUtils.damp(current, target, 4.2, dt);
-      velocity = MathUtils.damp(velocity, 0, 3.2, dt);
-      current += velocity;
-      if (Math.abs(velocity) < 0.001 && Math.abs(current - target) < 0.002) {
-        current = target;
-        velocity = 0;
-      }
-      if (Math.abs(velocity) > 0.002) {
-        active = Math.round(current);
-      }
-    } else {
-      current += velocity;
-      velocity *= 0.92;
-      active = Math.round(current);
+      current = MathUtils.damp(current, active, SNAP_DAMP, dt);
+      if (Math.abs(current - active) < 0.0015) current = active;
     }
 
     tilt.lerp(tiltTarget, 0.08);
@@ -461,7 +487,6 @@ export async function mountHeroScene(
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointerup', onPointerUp);
   canvas.addEventListener('pointercancel', onPointerUp);
-  canvas.addEventListener('wheel', onWheel, { passive: false });
   canvas.addEventListener('keydown', onKey);
   frame = requestAnimationFrame(render);
   canvas.dataset.ready = 'true';
@@ -471,6 +496,7 @@ export async function mountHeroScene(
 
   return {
     getActiveIndex: () => wrapIndex(Math.round(current), projects.length),
+    goBy,
     playIntro: () =>
       new Promise((resolve) => {
         const start = performance.now();
@@ -497,7 +523,6 @@ export async function mountHeroScene(
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointerup', onPointerUp);
       canvas.removeEventListener('pointercancel', onPointerUp);
-      canvas.removeEventListener('wheel', onWheel);
       themeObserver.disconnect();
       cardGeo.dispose();
       materials.forEach((material) => material.dispose());

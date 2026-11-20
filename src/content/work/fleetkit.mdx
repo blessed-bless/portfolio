@@ -64,6 +64,8 @@ React-дашборд ходит в API по JWT, SDK и воркеры — по 
   </svg>
 </Diagram>
 
+<Demo id="fleetkit" />
+
 ## Инженерные решения
 
 **Claim через `FOR UPDATE SKIP LOCKED`.** Несколько воркеров берут следующий queued job без гонки; на SQLite smoke-режиме — обычный `SELECT`.

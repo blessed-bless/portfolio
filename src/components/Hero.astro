@@ -45,7 +45,15 @@ const role = 'Fullstack · AI';
 
     <div class="hero__chrome">
       <p class="hero__counter mono" data-hero-counter>01 / {String(projects.length).padStart(2, '0')}</p>
-      <p class="hero__hint mono" data-hero-hint>листайте</p>
+      <div class="hero__nav" role="group" aria-label="Листание карусели">
+        <button type="button" class="hero__nav-btn mono" data-hero-prev data-cursor="hover" aria-label="Предыдущий проект">
+          ←
+        </button>
+        <button type="button" class="hero__nav-btn mono" data-hero-next data-cursor="hover" aria-label="Следующий проект">
+          →
+        </button>
+      </div>
+      <p class="hero__hint mono" data-hero-hint>тяните или ← →</p>
       <p class="hero__caption mono" data-hero-caption aria-live="polite">
         {firstProject && (
           <>
@@ -109,14 +117,30 @@ const role = 'Fullstack · AI';
     const counter = root.querySelector<HTMLElement>('[data-hero-counter]');
     const hint = root.querySelector<HTMLElement>('[data-hero-hint]');
     const staticGrid = root.querySelector<HTMLElement>('[data-hero-static]');
+    const prevBtn = root.querySelector<HTMLButtonElement>('[data-hero-prev]');
+    const nextBtn = root.querySelector<HTMLButtonElement>('[data-hero-next]');
+
+    const { isWeakGpu, mountHeroFallback } = await import('../scripts/hero-fallback');
+    const preferFallback = reduce || isWeakGpu();
+
+    const enableFallback = (): void => {
+      if (!staticGrid) return;
+      canvas?.setAttribute('hidden', '');
+      sceneTeardown = mountHeroFallback(root, staticGrid, {
+        projects,
+        counter,
+        caption,
+        hint,
+        onSelect: (project) => {
+          void openProject(project);
+        },
+      });
+    };
 
     let playIntro: (() => Promise<void>) | null = null;
 
-    if (reduce) {
-      root.dataset.webgl = 'off';
-      staticGrid?.removeAttribute('hidden');
-      if (caption) caption.hidden = true;
-      if (hint) hint.hidden = true;
+    if (preferFallback) {
+      enableFallback();
     } else if (canvas) {
       root.dataset.webgl = 'pending';
       staticGrid?.removeAttribute('hidden');
@@ -151,21 +175,31 @@ const role = 'Fullstack · AI';
       playIntro = async () => {
         const handle = await scenePromise;
         if (!handle) {
-          root.dataset.webgl = 'off';
-          staticGrid?.removeAttribute('hidden');
+          enableFallback();
           return;
         }
         root.dataset.webgl = 'on';
-        sceneTeardown = handle.dispose;
+        root.dataset.carousel = 'webgl';
+        const onPrev = (): void => handle.goBy(-1);
+        const onNext = (): void => handle.goBy(1);
+        prevBtn?.addEventListener('click', onPrev);
+        nextBtn?.addEventListener('click', onNext);
+        sceneTeardown = () => {
+          prevBtn?.removeEventListener('click', onPrev);
+          nextBtn?.removeEventListener('click', onNext);
+          handle.dispose();
+        };
         staticGrid?.setAttribute('hidden', '');
+        canvas.removeAttribute('hidden');
         await handle.playIntro();
       };
     } else {
-      root.dataset.webgl = 'off';
-      staticGrid?.removeAttribute('hidden');
+      enableFallback();
     }
 
-    if (reduce || window.matchMedia('(max-width: 900px)').matches) {
+    if (preferFallback) return;
+
+    if (window.matchMedia('(max-width: 900px)').matches) {
       await playIntro?.();
       return;
     }
@@ -297,13 +331,36 @@ const role = 'Fullstack · AI';
     position: relative;
     z-index: 4;
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto auto 1fr;
     gap: var(--space-2) var(--space-4);
     align-items: center;
     padding: var(--space-3) var(--page-pad) clamp(1rem, 3vh, 2rem) var(--space-5);
     pointer-events: none;
     opacity: 1;
     isolation: isolate;
+  }
+
+  .hero__nav {
+    display: inline-flex;
+    gap: var(--space-2);
+    pointer-events: auto;
+  }
+
+  .hero__nav-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 0.65rem;
+    border: var(--stroke) solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--fg);
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+
+  .hero__nav-btn:hover,
+  .hero__nav-btn:focus-visible {
+    border-color: var(--border-strong);
+    color: var(--accent-strong);
   }
 
   .hero__counter,
@@ -323,6 +380,7 @@ const role = 'Fullstack · AI';
   .hero__hint {
     color: var(--fg-muted);
     justify-self: end;
+    grid-column: 3;
     transition: opacity var(--dur-2) var(--ease-out);
   }
 
@@ -409,12 +467,40 @@ const role = 'Fullstack · AI';
     display: none;
   }
 
+  .hero[data-carousel='snap'] .hero__static {
+    inset: auto 0 18%;
+    top: 10%;
+    bottom: 18%;
+    display: flex;
+    gap: var(--space-4);
+    padding-inline: var(--page-pad);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--page-pad);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    align-content: center;
+    align-items: center;
+  }
+
+  .hero[data-carousel='snap'] .hero__static-card {
+    flex: 0 0 min(78vw, 28rem);
+    scroll-snap-align: center;
+  }
+
+  .hero[data-carousel='snap'] .hero__static-card[data-active='true'] {
+    border-color: var(--border-strong);
+  }
+
   .hero__static-card {
     aspect-ratio: 16 / 10;
     display: block;
     border: var(--stroke) solid var(--border);
     background-color: var(--bg-elevated);
     overflow: hidden;
+    text-decoration: none;
+    color: inherit;
   }
 
   :global(.hero-char) {
@@ -509,6 +595,21 @@ const role = 'Fullstack · AI';
     .hero__static {
       inset: 4% var(--page-pad) 22%;
       grid-template-columns: 1fr 1fr;
+    }
+
+    .hero[data-carousel='snap'] .hero__static {
+      inset: auto 0 20%;
+      top: 6%;
+      bottom: 20%;
+      padding-inline: var(--page-pad);
+    }
+
+    .hero[data-carousel='snap'] .hero__static-card {
+      flex-basis: min(86vw, 22rem);
+    }
+
+    .hero__chrome {
+      grid-template-columns: auto auto 1fr;
     }
   }
 </style>

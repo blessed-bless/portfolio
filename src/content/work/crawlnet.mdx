@@ -61,6 +61,8 @@ CLI, бот и дашборд кладут задачи в Redis frontier. Во�
   </svg>
 </Diagram>
 
+<Demo id="crawlnet" />
+
 ## Инженерные решения
 
 **Pop + inflight.** Берём earliest ready из ZSET, если score в будущем — кладём обратно; иначе помечаем в `inflight` с дедлайном claim.
