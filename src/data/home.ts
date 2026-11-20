@@ -102,7 +102,7 @@ export const stackRowB = [
 export const contactLinks = {
   telegram: 'https://t.me/ketasonx',
   github: 'https://github.com/blessed-bless',
-  email: 'phungngocvuzyuh69739@gmail.com',
+  email: 'bogdan@dubstepmolitva.ru',
 } as const;
 
 export const aboutIntro = [
