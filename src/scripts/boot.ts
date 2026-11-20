@@ -2,6 +2,7 @@ import { applyTheme, resolveInitialTheme } from './theme';
 import { startLenis, stopLenis } from './lenis-scroll';
 import { mountCustomCursor } from './cursor';
 import { runPreloader } from './preloader';
+import { mountMetrika } from './metrika';
 
 let cursorTeardown: (() => void) | null = null;
 
@@ -23,6 +24,7 @@ function bootChrome(): void {
   }
 }
 
+mountMetrika();
 bootChrome();
 
 document.addEventListener('astro:page-load', bootChrome);
