@@ -1,0 +1,129 @@
+---
+import Button from './Button.astro';
+import { contactLinks } from '../data/home';
+
+const title = 'Давайте сделаем';
+const letters = [...title];
+---
+
+<section class="contact page-pad" id="contact" data-contact aria-label="Контакт">
+  <p class="eyebrow">Связь</p>
+  <h2 class="contact__title" data-magnetic-title aria-label={title}>
+    {
+      letters.map((ch) =>
+        ch === ' ' ? (
+          <span class="contact__space">&nbsp;</span>
+        ) : (
+          <span class="contact__letter">{ch}</span>
+        ),
+      )
+    }
+  </h2>
+
+  <div class="contact__links">
+    <a class="contact__link" href={contactLinks.telegram} data-cursor="hover">Telegram</a>
+    <a class="contact__link" href={contactLinks.github} data-cursor="hover">GitHub</a>
+    <button
+      class="contact__link contact__link--email"
+      type="button"
+      data-copy-email
+      data-email={contactLinks.email}
+      data-cursor="hover"
+    >
+      {contactLinks.email}
+    </button>
+  </div>
+
+  <div class="contact__cta">
+    <Button href={`mailto:${contactLinks.email}`} variant="primary">Написать</Button>
+  </div>
+
+  <p class="contact__toast mono" data-copy-toast data-open="false" role="status" aria-live="polite"></p>
+</section>
+
+<style>
+  .contact {
+    position: relative;
+    padding-block: var(--section-gap);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .contact__title {
+    margin: var(--space-4) 0 0;
+    font-size: clamp(2.6rem, 1.2rem + 8.5vw, 7.5rem);
+    font-weight: 750;
+    letter-spacing: var(--tracking-display);
+    line-height: 1;
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    padding-bottom: 0.08em;
+    overflow: visible;
+  }
+
+  .contact__letter,
+  .contact__space {
+    display: inline-block;
+    will-change: transform;
+    line-height: 1;
+  }
+
+  .contact__links {
+    margin-top: var(--space-7);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-6);
+  }
+
+  .contact__link {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-mono);
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--fg);
+    background: none;
+    border: 0;
+    padding: 0;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .contact__link:hover {
+    color: var(--accent-strong);
+  }
+
+  .contact__link--email {
+    cursor: pointer;
+  }
+
+  .contact__cta {
+    margin-top: var(--space-6);
+  }
+
+  .contact__toast {
+    position: fixed;
+    left: 50%;
+    bottom: var(--space-5);
+    z-index: 50;
+    margin: 0;
+    padding: var(--space-2) var(--space-4);
+    border: var(--stroke) solid var(--border-strong);
+    background: var(--bg-elevated);
+    color: var(--fg);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    transform: translateX(-50%) translateY(120%);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform var(--dur-3) var(--ease-out),
+      opacity var(--dur-2) var(--ease-out);
+  }
+
+  .contact__toast[data-open='true'] {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+</style>

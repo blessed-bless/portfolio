@@ -1,0 +1,91 @@
+---
+---
+
+<button
+  class="theme-toggle"
+  type="button"
+  data-theme-toggle
+  data-cursor="hover"
+>
+  <span class="theme-toggle__track" aria-hidden="true">
+    <span class="theme-toggle__knob"></span>
+  </span>
+  <span class="theme-toggle__label mono" data-theme-label>Тема</span>
+</button>
+
+<script>
+  import { applyTheme, resolveInitialTheme, toggleTheme } from '../scripts/theme';
+
+  function syncLabel(button: HTMLElement): void {
+    const label = button.querySelector('[data-theme-label]');
+    const mode = document.documentElement.dataset.theme === 'light' ? 'Светлая' : 'Тёмная';
+    if (label) label.textContent = mode;
+    button.setAttribute('aria-pressed', String(document.documentElement.dataset.theme === 'light'));
+  }
+
+  function bind(): void {
+    applyTheme(resolveInitialTheme());
+    document.querySelectorAll<HTMLElement>('[data-theme-toggle]').forEach((button) => {
+      syncLabel(button);
+      button.onclick = () => {
+        toggleTheme();
+        syncLabel(button);
+      };
+    });
+  }
+
+  bind();
+  document.addEventListener('astro:page-load', bind);
+</script>
+
+<style>
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--fg-muted);
+  }
+
+  .theme-toggle:hover {
+    color: var(--fg);
+  }
+
+  .theme-toggle__track {
+    position: relative;
+    width: 2.4rem;
+    height: 1.25rem;
+    border: var(--stroke) solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--bg-soft);
+  }
+
+  .theme-toggle__knob {
+    position: absolute;
+    top: 50%;
+    left: 0.15rem;
+    width: 0.78rem;
+    height: 0.78rem;
+    border-radius: 50%;
+    background: var(--accent);
+    transform: translateY(-50%);
+    transition: left var(--dur-2) var(--ease-out);
+  }
+
+  :global([data-theme='light']) .theme-toggle__knob {
+    left: calc(100% - 0.93rem);
+  }
+
+  .theme-toggle__label {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 520px) {
+    .theme-toggle__label {
+      display: none;
+    }
+  }
+</style>

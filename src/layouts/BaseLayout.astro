@@ -1,0 +1,70 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import SiteCursor from '../components/SiteCursor.astro';
+import Preloader from '../components/Preloader.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = '{{заполнить}}',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,560;12..96,650;12..96,750&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script is:inline>
+      (() => {
+        try {
+          const key = 'portfolio-theme';
+          const stored = localStorage.getItem(key);
+          const mode =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : window.matchMedia('(prefers-color-scheme: light)').matches
+                ? 'light'
+                : 'dark';
+          document.documentElement.dataset.theme = mode;
+          document.documentElement.style.colorScheme = mode;
+        } catch (_) {
+          document.documentElement.dataset.theme = 'dark';
+        }
+      })();
+    </script>
+    <ClientRouter />
+    <title>{title}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">К содержимому</a>
+    <Preloader />
+    <SiteCursor />
+    <div class="site-shell">
+      <Header />
+      <main class="site-main" id="main">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+    <script>
+      import '../scripts/boot';
+    </script>
+  </body>
+</html>

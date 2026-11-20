@@ -1,0 +1,219 @@
+---
+import { projects, type Project } from '../data/projects';
+
+type FeaturedRow = Project & { stub?: boolean };
+
+const featured: FeaturedRow[] = [
+  projects.find((p) => p.slug === 'priemnaya'),
+  projects.find((p) => p.slug === 'placeholder'),
+  projects.find((p) => p.slug === 'project-3'),
+]
+  .filter((item): item is Project => Boolean(item))
+  .map((project) =>
+    project.slug === 'priemnaya' ? project : { ...project, stub: true },
+  );
+---
+
+<section class="featured page-pad" id="work" data-featured aria-label="Избранные проекты">
+  <div class="featured__head">
+    <p class="eyebrow">Избранное</p>
+    <h2 class="featured__title">Проекты</h2>
+  </div>
+
+  <ul class="featured__list">
+    {
+      featured.map((project, index) => (
+        <li>
+          <a
+            class="featured__row"
+            href={project.hasPage ? `/work/${project.slug}` : '#work'}
+            data-featured-row
+            data-cover={project.cover}
+            data-cursor="hover"
+          >
+            <span
+              class="featured__mobile-preview"
+              aria-hidden="true"
+              style={`background-image:url(${project.cover})`}
+            />
+            <span class="featured__num mono">{String(index + 1).padStart(2, '0')}</span>
+            <span class="featured__name">
+              {project.title}
+              {project.stub ? <span class="featured__stub mono">скоро</span> : null}
+            </span>
+            <span class="featured__year mono">{project.year}</span>
+            <span class="featured__stack mono">{project.stack}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div
+    class="featured__follower"
+    data-featured-follower
+    data-visible="false"
+    data-mode="follow"
+    aria-hidden="true"
+  >
+    <div class="featured__follower-media" data-featured-media></div>
+  </div>
+</section>
+
+<style>
+  .featured {
+    position: relative;
+    padding-block: var(--section-gap);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .featured__head {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+  }
+
+  .featured__title {
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+  }
+
+  .featured__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .featured__row {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1.6fr) 4.5rem minmax(8rem, 0.9fr);
+    gap: var(--space-4);
+    align-items: baseline;
+    padding-block: clamp(1.25rem, 2.5vw, 2rem);
+    border-bottom: var(--stroke) solid var(--border);
+    text-decoration: none;
+    color: inherit;
+    transition: color var(--dur-2) var(--ease-out);
+  }
+
+  .featured__row:hover,
+  .featured__row:focus-visible {
+    color: var(--accent-strong);
+  }
+
+  .featured__mobile-preview {
+    display: none;
+  }
+
+  .featured__num {
+    color: var(--accent-strong);
+    font-size: var(--text-sm);
+  }
+
+  .featured__name {
+    font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2.75rem);
+    font-weight: 650;
+    letter-spacing: var(--tracking-tight);
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .featured__stub {
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    font-weight: 500;
+  }
+
+  .featured__year,
+  .featured__stack {
+    font-size: var(--text-sm);
+    color: var(--fg-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .featured__year {
+    text-align: right;
+  }
+
+  .featured__follower {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 30;
+    width: min(18rem, 42vw);
+    aspect-ratio: 4 / 3;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate3d(-120%, -120%, 0);
+    transition: opacity var(--dur-2) var(--ease-out);
+    border: var(--stroke) solid var(--border-strong);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+  }
+
+  .featured__follower[data-visible='true'] {
+    opacity: 1;
+  }
+
+  .featured__follower[data-mode='static'] {
+    display: none;
+  }
+
+  .featured__follower-media {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-soft) center / cover no-repeat;
+  }
+
+  @media (max-width: 900px) {
+    .featured__row {
+      grid-template-columns: 2.5rem 1fr;
+      grid-template-areas:
+        'preview preview'
+        'num name'
+        'year stack';
+      gap: var(--space-2) var(--space-3);
+      padding-block: var(--space-5);
+    }
+
+    .featured__mobile-preview {
+      display: block;
+      grid-area: preview;
+      aspect-ratio: 16 / 10;
+      margin-bottom: var(--space-2);
+      border: var(--stroke) solid var(--border);
+      background: var(--bg-elevated) center / cover no-repeat;
+    }
+
+    .featured__num {
+      grid-area: num;
+    }
+
+    .featured__name {
+      grid-area: name;
+      font-size: clamp(1.35rem, 5vw, 1.85rem);
+    }
+
+    .featured__year {
+      grid-area: year;
+    }
+
+    .featured__stack {
+      grid-area: stack;
+      text-align: right;
+    }
+
+    .featured__follower {
+      display: none;
+    }
+  }
+</style>
