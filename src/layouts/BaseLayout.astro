@@ -5,7 +5,7 @@ import Footer from '../components/Footer.astro';
 import SiteCursor from '../components/SiteCursor.astro';
 import Metrika from '../components/Metrika.astro';
 import CommandPalette from '../components/CommandPalette.astro';
-import { defaultDescription, siteName, siteUrl } from '../lib/site';
+import { defaultDescription, siteName, siteNameEn, siteUrl } from '../lib/site';
 import { isFilled } from '../lib/fill';
 import { hasPublishedNotes } from '../lib/notes';
 import { withTrailingSlash } from '../lib/paths';
@@ -41,6 +41,7 @@ const t = ui(locale);
 const barePath = stripLocalePrefix(withTrailingSlash(canonicalPath));
 const showNotesRss = locale === 'ru' && (await hasPublishedNotes());
 const resolvedDescription = isFilled(description) ? description : defaultDescription;
+const resolvedSiteName = locale === 'en' ? siteNameEn : siteName;
 const canonical = new URL(withTrailingSlash(canonicalPath), siteUrl).href;
 const ogImageUrl = new URL(ogImage, siteUrl).href;
 const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
@@ -62,7 +63,7 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
     {hasEnAlternate ? <link rel="alternate" hreflang="en" href={enHref} /> : null}
     <link rel="alternate" hreflang="x-default" href={ruHref} />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content={siteName} />
+    <meta property="og:site_name" content={resolvedSiteName} />
     <meta property="og:locale" content={ogLocale} />
     {hasEnAlternate ? (
       <meta property="og:locale:alternate" content={locale === 'en' ? 'ru_RU' : 'en_US'} />

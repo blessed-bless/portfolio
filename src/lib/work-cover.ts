@@ -1,3 +1,5 @@
+import { withOgFonts } from './og-fonts';
+
 const covers = import.meta.glob<string>('../assets/covers/*.svg', {
   query: '?raw',
   import: 'default',
@@ -29,7 +31,7 @@ export function workCoverLabeled(
   const number = escapeXml(options.number);
   const title = escapeXml(options.title);
   const label = `
-  <text x="100" y="144" fill="currentColor" font-family="Unbounded, Onest, system-ui, sans-serif" font-size="42" font-weight="650" letter-spacing="-0.02em">${number}</text>
-  <text x="206" y="144" fill="var(--cover-ink, #E9E3FF)" font-family="Unbounded, Onest, system-ui, sans-serif" font-size="42" font-weight="650" letter-spacing="-0.02em">${title}</text>`;
-  return base.replace(/<\/svg>\s*$/i, `${label}\n</svg>`);
+  <text x="100" y="144" fill="currentColor" font-family="Unbounded, Onest, sans-serif" font-size="42" font-weight="650" letter-spacing="-0.02em">${number}</text>
+  <text x="206" y="144" fill="var(--cover-ink, #E9E3FF)" font-family="Unbounded, Onest, sans-serif" font-size="42" font-weight="650" letter-spacing="-0.02em">${title}</text>`;
+  return withOgFonts(base.replace(/<\/svg>\s*$/i, `${label}\n</svg>`));
 }

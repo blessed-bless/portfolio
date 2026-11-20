@@ -129,7 +129,7 @@ const smena = {
   },
   en: {
     title: 'Smena · today',
-    hint: 'Tap a free window to book. Statuses and “Share windows” work offline.',
+    hint: 'Tap a free window to book. Statuses and “Share free slots” work offline.',
     status: {
       confirmed: 'waiting',
       arrived: 'arrived',
@@ -150,7 +150,7 @@ const smena = {
     newClient: 'New client',
     haircut: "Men's haircut",
     bookedAt: (time: string) => `Booked at ${time}. Free windows recalculated.`,
-    shareWindows: 'Share windows',
+    shareWindows: 'Share free slots',
     shareText: (lines: string) => `Free today:\n${lines || '• none'}\n\nReply with a time that works.`,
     shareNote: 'Client-facing text — copy from the block below.',
     selectedNote: (name: string, status: string) => `${name}: ${status}.`,

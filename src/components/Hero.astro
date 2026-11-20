@@ -45,7 +45,8 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
       <div class="hero__static" data-hero-static>
         {
           projects.map((project, index) => {
-            const label = `${String(index + 1).padStart(2, '0')} · ${project.title}`;
+            const number = String(index + 1).padStart(2, '0');
+            const label = `${number} · ${project.title}`;
             return (
               <a
                 class="hero__static-card"
@@ -59,6 +60,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
                   loading={index === 0 ? 'eager' : 'lazy'}
                   index={index + 1}
                   title={project.title}
+                  label={label}
                 />
               </a>
             );
@@ -519,6 +521,32 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
   :global(.hero-word) {
     display: inline-block;
     white-space: nowrap;
+  }
+
+  /* Desktop: shorten stage so cards sit near chrome (~254px gap gone). Mobile untouched. */
+  @media (min-width: 901px) {
+    .hero__stage-wrap {
+      top: clamp(0.75rem, 3vh, 2rem);
+      grid-template-rows: minmax(0, 1fr) auto;
+      align-content: end;
+    }
+
+    .hero__stage {
+      height: min(52svh, calc(100% - 4.5rem));
+      max-height: min(52svh, calc(100% - 4.5rem));
+      align-self: end;
+    }
+
+    .hero__static {
+      align-content: end;
+      inset: 2% 2% 4%;
+    }
+
+    .hero[data-carousel='snap'] .hero__static {
+      inset: auto 0 4%;
+      top: auto;
+      bottom: 4%;
+    }
   }
 
   @media (max-width: 900px) {

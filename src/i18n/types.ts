@@ -21,12 +21,14 @@ export type UiDict = {
     cmdk: string;
     cmdkShort: string;
     discuss: string;
+    channel: string;
     themeLight: string;
     themeDark: string;
   };
   footer: {
     top: string;
     uses: string;
+    channel: string;
     lessMotion: string;
     lessMotionOn: string;
   };
@@ -55,6 +57,9 @@ export type UiDict = {
     carouselPrev: string;
     carouselNext: string;
     carouselHint: string;
+    channelEyebrow: string;
+    channelTitle: string;
+    channelMore: string;
   };
   work: {
     title: string;
@@ -103,6 +108,7 @@ export type UiDict = {
     theme: string;
     copyEmail: string;
     openTelegram: string;
+    openChannel: string;
     openGithub: string;
     switchLocale: string;
     resume: string;
