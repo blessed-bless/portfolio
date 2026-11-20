@@ -27,13 +27,17 @@ export const en: UiDict = {
   footer: {
     top: 'Top',
     uses: 'Uses',
+    lessMotion: 'Fewer animations',
+    lessMotionOn: 'Animations reduced',
   },
+  personName: 'Bogdan Shcherbinin',
+  personAlt: 'Bogdan Shcherbinin',
   home: {
     title: 'Bogdan — backends, bots, and automation',
     description:
       'Python backends, Telegram bots, and automation for product teams. From intake to a running system.',
     heroHeadline: 'Python backends, bots, and automation that ship',
-    heroSubtitle: 'APIs, workers, and dashboards — from the first request to a live loop.',
+    heroSubtitle: 'APIs, workers, and dashboards — from the first API call to a system running in production.',
     heroCta: 'Discuss a project',
     heroWork: 'See work',
     featuredEyebrow: 'Selected',
@@ -41,11 +45,17 @@ export const en: UiDict = {
     offersEyebrow: 'Services',
     offersTitle: 'What I build',
     processEyebrow: 'Process',
-    processTitle: 'How we work',
+    processTitle: 'How a project runs',
     contactTitle: 'Let’s build it',
     contactWrite: 'Email me',
     contactPending: 'Contact links will show up here soon.',
     copied: 'Email copied',
+    stackEyebrow: 'Tools',
+    stackTitle: 'Stack',
+    carouselNav: 'Carousel',
+    carouselPrev: 'Previous project',
+    carouselNext: 'Next project',
+    carouselHint: 'drag or ← →',
   },
   work: {
     title: 'Work — Bogdan',
@@ -71,7 +81,7 @@ export const en: UiDict = {
     title: 'Uses — Bogdan',
     description: 'Editor, terminal, hardware, and services I use day to day.',
     eyebrow: 'Uses',
-    heading: 'Uses',
+    heading: 'What I use every day',
     lead: 'A short tool list. Empty rows stay hidden until I fill them in.',
     empty: 'Nothing here yet — filling this in next.',
   },
@@ -97,16 +107,22 @@ export const en: UiDict = {
     openGithub: 'Open GitHub',
     switchLocale: 'Switch language RU/EN',
     resume: 'Download resume',
+    lessMotion: 'Fewer animations',
+    lessMotionOn: 'Animations reduced',
   },
   demo: {
-    wantSame: 'I want the same',
+    ariaLabel: 'Interactive demo',
+    tryTitle: 'Try it',
+    tryBadge: 'Demo on sample data',
+    loading: 'Loading demo…',
+    wantSame: 'Want one like this?',
     wantSameText: (project) =>
-      `Hi — I want something like “${project}” from your portfolio. What’s the next step and timeline?`,
+      `Hi — I want something like ${project} from your portfolio. What’s the next step and timeline?`,
   },
   offers: [
     {
-      title: 'Booking day in Telegram',
-      text: 'A master’s day view: slots, visit statuses, and shareable free windows — no CRM install.',
+      title: 'Booking and schedule in Telegram',
+      text: 'A barber’s day view: slots, visit statuses, and shareable free windows — no CRM install.',
       href: '/en/work/smena/#demo',
     },
     {
@@ -116,7 +132,7 @@ export const en: UiDict = {
     },
     {
       title: 'Job control planes',
-      text: 'Queues, workers, cron, and webhooks behind one API — less glue scripts on each box.',
+      text: 'Queues, workers, cron, and webhooks behind one API — fewer glue scripts on every server.',
       href: '/en/work/fleetkit/#demo',
     },
   ],
@@ -127,8 +143,8 @@ export const en: UiDict = {
       timing: '{{заполнить}}',
     },
     {
-      title: 'Working slice',
-      text: 'A thin path end to end: request → backend → notification or dashboard.',
+      title: 'First working version',
+      text: 'One complete flow, end to end: request → backend → notification or dashboard.',
       timing: '{{заполнить}}',
     },
     {
@@ -143,13 +159,13 @@ export const en: UiDict = {
     },
   ],
   aboutIntro: [
-    'I write Python backends, bots, and automation — plus the web surfaces that sit on them, from APIs and queues to a dashboard or booking form.',
+    'I write Python backends, bots, and automation — plus the web UIs on top of them, from APIs and queues to a dashboard or booking form.',
     'I care about a result you can run, check, and hand off — not just a sketch in a repo.',
   ],
   aboutPrinciples: [
     {
-      title: 'Working path first',
-      text: 'Ship a full scenario, then polish. No decoration on an empty core.',
+      title: 'Make it work, then polish',
+      text: 'Ship a full scenario, then polish. No polish on top of nothing.',
     },
     {
       title: 'Small diffs',
@@ -165,7 +181,7 @@ export const en: UiDict = {
     },
   ],
   aboutHire: [
-    'Bots and backends for intake, notifications, and ops loops.',
+    'Bots and backends for intake, notifications, and internal operations.',
     'Automation from a form or webhook to a message your team can act on.',
     'Small CRM-shaped tools: leads, notes, timeline, exports.',
   ],

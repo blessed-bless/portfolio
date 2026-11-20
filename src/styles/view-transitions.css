@@ -88,6 +88,23 @@
   }
 }
 
+html[data-perf='low'] ::view-transition-old(root) {
+  animation: vt-crossfade-out 160ms linear both;
+}
+
+html[data-perf='low'] ::view-transition-new(root) {
+  animation: vt-crossfade-in 160ms linear both;
+}
+
+html[data-perf='low'] ::view-transition-group(work-cover-priemnaya),
+html[data-perf='low'] ::view-transition-group(work-cover-fleetkit),
+html[data-perf='low'] ::view-transition-group(work-cover-crawlnet),
+html[data-perf='low'] ::view-transition-group(work-cover-ai-funnel-ecosystem),
+html[data-perf='low'] ::view-transition-group(work-cover-shipcrew),
+html[data-perf='low'] ::view-transition-group(work-cover-smena) {
+  animation: none;
+}
+
 /* Fallback when View Transitions API is missing — no CSS VT rules apply */
 @supports not (view-transition-name: none) {
   :root {

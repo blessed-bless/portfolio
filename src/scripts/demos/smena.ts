@@ -1,4 +1,7 @@
-import {button, clear, el, wait, wantSameCta} from './shared';
+import { demoLocale, demoProjectLabel, smenaCopy } from '../../i18n/demo-copy';
+import { button, clear, el, wait, wantSameCta } from './shared';
+
+type VisitStatus = 'confirmed' | 'arrived' | 'done' | 'noshow';
 
 type Visit = {
   id: string;
@@ -6,7 +9,7 @@ type Visit = {
   duration: number;
   name: string;
   service: string;
-  status: 'confirmed' | 'arrived' | 'done' | 'noshow';
+  status: VisitStatus;
 };
 
 type Settings = {
@@ -49,38 +52,28 @@ function freeGaps(
   return out;
 }
 
-const seed: Visit[] = [
-  {id: '1', time: '10:00', duration: 60, name: 'Алексей М.', service: 'Мужская стрижка', status: 'done'},
-  {id: '2', time: '11:30', duration: 90, name: 'Дмитрий В.', service: 'Стрижка и борода', status: 'confirmed'},
-  {id: '3', time: '14:00', duration: 60, name: 'Михаил С.', service: 'Мужская стрижка', status: 'confirmed'},
-  {id: '4', time: '16:30', duration: 30, name: 'Артём Б.', service: 'Оформление бороды', status: 'confirmed'},
-];
-
-const settings: Settings = {start: '10:00', end: '19:00', workdays: [0, 1, 2, 3, 4, 5, 6]};
+const settings: Settings = { start: '10:00', end: '19:00', workdays: [0, 1, 2, 3, 4, 5, 6] };
 
 export function mountSmenaDemo(root: HTMLElement): () => void {
   clear(root);
+  const locale = demoLocale();
+  const t = smenaCopy(locale);
+  const projectLabel = demoProjectLabel[locale].smena;
+
   const ui = el('div', 'demo-ui smena-demo');
   const phone = el('div', 'smena-demo__phone');
   const chrome = el('div', 'smena-demo__chrome');
-  chrome.append(el('span', 'smena-demo__dot'), el('p', 'smena-demo__title', 'Смена · сегодня'));
+  chrome.append(el('span', 'smena-demo__dot'), el('p', 'smena-demo__title', t.title));
   const day = el('div', 'smena-demo__day');
   const rail = el('div', 'smena-demo__rail');
   const board = el('div', 'smena-demo__board');
   const actions = el('div', 'demo-ui__row smena-demo__actions');
-  const note = el('p', 'demo-ui__meta', 'Тап по свободному окну — запись. Статусы и «Поделиться окнами» без сети.');
+  const note = el('p', 'demo-ui__meta', t.hint);
   const share = el('pre', 'smena-demo__share');
   share.hidden = true;
 
-  let records = seed.map((r) => ({...r}));
+  let records = t.seed.map((r) => ({ ...r }));
   let selectedId: string | null = records.find((r) => r.status === 'confirmed')?.id ?? null;
-
-  const statusLabel: Record<Visit['status'], string> = {
-    confirmed: 'ожидает',
-    arrived: 'пришёл',
-    done: 'завершён',
-    noshow: 'не пришёл',
-  };
 
   const render = (): void => {
     clear(rail);
@@ -105,13 +98,13 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
             id,
             time: hhmm(start),
             duration: Math.min(60, end - start),
-            name: 'Новый клиент',
-            service: 'Мужская стрижка',
+            name: t.newClient,
+            service: t.haircut,
             status: 'confirmed',
           },
         ];
         selectedId = id;
-        note.textContent = `Запись на ${hhmm(start)}. Свободные окна пересчитаны.`;
+        note.textContent = t.bookedAt(hhmm(start));
         share.hidden = true;
         render();
       });
@@ -128,11 +121,11 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
       card.append(
         el('strong', '', r.name),
         el('span', '', `${r.time} · ${r.service}`),
-        el('em', '', statusLabel[r.status]),
+        el('em', '', t.status[r.status]),
       );
       card.addEventListener('click', () => {
         selectedId = r.id;
-        note.textContent = `${r.name}: ${statusLabel[r.status]}.`;
+        note.textContent = t.selectedNote(r.name, t.status[r.status]);
         render();
       });
       board.append(card);
@@ -140,38 +133,34 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
 
     clear(actions);
     const selected = records.find((r) => r.id === selectedId);
-    for (const [status, label] of [
-      ['arrived', 'Пришёл'],
-      ['done', 'Завершён'],
-      ['noshow', 'Не пришёл'],
-    ] as const) {
-      const btn = button(label, {pressed: selected?.status === status});
+    for (const status of ['arrived', 'done', 'noshow'] as const) {
+      const btn = button(t.statusBtn[status], { pressed: selected?.status === status });
       btn.disabled = !selected || selected.status === 'done';
       btn.addEventListener('click', async () => {
         if (!selected) return;
         await wait(120);
-        records = records.map((r) => (r.id === selected.id ? {...r, status} : r));
-        note.textContent = `${selected.name} → ${statusLabel[status]}.`;
+        records = records.map((r) => (r.id === selected.id ? { ...r, status } : r));
+        note.textContent = t.statusChanged(selected.name, t.status[status]);
         share.hidden = true;
         render();
       });
       actions.append(btn);
     }
 
-    const shareBtn = button('Поделиться окнами', {primary: true});
+    const shareBtn = button(t.shareWindows, { primary: true });
     shareBtn.addEventListener('click', () => {
       const lines = freeGaps(records, settings)
         .map(([s, e]) => `• ${hhmm(s)}–${hhmm(e)}`)
         .join('\n');
       share.hidden = false;
-      share.textContent = `Свободно сегодня:\n${lines || '• окон нет'}\n\nНапишите, какое время удобно.`;
-      note.textContent = 'Текст для клиента — можно скопировать из блока ниже.';
+      share.textContent = t.shareText(lines);
+      note.textContent = t.shareNote;
     });
     actions.append(shareBtn);
   };
 
   day.append(rail, board);
-  phone.append(chrome, day, actions, share, note, wantSameCta('Смена'));
+  phone.append(chrome, day, actions, share, note, wantSameCta(projectLabel));
   ui.append(phone);
   root.append(ui);
   render();

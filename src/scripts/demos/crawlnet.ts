@@ -1,3 +1,4 @@
+import { crawlnetCopy, demoLocale, demoProjectLabel } from '../../i18n/demo-copy';
 import { button, clear, el, wait, wantSameCta } from './shared';
 
 const SEEDS = [
@@ -11,6 +12,10 @@ type Edge = { from: string; to: string };
 
 export function mountCrawlnetDemo(root: HTMLElement): () => void {
   clear(root);
+  const locale = demoLocale();
+  const t = crawlnetCopy(locale);
+  const projectLabel = demoProjectLabel[locale].crawlnet;
+
   const ui = el('div', 'demo-ui');
   const controls = el('div', 'demo-ui__row');
   const select = el('select', 'demo-ui__select') as HTMLSelectElement;
@@ -20,25 +25,27 @@ export function mountCrawlnetDemo(root: HTMLElement): () => void {
     opt.textContent = seed;
     select.append(opt);
   }
-  const startBtn = button('Запустить обход', { primary: true });
-  const exportBtn = button('Экспорт CSV');
+  const startBtn = button(t.start, { primary: true });
+  const exportBtn = button(t.exportCsv);
   exportBtn.disabled = true;
-  controls.append(el('p', 'demo-ui__label', 'Стартовый URL'), select, startBtn, exportBtn);
+  controls.append(el('p', 'demo-ui__label', t.startUrl), select, startBtn, exportBtn);
 
   const stats = el('div', 'demo-ui__row');
-  const pagesStat = el('span', 'demo-ui__meta', 'страниц: 0');
-  const errStat = el('span', 'demo-ui__meta', 'ошибок: 0');
+  const pagesStat = el('span', 'demo-ui__meta', t.pages(0));
+  const errStat = el('span', 'demo-ui__meta', t.errors(0));
   stats.append(pagesStat, errStat);
 
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'demo-ui__graph');
   svg.setAttribute('viewBox', '0 0 640 360');
   svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', 'Граф обхода');
+  svg.setAttribute('aria-label', t.graphLabel);
 
   const tableWrap = el('div', 'demo-ui__table-wrap');
   const table = el('table', 'demo-ui__table');
-  table.innerHTML = '<thead><tr><th>URL</th><th>глубина</th><th>статус</th></tr></thead>';
+  const thead = document.createElement('thead');
+  thead.innerHTML = `<tr><th>URL</th><th>${t.depth}</th><th>${t.status}</th></tr>`;
+  table.append(thead);
   const tbody = document.createElement('tbody');
   table.append(tbody);
   tableWrap.append(table);
@@ -73,12 +80,12 @@ export function mountCrawlnetDemo(root: HTMLElement): () => void {
       circle.setAttribute('fill', 'currentColor');
       svg.append(circle);
     }
-    pagesStat.textContent = `страниц: ${pages}`;
-    errStat.textContent = `ошибок: ${errors}`;
+    pagesStat.textContent = t.pages(pages);
+    errStat.textContent = t.errors(errors);
     clear(tbody);
     for (const row of rows) {
       const tr = document.createElement('tr');
-      const statusLabel = row.status === 'ok' ? 'ок' : 'ошибка';
+      const statusLabel = row.status === 'ok' ? t.ok : t.error;
       tr.innerHTML = `<td>${row.url}</td><td>${row.depth}</td><td>${statusLabel}</td>`;
       tbody.append(tr);
     }
@@ -164,7 +171,7 @@ export function mountCrawlnetDemo(root: HTMLElement): () => void {
   });
 
   const footer = el('div', 'demo-ui__footer');
-  footer.append(wantSameCta('crawlnet'));
+  footer.append(wantSameCta(projectLabel));
 
   ui.append(controls, stats, svg, tableWrap, footer);
   root.append(ui);

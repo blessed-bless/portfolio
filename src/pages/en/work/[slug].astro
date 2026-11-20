@@ -12,13 +12,14 @@ import {
   renderWork,
   toProject,
 } from '../../../lib/work';
-import { personName, siteUrl } from '../../../lib/site';
+import { siteUrl } from '../../../lib/site';
 import { withTrailingSlash } from '../../../lib/paths';
 
 import { localizedPath, ui } from '../../../i18n';
 
 const locale = 'en' as const;
 const t = ui(locale);
+const personName = t.personName;
 
 export async function getStaticPaths() {
   const cases = await getCaseEntries('en');
@@ -63,7 +64,7 @@ const creativeWorkLd = {
   title={`${project.title} — portfolio`}
   description={project.summary}
   canonicalPath={localizedPath('en', `/work/${project.slug}/`)}
-  ogImage={`/og/${project.slug}.png`}
+  ogImage={`/og/en/${project.slug}.png`}
   jsonLd={creativeWorkLd}
   printCase={true}
 >
@@ -77,7 +78,12 @@ const creativeWorkLd = {
         <p class="case__summary">{project.summary}</p>
       </div>
       <div class="case__art">
-        <ProjectCover src={project.cover} transitionName={`work-cover-${project.slug}`} />
+        <ProjectCover
+          src={project.cover}
+          transitionName={`work-cover-${project.slug}`}
+          index={cases.findIndex((entry) => entry.data.slug === project.slug) + 1 || 1}
+          title={project.title}
+        />
       </div>
     </header>
 

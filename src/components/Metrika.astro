@@ -7,7 +7,7 @@ const pixelSrc = `https://mc.yandex.ru/watch/${METRIKA_ID}`;
 
 {
   enabled ? (
-    <>
+    <div transition:persist="metrika" data-metrika-root>
       <script is:inline set:html={`
 (function () {
   var host = location.hostname;
@@ -27,6 +27,8 @@ const pixelSrc = `https://mc.yandex.ru/watch/${METRIKA_ID}`;
     a.parentNode.insertBefore(k, a);
   })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
 
+  if (window.__ymPortfolioInit) return;
+  window.__ymPortfolioInit = true;
   ym(counterId, 'init', {
     ssr: true,
     webvisor: true,
@@ -38,9 +40,9 @@ const pixelSrc = `https://mc.yandex.ru/watch/${METRIKA_ID}`;
 `} />
       <noscript>
         <div>
-          <img src={pixelSrc} style="position:absolute; left:-9999px;" alt="" />
+          <img src={pixelSrc} style="position:absolute; left:-9999px;" alt="" width="1" height="1" />
         </div>
       </noscript>
-    </>
+    </div>
   ) : null
 }

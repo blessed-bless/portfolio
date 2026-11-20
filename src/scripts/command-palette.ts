@@ -1,4 +1,5 @@
 import { toggleTheme } from './theme';
+import { isLessMotionToggleOn, toggleLessMotion } from './perf';
 import type { PaletteItem } from '../data/command-palette';
 
 const RECENT_KEY = 'portfolio-cmdk-recent';
@@ -167,8 +168,19 @@ function renderList(): void {
     }
     const id = `cmdk-opt-${index}`;
     const selected = index === activeIndex ? 'true' : 'false';
+    let title = item.title;
+    if (item.action === 'less-motion') {
+      const lang = document.documentElement.lang === 'en' ? 'en' : 'ru';
+      title = isLessMotionToggleOn()
+        ? lang === 'en'
+          ? 'Animations reduced'
+          : 'Анимации урезаны'
+        : lang === 'en'
+          ? 'Fewer animations'
+          : 'Меньше анимаций';
+    }
     html += `<button type="button" class="cmdk__option" role="option" id="${id}" data-index="${index}" aria-selected="${selected}">
-      <span class="cmdk__option-title">${highlight(item.title, item.indices)}</span>
+      <span class="cmdk__option-title">${highlight(title, item.indices)}</span>
       ${item.hint ? `<span class="cmdk__option-hint mono">${escapeHtml(item.hint)}</span>` : ''}
     </button>`;
   });
@@ -200,6 +212,10 @@ async function runItem(item: PaletteItem): Promise<void> {
 
   if (item.action === 'theme') {
     toggleTheme();
+    return;
+  }
+  if (item.action === 'less-motion') {
+    toggleLessMotion();
     return;
   }
   if (item.action === 'copy-email') {
@@ -309,6 +325,7 @@ export function openPalette(): void {
   root.hidden = false;
   root.dataset.open = 'true';
   document.documentElement.dataset.cmdkOpen = 'true';
+  input.setAttribute('aria-expanded', 'true');
   activeIndex = 0;
   input.value = '';
   renderList();
@@ -321,6 +338,7 @@ export function closePalette(): void {
   root.dataset.open = 'false';
   root.hidden = true;
   delete document.documentElement.dataset.cmdkOpen;
+  input?.setAttribute('aria-expanded', 'false');
   lastFocus?.focus();
   lastFocus = null;
 }

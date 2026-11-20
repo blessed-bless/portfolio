@@ -11,8 +11,6 @@ import { hasPublishedNotes } from '../lib/notes';
 import { withTrailingSlash } from '../lib/paths';
 import { defaultLocale, isLocale, localizedPath, stripLocalePrefix, ui, type Locale } from '../i18n';
 import onestWoff2 from '@fontsource-variable/onest/files/onest-cyrillic-wght-normal.woff2?url';
-import unboundedWoff2 from '@fontsource/unbounded/files/unbounded-cyrillic-700-normal.woff2?url';
-import plexMonoWoff2 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-cyrillic-400-normal.woff2?url';
 import '../styles/global.css';
 
 interface Props {
@@ -87,8 +85,6 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
       <link rel="alternate" type="application/rss+xml" title="Заметки" href="/rss.xml" />
     ) : null}
     <link rel="preload" href={onestWoff2} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={unboundedWoff2} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={plexMonoWoff2} as="font" type="font/woff2" crossorigin />
     <script is:inline>
       (() => {
         try {
@@ -105,6 +101,46 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
         } catch (_) {
           document.documentElement.dataset.theme = 'dark';
         }
+
+        // Early data-perf stamp (before paint) — refined by perf.ts after boot.
+        try {
+          const params = new URLSearchParams(location.search);
+          const q = params.get('perf');
+          if (q === 'low' || q === 'mid' || q === 'high') {
+            document.documentElement.dataset.perf = q;
+            sessionStorage.setItem('portfolio-perf-force', q);
+            return;
+          }
+          if (localStorage.getItem('portfolio-less-motion') === '1') {
+            document.documentElement.dataset.perf = 'low';
+            return;
+          }
+          const forced = sessionStorage.getItem('portfolio-perf-force');
+          if (forced === 'low' || forced === 'mid' || forced === 'high') {
+            document.documentElement.dataset.perf = forced;
+            return;
+          }
+          const floor = sessionStorage.getItem('portfolio-perf-floor');
+          if (floor === 'low' || floor === 'mid' || floor === 'high') {
+            document.documentElement.dataset.perf = floor;
+            return;
+          }
+          const nav = navigator;
+          const mem = nav.deviceMemory;
+          const cores = nav.hardwareConcurrency || 8;
+          const mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(nav.userAgent);
+          const saveData = Boolean(nav.connection && nav.connection.saveData);
+          const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          let tier = 'high';
+          if (reduce || saveData || (typeof mem === 'number' && mem <= 2) || (mobile && cores <= 4)) {
+            tier = 'low';
+          } else if (mobile || (typeof mem === 'number' && mem <= 4)) {
+            tier = 'mid';
+          }
+          document.documentElement.dataset.perf = tier;
+        } catch (_) {
+          document.documentElement.dataset.perf = 'high';
+        }
       })();
     </script>
     {
@@ -112,11 +148,11 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
         <script type="application/ld+json" set:html={JSON.stringify(block)} />
       ))
     }
-    <Metrika />
     <ClientRouter />
     <title>{title}</title>
   </head>
   <body class:list={[{ 'print-case': printCase }]}>
+    <Metrika />
     <a class="skip-link" href="#main">{t.skipToContent}</a>
     <SiteCursor />
     <CommandPalette />

@@ -6,12 +6,13 @@ import BusinessOffers from '../../components/BusinessOffers.astro';
 import Faq from '../../components/Faq.astro';
 import StackMarquee from '../../components/StackMarquee.astro';
 import Contact from '../../components/Contact.astro';
-import { personJobTitle, personName, siteUrl } from '../../lib/site';
+import { personJobTitle, siteUrl } from '../../lib/site';
 import { isFilled } from '../../lib/fill';
 import { contactLinks } from '../../data/home';
 import { ui } from '../../i18n';
 
 const t = ui('en');
+const personName = t.personName;
 const sameAs = [contactLinks.github, contactLinks.telegram].filter(isFilled);
 
 const professionalServiceLd = {

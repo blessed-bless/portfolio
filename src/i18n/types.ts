@@ -27,7 +27,11 @@ export type UiDict = {
   footer: {
     top: string;
     uses: string;
+    lessMotion: string;
+    lessMotionOn: string;
   };
+  personName: string;
+  personAlt: string;
   home: {
     title: string;
     description: string;
@@ -45,6 +49,12 @@ export type UiDict = {
     contactWrite: string;
     contactPending: string;
     copied: string;
+    stackEyebrow: string;
+    stackTitle: string;
+    carouselNav: string;
+    carouselPrev: string;
+    carouselNext: string;
+    carouselHint: string;
   };
   work: {
     title: string;
@@ -96,8 +106,14 @@ export type UiDict = {
     openGithub: string;
     switchLocale: string;
     resume: string;
+    lessMotion: string;
+    lessMotionOn: string;
   };
   demo: {
+    ariaLabel: string;
+    tryTitle: string;
+    tryBadge: string;
+    loading: string;
     wantSame: string;
     wantSameText: (project: string) => string;
   };

@@ -1,3 +1,5 @@
+import { demoLocale, demoShell } from '../../i18n/demo-copy';
+
 type DemoId = 'priemnaya' | 'smena' | 'fleetkit' | 'crawlnet' | 'ai-funnel-ecosystem' | 'shipcrew';
 
 const loaders: Record<DemoId, () => Promise<(root: HTMLElement) => () => void>> = {
@@ -25,7 +27,7 @@ async function mountOne(section: HTMLElement): Promise<void> {
     section.dataset.demoReady = 'true';
   } catch (error) {
     section.dataset.demoReady = 'error';
-    stage.textContent = 'Не удалось загрузить демо.';
+    stage.textContent = demoShell(demoLocale()).loadError;
     console.warn(`Demo ${id} failed`, error);
   }
 }

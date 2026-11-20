@@ -12,15 +12,6 @@ function escapeXml(value: string): string {
 
 export const GET: APIRoute = async () => {
   const notes = await getPublishedNotes();
-  if (notes.length === 0) {
-    return new Response('Notes feed is empty', {
-      status: 404,
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'X-Robots-Tag': 'noindex, nofollow',
-      },
-    });
-  }
 
   const items = notes
     .map((note) => {
@@ -42,14 +33,14 @@ export const GET: APIRoute = async () => {
     <link>${new URL('/notes/', siteUrl).href}</link>
     <description>Заметки о разработке и продуктах</description>
     <language>ru</language>
-${items}
-  </channel>
+${items ? `${items}\n` : ''}  </channel>
 </rss>
 `;
 
   return new Response(body, {
     headers: {
       'Content-Type': 'application/rss+xml; charset=utf-8',
+      ...(notes.length === 0 ? { 'X-Robots-Tag': 'noindex, nofollow' } : {}),
     },
   });
 };

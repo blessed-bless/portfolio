@@ -1,18 +1,22 @@
 ---
+import { defaultLocale, isLocale, ui, type Locale } from '../../i18n';
+
 interface Props {
   id: 'priemnaya' | 'smena' | 'fleetkit' | 'crawlnet' | 'ai-funnel-ecosystem' | 'shipcrew';
 }
 
 const { id } = Astro.props;
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
 ---
 
-<section class="case-demo" id="demo" data-case-demo={id} aria-label="Интерактивное демо">
+<section class="case-demo" id="demo" data-case-demo={id} aria-label={t.demo.ariaLabel}>
   <header class="case-demo__head">
-    <h2 class="case-demo__title">Попробовать</h2>
-    <p class="case-demo__badge mono">Демо на тестовых данных</p>
+    <h2 class="case-demo__title">{t.demo.tryTitle}</h2>
+    <p class="case-demo__badge mono">{t.demo.tryBadge}</p>
   </header>
   <div class="case-demo__stage" data-demo-mount>
-    <p class="case-demo__loading mono">Загружаем демо…</p>
+    <p class="case-demo__loading mono">{t.demo.loading}</p>
   </div>
 </section>
 
@@ -26,6 +30,17 @@ const { id } = Astro.props;
     gap: var(--space-4);
     min-width: 0;
     max-width: 100%;
+    contain: layout paint;
+    isolation: isolate;
+  }
+
+  html[data-perf='low'] .case-demo {
+    animation: none !important;
+  }
+
+  html[data-perf='low'] .case-demo [data-demo-decor],
+  html[data-perf='low'] .case-demo .demo-decor {
+    display: none !important;
   }
 
   .case-demo__head {

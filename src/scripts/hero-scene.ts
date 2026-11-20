@@ -16,6 +16,8 @@ import {
 import type { Project } from '../lib/work-types';
 import { applyTextureQuality, rasterizeCoverUrl } from './cover-texture';
 import { getLenis } from './lenis-scroll';
+import { getPerfTier, maxPixelRatio, perfAllows } from './perf';
+import { observeActivity, subscribeTicker } from './raf-hub';
 
 export type SceneHandle = {
   dispose: () => void;
@@ -101,16 +103,19 @@ export async function mountHeroScene(
   });
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = SRGBColorSpace;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(maxPixelRatio());
 
   const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+  const allowShaderWarp = perfAllows('shaderWarp');
+  const splitByChars = perfAllows('splitChars');
+  const tier = getPerfTier();
 
   const coverRasterSize = (): { width: number; height: number } => {
     const parent = canvas.parentElement;
     const planeCss = Math.max((parent?.clientWidth ?? 360) * 0.85, isMobile ? 360 : 480);
-    const dpr = window.devicePixelRatio || 1;
-    // Floor keeps SVG type/lines sharp on high-DPR phones even when the CSS plane is narrow.
-    const width = Math.min(2048, Math.max(isMobile ? 1024 : 1280, Math.round(planeCss * dpr)));
+    const dpr = maxPixelRatio();
+    const floor = tier === 'mid' ? (isMobile ? 768 : 1024) : isMobile ? 1024 : 1280;
+    const width = Math.min(tier === 'mid' ? 1536 : 2048, Math.max(floor, Math.round(planeCss * dpr)));
     const height = Math.round((width * 10) / 16);
     return { width, height };
   };
@@ -118,10 +123,19 @@ export async function mountHeroScene(
   const loadCovers = async () => {
     const size = coverRasterSize();
     const layers = await Promise.allSettled(
-      coverUrls.flatMap((url) => [
-        rasterizeCoverUrl(url, 'base', { ...size, anisotropy: maxAnisotropy }),
-        rasterizeCoverUrl(url, 'art', { ...size, anisotropy: maxAnisotropy }),
-      ]),
+      coverUrls.flatMap((url, index) => {
+        const project = projects[index];
+        const label = project
+          ? {
+              number: String(index + 1).padStart(2, '0'),
+              title: project.title,
+            }
+          : undefined;
+        return [
+          rasterizeCoverUrl(url, 'base', { ...size, anisotropy: maxAnisotropy, label }),
+          rasterizeCoverUrl(url, 'art', { ...size, anisotropy: maxAnisotropy }),
+        ];
+      }),
     );
     const next = layers.flatMap((layer) => (layer.status === 'fulfilled' ? [layer.value] : []));
     const failure = layers.find((layer) => layer.status === 'rejected');
@@ -177,12 +191,13 @@ export async function mountHeroScene(
   let activePointerId: number | null = null;
   let hoverIndex = -1;
   const hoverProgress = projects.map(() => 0);
-  let frame = 0;
   let disposed = false;
   let introProgress = 0;
   let introDone = false;
   let lastCaption = 0;
   let browsed = false;
+  let loopActive = true;
+  let needsRender = true;
   /** Soft settle toward integer slide (~700ms). */
   const SNAP_DAMP = 7.2;
 
@@ -222,19 +237,21 @@ export async function mountHeroScene(
       await gsap.to(caption, { y: 10, opacity: 0, duration: 0.12, ease: 'power2.in' });
       caption.innerHTML = html;
       const split = SplitText.create(caption, {
-        type: 'chars',
+        type: splitByChars ? 'chars' : 'lines',
         charsClass: 'caption-char',
+        linesClass: 'caption-line',
         aria: 'none',
       });
       gsap.set(caption, { y: 0, opacity: 1 });
+      const targets = splitByChars ? split.chars : split.lines;
       gsap.fromTo(
-        split.chars,
+        targets,
         { y: 14, opacity: 0 },
         {
           y: 0,
           opacity: 1,
           duration: 0.3,
-          stagger: 0.006,
+          stagger: splitByChars ? 0.006 : 0.04,
           ease: 'power2.out',
         },
       );
@@ -335,6 +352,7 @@ export async function mountHeroScene(
     if (!delta) return;
     active = Math.round(active) + Math.sign(delta);
     markBrowsed();
+    needsRender = true;
   };
 
   const onPointerMove = (event: PointerEvent): void => {
@@ -457,27 +475,45 @@ export async function mountHeroScene(
 
   if (initialTheme !== document.documentElement.dataset.theme) onTheme();
 
-  const render = (): void => {
-    if (disposed) return;
-    frame = requestAnimationFrame(render);
-    const elapsed = clock.getDelta();
-    const dt = Math.min(elapsed, 0.033);
+  const requestFrame = (): void => {
+    needsRender = true;
+  };
+
+  const render = (_time: number, deltaMs: number): void => {
+    if (disposed || !loopActive) return;
+    const elapsed = Math.min((deltaMs || clock.getDelta() * 1000) / 1000, 0.033);
+    const dt = elapsed;
+    let moving = dragging || Math.abs(current - active) > 0.0015 || !introDone;
 
     if (!dragging) {
+      const prev = current;
       current = MathUtils.damp(current, active, SNAP_DAMP, dt);
       if (Math.abs(current - active) < 0.0015) current = active;
+      if (Math.abs(current - prev) > 0.0001) moving = true;
     }
 
+    const prevTiltX = tilt.x;
+    const prevTiltY = tilt.y;
     tilt.lerp(tiltTarget, 0.08);
+    if (Math.abs(tilt.x - prevTiltX) > 0.0001 || Math.abs(tilt.y - prevTiltY) > 0.0001) {
+      moving = true;
+    }
     carousel.rotation.y = tilt.x;
     carousel.rotation.x = tilt.y;
     layoutCards();
 
     materials.forEach((material, index) => {
+      if (!allowShaderWarp) {
+        material.uniforms.uHover.value = 0;
+        hoverProgress[index] = 0;
+        return;
+      }
       const direction = hoverIndex === index ? 1 : -1;
-      const progress = MathUtils.clamp(hoverProgress[index] + direction * elapsed / 0.5, 0, 1);
+      const progress = MathUtils.clamp(hoverProgress[index] + (direction * elapsed) / 0.5, 0, 1);
+      if (Math.abs(progress - hoverProgress[index]) > 0.001) moving = true;
       hoverProgress[index] = progress;
       material.uniforms.uHover.value = MathUtils.smoothstep(progress, 0, 1);
+      if (progress > 0 && progress < 1) moving = true;
     });
 
     const rounded = wrapIndex(Math.round(current), projects.length);
@@ -486,6 +522,8 @@ export async function mountHeroScene(
       updateCaption();
     }
 
+    if (!needsRender && !moving) return;
+    needsRender = false;
     renderer.render(scene, camera);
   };
 
@@ -499,21 +537,34 @@ export async function mountHeroScene(
   window.addEventListener('pointerup', onPointerUp);
   window.addEventListener('pointercancel', onPointerUp);
   canvas.addEventListener('keydown', onKey);
-  frame = requestAnimationFrame(render);
+
+  const unsubTicker = subscribeTicker(render);
+  const unsubActivity = observeActivity(canvas, (activeNow) => {
+    loopActive = activeNow;
+    if (activeNow) requestFrame();
+  });
+  const onPointerPaint = (): void => requestFrame();
+  canvas.addEventListener('pointermove', onPointerPaint, { passive: true });
+
   canvas.dataset.ready = 'true';
   canvas.tabIndex = 0;
   canvas.setAttribute('role', 'listbox');
-  canvas.setAttribute('aria-label', 'Карусель проектов');
+  canvas.setAttribute('aria-label', 'Project carousel');
+  requestFrame();
 
   return {
     getActiveIndex: () => wrapIndex(Math.round(current), projects.length),
-    goBy,
+    goBy: (delta: number) => {
+      goBy(delta);
+      requestFrame();
+    },
     playIntro: () =>
       new Promise((resolve) => {
         const start = performance.now();
         const duration = 700;
         const tick = (now: number): void => {
           introProgress = Math.min(1, (now - start) / duration);
+          requestFrame();
           if (introProgress < 1) {
             requestAnimationFrame(tick);
             return;
@@ -526,7 +577,9 @@ export async function mountHeroScene(
       }),
     dispose: () => {
       disposed = true;
-      cancelAnimationFrame(frame);
+      unsubTicker();
+      unsubActivity();
+      canvas.removeEventListener('pointermove', onPointerPaint);
       window.removeEventListener('resize', resize);
       canvas.removeEventListener('keydown', onKey);
       canvas.removeEventListener('pointermove', onPointerMove);

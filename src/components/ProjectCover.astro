@@ -7,11 +7,23 @@ interface Props {
   loading?: 'lazy' | 'eager';
   /** Unique shared-element name for View Transitions (one per page). */
   transitionName?: string;
+  /** 1-based index shown as 01 — omit to hide number overlay. */
+  index?: number;
+  /** Localized title drawn over the cover (same seat as former SVG text). */
+  title?: string;
 }
 
-const { src, alt = '', loading = 'lazy', transitionName } = Astro.props;
+const { src, alt = '', loading = 'lazy', transitionName, index, title } = Astro.props;
 const darkHref = coverPublicUrl(src);
 const lightHref = darkHref.replace('/covers/', '/covers/light/');
+const number =
+  typeof index === 'number' && Number.isFinite(index)
+    ? String(Math.max(1, Math.floor(index))).padStart(2, '0')
+    : null;
+const showMeta = Boolean(number || title);
+const fetchPriority = loading === 'eager' ? 'high' : undefined;
+// Inactive theme cover stays lazy — avoids competing with LCP.
+const inactiveLoading = 'lazy' as const;
 ---
 
 {
@@ -31,6 +43,7 @@ const lightHref = darkHref.replace('/covers/', '/covers/light/');
         height="1000"
         decoding="async"
         loading={loading}
+        fetchpriority={fetchPriority}
       />
       <img
         class="project-cover project-cover--light"
@@ -39,9 +52,15 @@ const lightHref = darkHref.replace('/covers/', '/covers/light/');
         width="1600"
         height="1000"
         decoding="async"
-        loading={loading}
+        loading={inactiveLoading}
         aria-hidden="true"
       />
+      {showMeta ? (
+        <span class="project-cover__meta" aria-hidden="true">
+          {number ? <span class="project-cover__num">{number}</span> : null}
+          {title ? <span class="project-cover__title">{title}</span> : null}
+        </span>
+      ) : null}
     </span>
   ) : (
     <span class="project-cover-wrap" data-cover-src={darkHref} data-cover-src-light={lightHref}>
@@ -53,6 +72,7 @@ const lightHref = darkHref.replace('/covers/', '/covers/light/');
         height="1000"
         decoding="async"
         loading={loading}
+        fetchpriority={fetchPriority}
       />
       <img
         class="project-cover project-cover--light"
@@ -61,9 +81,15 @@ const lightHref = darkHref.replace('/covers/', '/covers/light/');
         width="1600"
         height="1000"
         decoding="async"
-        loading={loading}
+        loading={inactiveLoading}
         aria-hidden="true"
       />
+      {showMeta ? (
+        <span class="project-cover__meta" aria-hidden="true">
+          {number ? <span class="project-cover__num">{number}</span> : null}
+          {title ? <span class="project-cover__title">{title}</span> : null}
+        </span>
+      ) : null}
     </span>
   )
 }
@@ -75,6 +101,9 @@ const lightHref = darkHref.replace('/covers/', '/covers/light/');
     aspect-ratio: 16 / 10;
     background: var(--bg-elevated);
     position: relative;
+    contain: layout paint;
+    overflow: hidden;
+    container-type: inline-size;
   }
 
   .project-cover {
@@ -97,5 +126,37 @@ const lightHref = darkHref.replace('/covers/', '/covers/light/');
 
   html:not([data-theme='light']) .project-cover--light {
     visibility: hidden;
+  }
+
+  /* Former SVG seats: number @ (100,144), title @ (206,144), Unbounded ~42/1600. */
+  .project-cover__meta {
+    position: absolute;
+    left: 6.25%;
+    top: 10.2%;
+    z-index: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.55em;
+    max-width: 86%;
+    pointer-events: none;
+    font-family: 'Unbounded', system-ui, sans-serif;
+    font-weight: 650;
+    font-size: max(0.7rem, 2.625cqw);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--fg);
+  }
+
+  .project-cover__num {
+    color: var(--accent-strong);
+    flex: 0 0 auto;
+  }
+
+  .project-cover__title {
+    color: var(--fg);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>

@@ -15,7 +15,7 @@ const usesRu: UsesGroup[] = [
   {
     title: 'Редактор',
     items: [
-      { label: 'IDE', value: 'Cursor' },
+      { label: 'IDE', value: 'VS Code' },
       { label: 'Тема', value: '{{заполнить}}' },
       { label: 'Шрифт кода', value: '{{заполнить}}' },
     ],
@@ -53,7 +53,7 @@ const usesEn: UsesGroup[] = [
   {
     title: 'Editor',
     items: [
-      { label: 'IDE', value: 'Cursor' },
+      { label: 'IDE', value: 'VS Code' },
       { label: 'Theme', value: '{{заполнить}}' },
       { label: 'Code font', value: '{{заполнить}}' },
     ],

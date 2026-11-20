@@ -1,7 +1,16 @@
 ---
 ---
 
-<div class="site-cursor" data-site-cursor hidden data-visible="false" data-hover="false" aria-hidden="true">
+<div
+  class="site-cursor"
+  data-site-cursor
+  hidden
+  data-visible="false"
+  data-hover="false"
+  data-on-control="false"
+  aria-hidden="true"
+  transition:persist="site-cursor"
+>
   <span class="site-cursor__dot" data-cursor-dot></span>
   <span class="site-cursor__ring" data-cursor-ring></span>
 </div>
@@ -9,15 +18,29 @@
 <style>
   .site-cursor {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
     z-index: 90;
     pointer-events: none;
     opacity: 0;
-    transition: opacity var(--dur-2) var(--ease-out);
+    overflow: visible;
+    contain: layout style;
   }
 
   .site-cursor[data-visible='true'] {
     opacity: 1;
+  }
+
+  .site-cursor[data-visible='true'] .site-cursor__dot,
+  .site-cursor[data-visible='true'] .site-cursor__ring {
+    will-change: transform;
+  }
+
+  html[data-perf='mid'] .site-cursor,
+  html[data-perf='low'] .site-cursor {
+    display: none !important;
   }
 
   .site-cursor__dot,
@@ -26,7 +49,9 @@
     top: 0;
     left: 0;
     border-radius: 50%;
-    will-change: transform;
+    transform: translate3d(-100px, -100px, 0);
+    backface-visibility: hidden;
+    transition: none !important;
   }
 
   .site-cursor__dot {
@@ -41,19 +66,18 @@
     height: 34px;
     margin: -17px 0 0 -17px;
     border: 1px solid color-mix(in srgb, var(--cursor-fill) 55%, transparent);
-    transition: transform var(--dur-2) var(--ease-out);
+    /* No transition on transform — lerp runs in rAF. */
   }
 
   .site-cursor[data-hover='true'] .site-cursor__ring {
     border-color: var(--accent);
-    mix-blend-mode: difference;
   }
 
   .site-cursor[data-on-control='true'] .site-cursor__dot {
     opacity: 0;
   }
 
-  @media (pointer: coarse), (hover: none) {
+  @media (pointer: coarse), (hover: none), (prefers-reduced-motion: reduce) {
     .site-cursor {
       display: none !important;
     }

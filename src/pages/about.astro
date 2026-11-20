@@ -9,10 +9,13 @@ import {
   aboutStackGroups,
   contactLinks,
 } from '../data/home';
-import { personName, resumeHref, siteName } from '../lib/site';
+import { resumeHref, siteName } from '../lib/site';
 import { isFilled } from '../lib/fill';
+import { ui } from '../i18n';
 import portrait from '../assets/portrait.png';
 
+const t = ui('ru');
+const personName = t.personName;
 const resume = isFilled(resumeHref) ? resumeHref : null;
 const github = isFilled(contactLinks.github) ? contactLinks.github : null;
 const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
@@ -50,7 +53,7 @@ const photoSizes = '(max-width: 900px) min(22rem, 100vw), min(28vw, 22rem)';
         <div class="about__photo-frame">
           <Picture
             src={portrait}
-            alt="Богдан"
+            alt={t.personAlt}
             formats={['avif', 'webp']}
             widths={[400, 800, 1200]}
             sizes={photoSizes}

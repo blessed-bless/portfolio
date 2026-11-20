@@ -1,25 +1,23 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { filledUsesGroups } from '../data/uses';
-import { personName, siteName } from '../lib/site';
+import { ui } from '../i18n';
 
+const t = ui('ru');
 const groups = filledUsesGroups('ru');
 ---
 
 <BaseLayout
-  title={`Uses — ${siteName}`}
-  description="Чем пользуюсь: редактор, терминал, железо и сервисы."
+  title={t.uses.title}
+  description={t.uses.description}
   canonicalPath="/uses/"
   ogImage="/og/home.png"
 >
   <article class="uses page-pad">
     <header class="uses__hero">
-      <p class="eyebrow">Uses</p>
-      <h1 class="uses__title" data-page-title>Чем пользуюсь</h1>
-      <p class="uses__lead">
-        Короткий список инструментов {personName.split(' ')[0]}. Пустые пункты не показываю — заполню по мере
-        ясности.
-      </p>
+      <p class="eyebrow">{t.uses.eyebrow}</p>
+      <h1 class="uses__title" data-page-title>{t.uses.heading}</h1>
+      <p class="uses__lead">{t.uses.lead}</p>
     </header>
 
     {
@@ -40,7 +38,7 @@ const groups = filledUsesGroups('ru');
           ))}
         </div>
       ) : (
-        <p class="uses__empty">Список пока пустой — скоро добавлю.</p>
+        <p class="uses__empty">{t.uses.empty}</p>
       )
     }
   </article>
@@ -48,70 +46,63 @@ const groups = filledUsesGroups('ru');
 
 <style>
   .uses {
-    padding-block: var(--space-8) var(--section-gap);
+    padding-block: var(--space-8) var(--space-10);
   }
 
   .uses__hero {
-    max-width: 42rem;
+    max-width: 40rem;
     margin-bottom: var(--space-8);
   }
 
   .uses__title {
     margin: var(--space-3) 0 0;
-    font-size: clamp(2.2rem, 1.2rem + 3.2vw, 3.8rem);
+    font-size: clamp(2rem, 1.4rem + 2vw, 3rem);
     letter-spacing: var(--tracking-tight);
-    line-height: var(--leading-tight);
   }
 
   .uses__lead {
-    margin: var(--space-5) 0 0;
-    font-size: var(--text-md);
+    margin: var(--space-4) 0 0;
     color: var(--fg-muted);
-    max-width: 36rem;
+    line-height: var(--leading-body);
   }
 
   .uses__grid {
     display: grid;
     gap: var(--space-8);
-    max-width: 40rem;
   }
 
   .uses__h2 {
-    margin: 0 0 var(--space-5);
+    margin: 0 0 var(--space-4);
     font-size: var(--text-lg);
-    letter-spacing: var(--tracking-tight);
   }
 
   .uses__list {
-    list-style: none;
     margin: 0;
     padding: 0;
+    list-style: none;
     display: grid;
     gap: var(--space-3);
   }
 
   .uses__list li {
     display: grid;
-    grid-template-columns: 11rem minmax(0, 1fr);
+    grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
     gap: var(--space-3);
-    align-items: baseline;
-    font-size: var(--text-sm);
     padding-bottom: var(--space-3);
     border-bottom: var(--stroke) solid var(--border);
   }
 
   .uses__label {
-    color: var(--fg-muted);
     font-size: var(--text-xs);
+    color: var(--fg-muted);
     text-transform: uppercase;
   }
 
   .uses__value {
-    color: var(--fg);
+    font-size: var(--text-sm);
   }
 
   .uses__empty {
-    margin: 0;
     color: var(--fg-muted);
   }
 

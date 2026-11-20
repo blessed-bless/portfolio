@@ -72,7 +72,12 @@ const creativeWorkLd = {
         <p class="case__summary">{project.summary}</p>
       </div>
       <div class="case__art">
-        <ProjectCover src={project.cover} transitionName={`work-cover-${project.slug}`} />
+        <ProjectCover
+          src={project.cover}
+          transitionName={`work-cover-${project.slug}`}
+          index={cases.findIndex((entry) => entry.data.slug === project.slug) + 1 || 1}
+          title={project.title}
+        />
       </div>
     </header>
 

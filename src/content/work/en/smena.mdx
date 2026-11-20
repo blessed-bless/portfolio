@@ -32,7 +32,7 @@ import overviewShot from '../../../assets/screenshots/smena-overview.png';
 
 ## Problem
 
-A solo barber needs the working day inside Telegram: visits, breaks, clients, and free windows — without a separate CRM and without writing back into YCLIENTS. Admin bookings sync read-only; the master keeps personal visits and notes in Smena.
+A solo barber needs the working day inside Telegram: visits, breaks, clients, and free windows — without a separate CRM and without writing back into YCLIENTS. Admin bookings sync read-only; the barber keeps personal visits and notes in Smena.
 
 ## Decisions
 
@@ -40,11 +40,11 @@ A solo barber needs the working day inside Telegram: visits, breaks, clients, an
 - **YCLIENTS read-only.** Google Calendar iCal or the official API — no YCLIENTS password stored. The iCal URL lives in SQLite `meta`, not in exports.
 - **HMAC `initData`.** Telegram signature, expiry, allow-listed ids. Eight-hour session: in-memory Bearer + HttpOnly cookie, never `localStorage`.
 - **SSRF hardening on the calendar feed.** Address pinning, IP allow-list, shared timeout, socket re-check after connect.
-- **`revision` concurrency.** Forms carry a data version; a stale save from another device is rejected.
+- **Optimistic concurrency.** Forms carry a data version; a stale save from another device is rejected.
 - **Snapshots and restore.** Daily DB copies; restore keeps a recovery copy first.
 - **Zero npm dependencies.** Node 24 stdlib + SQLite.
 
-<Figure src={dayShot} alt="Master day board with visits in the phone-width demo" caption="Day board — fictional demo data." />
+<Figure src={dayShot} alt="Barber day board with visits in the phone-width demo" caption="Day board — fictional demo data." />
 <Figure src={clientShot} alt="Client card with visit history" caption="Client card: history, contact actions, notes." />
 <Figure src={overviewShot} alt="Overview screen with revenue and load for 7 days" caption="7-day overview: revenue, load, win-back list." />
 
@@ -58,10 +58,10 @@ Access: owner plus one second user (admin or assistant) via a one-time invite.
 
 ## Code
 
-Telegram `initData` HMAC check, calendar fetch SSRF guards, and `freeGaps` from `shared.mjs` — same fragments as the Russian case.
+Telegram `initData` HMAC check, calendar fetch SSRF guards, and `freeGaps` from `shared.mjs`.
 
 ## What was verified
 
 Verified: `npm test` (44), local `/demo`, iCal against a real Google Calendar, widths 320–1060 px.
 
-Not verified here: full Telegram Web iframe on 0.5, a live YCLIENTS branch / API tokens, VPS deploy in this environment.
+Not yet tested: the Telegram Web iframe, a live YCLIENTS account, a VPS deploy

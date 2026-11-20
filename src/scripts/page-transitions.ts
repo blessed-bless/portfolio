@@ -1,15 +1,11 @@
-import gsap from 'gsap';
-import { SplitText } from 'gsap/SplitText';
-import { ensureScrollTrigger } from './scroll-sync';
-
-gsap.registerPlugin(SplitText);
+import { getPerfTier } from './perf';
 
 let bound = false;
-let titleTween: gsap.core.Tween | gsap.core.Timeline | null = null;
-let splitRef: SplitText | null = null;
+let titleTween: { kill: () => void } | null = null;
+let splitRef: { revert: () => void } | null = null;
 
 function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches || getPerfTier() === 'low';
 }
 
 function supportsViewTransitions(): boolean {
@@ -23,20 +19,26 @@ function clearTitleAnim(): void {
   splitRef = null;
 }
 
-function animateIncomingTitle(): void {
+async function animateIncomingTitle(): Promise<void> {
   clearTitleAnim();
-  if (prefersReducedMotion()) return;
+  if (prefersReducedMotion() || getPerfTier() !== 'high') return;
 
   const title = document.querySelector<HTMLElement>('[data-page-title]');
   if (!title) return;
 
   try {
+    const gsap = (await import('gsap')).default;
+    const { SplitText } = await import('gsap/SplitText');
+    const { promoteToGsapTicker } = await import('./raf-hub');
+    gsap.registerPlugin(SplitText);
+    await promoteToGsapTicker();
+
     splitRef = SplitText.create(title, {
       type: 'lines',
       linesClass: 'page-title-line',
       aria: 'none',
     });
-    const lines = splitRef.lines;
+    const lines = (splitRef as { lines: HTMLElement[] }).lines;
     if (!lines.length) {
       clearTitleAnim();
       return;
@@ -56,8 +58,9 @@ function animateIncomingTitle(): void {
   }
 }
 
-function refreshScrollTools(): void {
+async function refreshScrollTools(): Promise<void> {
   try {
+    const { ensureScrollTrigger } = await import('./scroll-sync');
     ensureScrollTrigger().refresh();
   } catch {
     /* ScrollTrigger may be unused on this page */
@@ -75,9 +78,9 @@ function onBeforePreparation(event: Event): void {
 }
 
 function onPageLoad(): void {
-  animateIncomingTitle();
+  void animateIncomingTitle();
   window.requestAnimationFrame(() => {
-    refreshScrollTools();
+    void refreshScrollTools();
   });
 }
 

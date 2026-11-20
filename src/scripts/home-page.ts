@@ -6,6 +6,8 @@ import {
   prefersReducedMotion,
 } from './scroll-sync';
 import { assignCoverVtName, cloneCoverWithoutVt } from './cover-vt';
+import { getPerfTier } from './perf';
+import { promoteToGsapTicker, subscribeTicker } from './raf-hub';
 
 type Teardown = () => void;
 
@@ -30,6 +32,8 @@ function mountManifest(): void {
   if (reduce) return;
 
   const ScrollTrigger = ensureScrollTrigger();
+  const tier = document.documentElement.dataset.perf;
+  const useScrub = tier === 'high';
   const tween = gsap.to(words, {
     '--word-glow': 1,
     ease: 'none',
@@ -38,7 +42,8 @@ function mountManifest(): void {
       trigger: root,
       start: 'top 75%',
       end: 'bottom 35%',
-      scrub: true,
+      scrub: useScrub ? true : false,
+      once: !useScrub,
     },
   });
 
@@ -67,13 +72,12 @@ function mountFeaturedPreview(): void {
   const pos = { x: 0, y: 0 };
   const prev = { x: 0, y: 0 };
   let skew = 0;
-  let raf = 0;
-
   const hide = (): void => {
     visible = false;
     follower.dataset.visible = 'false';
     activeRow = null;
   };
+  const smoothFollow = getPerfTier() === 'high';
 
   const showFor = (row: HTMLAnchorElement, event?: Event): void => {
     activeRow = row;
@@ -130,8 +134,11 @@ function mountFeaturedPreview(): void {
   };
 
   const tick = (): void => {
-    raf = requestAnimationFrame(tick);
     if (!visible || mobile || reduce) return;
+    if (!smoothFollow) {
+      follower.style.transform = `translate3d(${mouse.x + 28}px, ${mouse.y - 40}px, 0)`;
+      return;
+    }
     pos.x += (mouse.x - pos.x) * 0.16;
     pos.y += (mouse.y - pos.y) * 0.16;
     const vx = pos.x - prev.x;
@@ -153,9 +160,10 @@ function mountFeaturedPreview(): void {
     row.addEventListener('pointerdown', onPointerDown);
   });
   list.addEventListener('pointerleave', hide);
+  let unsubTicker: (() => void) | null = null;
   if (!mobile && !reduce) {
     window.addEventListener('pointermove', onMove, { passive: true });
-    raf = requestAnimationFrame(tick);
+    unsubTicker = subscribeTicker(tick);
   }
 
   teardowns.push(() => {
@@ -168,7 +176,7 @@ function mountFeaturedPreview(): void {
     });
     list.removeEventListener('pointerleave', hide);
     window.removeEventListener('pointermove', onMove);
-    cancelAnimationFrame(raf);
+    unsubTicker?.();
     hide();
   });
 }
@@ -184,6 +192,9 @@ function mountServicesPin(): void {
   const ScrollTrigger = ensureScrollTrigger();
   const getTravel = () => Math.max(0, track.scrollWidth - window.innerWidth + 48);
 
+  const tier = document.documentElement.dataset.perf;
+  if (tier === 'low') return;
+
   const tween = gsap.to(track, {
     x: () => -getTravel(),
     ease: 'none',
@@ -192,7 +203,7 @@ function mountServicesPin(): void {
       start: 'top top',
       end: () => `+=${getTravel()}`,
       pin: true,
-      scrub: true,
+      scrub: tier === 'high' ? true : 0.6,
       anticipatePin: 1,
       invalidateOnRefresh: true,
     },
@@ -315,6 +326,7 @@ function mountCopyEmail(): void {
 
 export function mountHomePage(): void {
   clearTeardowns();
+  void promoteToGsapTicker();
   const ScrollTrigger = ensureScrollTrigger();
   ScrollTrigger.getAll().forEach((st) => st.kill());
 

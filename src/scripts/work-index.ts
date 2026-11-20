@@ -1,9 +1,13 @@
 import { cloneCoverWithoutVt } from './cover-vt';
+import { getPerfTier } from './perf';
+import { subscribeTicker } from './raf-hub';
 
 type ViewMode = 'list' | 'grid';
 
 function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return (
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches || getPerfTier() === 'low'
+  );
 }
 
 async function loadFlip() {
@@ -55,7 +59,6 @@ export function mountWorkIndex(root: HTMLElement): () => void {
   const prev = { x: 0, y: 0 };
   let skew = 0;
   let visible = false;
-  let raf = 0;
 
   const syncChrome = (): void => {
     root.dataset.view = view;
@@ -146,9 +149,13 @@ export function mountWorkIndex(root: HTMLElement): () => void {
     mouse.y = event.clientY;
   };
 
+  const smoothFollow = getPerfTier() === 'high';
   const tick = (): void => {
-    raf = requestAnimationFrame(tick);
     if (!visible || !follower) return;
+    if (!smoothFollow) {
+      follower.style.transform = `translate3d(${mouse.x + 28}px, ${mouse.y - 40}px, 0)`;
+      return;
+    }
     pos.x += (mouse.x - pos.x) * 0.16;
     pos.y += (mouse.y - pos.y) * 0.16;
     const vx = pos.x - prev.x;
@@ -179,13 +186,13 @@ export function mountWorkIndex(root: HTMLElement): () => void {
   });
 
   window.addEventListener('pointermove', onMove, { passive: true });
-  raf = requestAnimationFrame(tick);
+  const unsubTicker = subscribeTicker(tick);
 
   syncChrome();
   applyFilter(false);
 
   return () => {
-    cancelAnimationFrame(raf);
+    unsubTicker();
     window.removeEventListener('pointermove', onMove);
     hideFollower();
   };

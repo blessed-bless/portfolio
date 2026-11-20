@@ -82,7 +82,8 @@ function runWireframePulse(): void {
 
   showToast(TOAST_TEXT);
 
-  if (prefersReducedMotion()) {
+  const tier = document.documentElement.dataset.perf;
+  if (prefersReducedMotion() || tier === 'low') {
     effectRunning = false;
     return;
   }
