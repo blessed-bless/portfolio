@@ -105,6 +105,13 @@ export const contactLinks = {
   email: 'bogdan@dubstepmolitva.ru',
 } as const;
 
+/** Public channel (not DM). Used in header/footer/cmdk and home feed. */
+export const telegramChannel = {
+  href: 'https://t.me/molitva_deploy',
+  preview: 'https://t.me/s/molitva_deploy',
+  handle: 'molitva_deploy',
+} as const;
+
 export const aboutIntro = [
   'Пишу бэкенд на Python, ботов и автоматизацию, плюс веб-интерфейсы к ним — от API и очередей до дашборда или формы записи.',
   'Мне важно довести задачу до работающего результата: то, что можно запустить, проверить и отдать, а не только описать в коде.',

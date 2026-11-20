@@ -8,6 +8,7 @@ import {
   aboutPrinciples,
   aboutStackGroups,
   contactLinks,
+  telegramChannel,
 } from '../data/home';
 import { resumeHref, siteName } from '../lib/site';
 import { isFilled } from '../lib/fill';
@@ -37,6 +38,13 @@ const photoSizes = '(max-width: 900px) min(22rem, 100vw), min(28vw, 22rem)';
       <div class="about__lead">
         {aboutIntro.map((paragraph) => <p>{paragraph}</p>)}
       </div>
+      <p class="about__channel">
+        Пишу про деплой и ботов в{' '}
+        <a href={telegramChannel.href} target="_blank" rel="noopener noreferrer" data-cursor="hover" data-tg-channel>
+          Telegram-канале
+        </a>
+        .
+      </p>
       {
         resume ? (
           <div class="about__actions">
@@ -181,6 +189,24 @@ const photoSizes = '(max-width: 900px) min(22rem, 100vw), min(28vw, 22rem)';
 
   .about__lead p {
     margin: 0;
+  }
+
+  .about__channel {
+    margin: var(--space-4) 0 0;
+    max-width: 36rem;
+    font-size: var(--text-sm);
+    color: var(--fg-muted);
+  }
+
+  .about__channel a {
+    color: var(--fg);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+
+  .about__channel a:hover,
+  .about__channel a:focus-visible {
+    color: var(--accent-strong);
   }
 
   .about__actions {

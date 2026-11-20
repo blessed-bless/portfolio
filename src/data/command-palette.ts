@@ -1,4 +1,4 @@
-import { contactLinks } from './home';
+import { contactLinks, telegramChannel } from './home';
 import { isFilled } from '../lib/fill';
 import { resumeHref } from '../lib/site';
 import { localizedPath, type Locale, type UiDict } from '../i18n';
@@ -13,7 +13,15 @@ export type PaletteItem = {
   hint?: string;
   keywords: string;
   href?: string;
-  action?: 'theme' | 'copy-email' | 'telegram' | 'github' | 'locale' | 'resume' | 'less-motion';
+  action?:
+    | 'theme'
+    | 'copy-email'
+    | 'telegram'
+    | 'telegram-channel'
+    | 'github'
+    | 'locale'
+    | 'resume'
+    | 'less-motion';
 };
 
 export function buildPaletteItems(projects: Project[], t: UiDict): PaletteItem[] {
@@ -105,6 +113,15 @@ export function buildPaletteItems(projects: Project[], t: UiDict): PaletteItem[]
       href: contactLinks.telegram,
     });
   }
+  actions.push({
+    id: 'action-telegram-channel',
+    type: 'action',
+    title: t.cmdk.openChannel,
+    hint: `@${telegramChannel.handle}`,
+    keywords: 'telegram channel канал tg molitva_deploy',
+    action: 'telegram-channel',
+    href: telegramChannel.href,
+  });
   if (isFilled(contactLinks.github)) {
     actions.push({
       id: 'action-github',

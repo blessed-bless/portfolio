@@ -11,16 +11,21 @@ interface Props {
   index?: number;
   /** Localized title drawn over the cover (same seat as former SVG text). */
   title?: string;
+  /** Visible label matching parent aria-label (e.g. "01 · Title"). */
+  label?: string;
 }
 
-const { src, alt = '', loading = 'lazy', transitionName, index, title } = Astro.props;
+const { src, alt = '', loading = 'lazy', transitionName, index, title, label } = Astro.props;
 const darkHref = coverPublicUrl(src);
 const lightHref = darkHref.replace('/covers/', '/covers/light/');
 const number =
   typeof index === 'number' && Number.isFinite(index)
     ? String(Math.max(1, Math.floor(index))).padStart(2, '0')
     : null;
-const showMeta = Boolean(number || title);
+const metaLabel =
+  label ||
+  (number && title ? `${number} · ${title}` : number || title || null);
+const showMeta = Boolean(metaLabel);
 const fetchPriority = loading === 'eager' ? 'high' : undefined;
 // Inactive theme cover stays lazy — avoids competing with LCP.
 const inactiveLoading = 'lazy' as const;
@@ -58,7 +63,9 @@ const inactiveLoading = 'lazy' as const;
       {showMeta ? (
         <span class="project-cover__meta" aria-hidden="true">
           {number ? <span class="project-cover__num">{number}</span> : null}
+          {number && title ? <span class="project-cover__dot"> · </span> : null}
           {title ? <span class="project-cover__title">{title}</span> : null}
+          {!number && !title && metaLabel ? metaLabel : null}
         </span>
       ) : null}
     </span>
@@ -87,7 +94,9 @@ const inactiveLoading = 'lazy' as const;
       {showMeta ? (
         <span class="project-cover__meta" aria-hidden="true">
           {number ? <span class="project-cover__num">{number}</span> : null}
+          {number && title ? <span class="project-cover__dot"> · </span> : null}
           {title ? <span class="project-cover__title">{title}</span> : null}
+          {!number && !title && metaLabel ? metaLabel : null}
         </span>
       ) : null}
     </span>
@@ -136,7 +145,7 @@ const inactiveLoading = 'lazy' as const;
     z-index: 1;
     display: flex;
     align-items: baseline;
-    gap: 0.55em;
+    gap: 0;
     max-width: 86%;
     pointer-events: none;
     font-family: 'Unbounded', system-ui, sans-serif;
@@ -150,6 +159,12 @@ const inactiveLoading = 'lazy' as const;
   .project-cover__num {
     color: var(--accent-strong);
     flex: 0 0 auto;
+  }
+
+  .project-cover__dot {
+    color: var(--accent-strong);
+    flex: 0 0 auto;
+    white-space: pre;
   }
 
   .project-cover__title {

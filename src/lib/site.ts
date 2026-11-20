@@ -2,8 +2,11 @@
 export const siteUrl = 'https://dubstepmolitva.ru';
 
 export const siteName = 'Богдан — портфолио';
+export const siteNameEn = 'Bogdan — portfolio';
 export const personName = 'Богдан Щербинин';
+export const personNameEn = 'Bogdan Shcherbinin';
 export const personJobTitle = 'Fullstack-разработчик';
+export const personJobTitleEn = 'Fullstack developer';
 export const defaultDescription =
   'Сайты с онлайн-записью, Telegram-боты и CRM для бизнеса. Бэкенд на Python.';
 

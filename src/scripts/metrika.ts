@@ -1,4 +1,5 @@
 import { METRIKA_HOSTS, METRIKA_ID } from '../lib/metrika';
+import { isTelegramChannelHref } from '../lib/telegram-channel';
 
 declare global {
   interface Window {
@@ -35,6 +36,8 @@ function tgPlace(el: Element): string {
   if (el.closest('[data-case-demo]')) return 'demo';
   if (el.closest('[data-case]')) return 'case';
   if (el.closest('[data-site-footer], [data-contact]')) return 'footer';
+  if (el.closest('[data-channel]')) return 'channel';
+  if (el.closest('[data-cmdk]')) return 'cmdk';
   return 'other';
 }
 
@@ -54,7 +57,9 @@ function onDocumentClick(event: MouseEvent): void {
   const link = target.closest('a');
   if (link?.href) {
     const href = link.href;
-    if (isTelegramHref(href)) {
+    if (isTelegramChannelHref(href) || link.hasAttribute('data-tg-channel')) {
+      goal('tg_channel_click', { from: tgPlace(link) });
+    } else if (isTelegramHref(href)) {
       goal('tg_click', { from: tgPlace(link) });
     } else if (href.startsWith('mailto:')) {
       goal('email_click');

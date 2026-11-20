@@ -234,7 +234,16 @@ async function runItem(item: PaletteItem): Promise<void> {
   }
   if (!item.href) return;
 
-  if (item.action === 'telegram' || item.action === 'github' || item.action === 'resume') {
+  if (
+    item.action === 'telegram' ||
+    item.action === 'telegram-channel' ||
+    item.action === 'github' ||
+    item.action === 'resume'
+  ) {
+    if (item.action === 'telegram-channel') {
+      const { goal } = await import('./metrika');
+      goal('tg_channel_click', { from: 'cmdk' });
+    }
     window.open(item.href, '_blank', 'noopener,noreferrer');
     return;
   }

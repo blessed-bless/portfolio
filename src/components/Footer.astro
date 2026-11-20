@@ -1,4 +1,5 @@
 ---
+import { telegramChannel } from '../data/home';
 import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
 const year = new Date().getFullYear();
@@ -12,6 +13,16 @@ const t = ui(locale);
       <p class="site-footer__name">{t.brand}</p>
       <a class="site-footer__link mono" href={localizedPath(locale, '/uses/')} data-cursor="hover">
         {t.footer.uses}
+      </a>
+      <a
+        class="site-footer__link mono"
+        href={telegramChannel.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-cursor="hover"
+        data-tg-channel
+      >
+        {t.footer.channel}
       </a>
       <button
         type="button"
