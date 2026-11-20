@@ -1,16 +1,10 @@
+import { demoLocale, demoProjectLabel, priemnayaCopy } from '../../i18n/demo-copy';
 import { button, clear, el, wait, wantSameCta } from './shared';
-
-const SERVICES = [
-  { id: 'change', title: 'Сезонная смена', minutes: 40 },
-  { id: 'balance', title: 'Балансировка', minutes: 30 },
-  { id: 'repair', title: 'Ремонт прокола', minutes: 25 },
-] as const;
 
 type Slot = { id: string; day: string; time: string; free: boolean };
 type Visit = { id: string; service: string; slot: string };
 
-function buildWeekSlots(): Slot[] {
-  const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+function buildWeekSlots(days: readonly string[]): Slot[] {
   const times = ['10:00', '11:30', '13:00', '15:00', '17:00'];
   const slots: Slot[] = [];
   let n = 0;
@@ -30,34 +24,38 @@ function buildWeekSlots(): Slot[] {
 
 export function mountPriemnayaDemo(root: HTMLElement): () => void {
   clear(root);
+  const locale = demoLocale();
+  const t = priemnayaCopy(locale);
+  const label = demoProjectLabel[locale].priemnaya;
+
   const ui = el('div', 'demo-ui');
   const serviceRow = el('div', 'demo-ui__row');
-  serviceRow.append(el('p', 'demo-ui__label', 'Услуга'));
+  serviceRow.append(el('p', 'demo-ui__label', t.serviceLabel));
   const slotPanel = el('div', 'demo-ui__panel');
-  slotPanel.append(el('p', 'demo-ui__label', 'Свободные слоты на неделю'));
+  slotPanel.append(el('p', 'demo-ui__label', t.slotsLabel));
   const slotList = el('div', 'demo-ui__row');
   const schedule = el('div', 'demo-ui__panel');
-  schedule.append(el('p', 'demo-ui__label', 'Расписание мастера'));
+  schedule.append(el('p', 'demo-ui__label', t.scheduleLabel));
   const visitList = el('ul', 'demo-ui__list');
   schedule.append(visitList);
-  const note = el('p', 'demo-ui__meta', 'Выберите услугу и свободное окно — запись появится в календаре.');
+  const note = el('p', 'demo-ui__meta', t.hint);
 
-  let serviceId = SERVICES[0].id;
-  let slots = buildWeekSlots();
+  let serviceId = t.services[0].id;
+  let slots = buildWeekSlots(t.days);
   const visits: Visit[] = [];
 
   const renderVisits = (): void => {
     clear(visitList);
     if (!visits.length) {
-      visitList.append(el('li', 'demo-ui__meta', 'Пока пусто — подтвердите слот.'));
+      visitList.append(el('li', 'demo-ui__meta', t.emptyVisits));
       return;
     }
     for (const visit of visits) {
       const item = el('li', 'demo-ui__item');
-      const service = SERVICES.find((s) => s.id === visit.service);
+      const service = t.services.find((s) => s.id === visit.service);
       item.append(
         el('span', '', `${service?.title ?? visit.service} · ${visit.slot}`),
-        el('span', 'demo-ui__status', 'подтверждено'),
+        el('span', 'demo-ui__status', t.confirmed),
       );
       item.querySelector('.demo-ui__status')?.setAttribute('data-tone', 'ok');
       visitList.append(item);
@@ -80,14 +78,14 @@ export function mountPriemnayaDemo(root: HTMLElement): () => void {
         });
         renderSlots();
         renderVisits();
-        note.textContent = 'Запись в расписании. Повтор на тот же слот недоступен.';
+        note.textContent = t.booked;
       });
       slotList.append(btn);
     }
-    if (!free.length) slotList.append(el('span', 'demo-ui__meta', 'На этой неделе свободных окон нет.'));
+    if (!free.length) slotList.append(el('span', 'demo-ui__meta', t.noSlots));
   };
 
-  for (const service of SERVICES) {
+  for (const service of t.services) {
     const btn = button(service.title, { pressed: service.id === serviceId });
     btn.addEventListener('click', () => {
       serviceId = service.id;
@@ -95,7 +93,7 @@ export function mountPriemnayaDemo(root: HTMLElement): () => void {
         child.setAttribute('aria-pressed', String(child === btn));
         child.classList.toggle('is-active', child === btn);
       }
-      note.textContent = `${service.title} · ${service.minutes} мин с буфером поста.`;
+      note.textContent = t.withBuffer(service.title, service.minutes);
     });
     if (service.id === serviceId) btn.classList.add('is-active');
     serviceRow.append(btn);
@@ -103,7 +101,7 @@ export function mountPriemnayaDemo(root: HTMLElement): () => void {
 
   slotPanel.append(slotList);
   const footer = el('div', 'demo-ui__footer');
-  footer.append(wantSameCta('Приёмная'));
+  footer.append(wantSameCta(label));
 
   ui.append(serviceRow, slotPanel, schedule, note, footer);
   root.append(ui);

@@ -54,7 +54,12 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
                 aria-label={label}
                 data-hero-cover={project.slug}
               >
-                <ProjectCover src={project.cover} loading={index === 0 ? 'eager' : 'lazy'} />
+                <ProjectCover
+                  src={project.cover}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  index={index + 1}
+                  title={project.title}
+                />
               </a>
             );
           })
@@ -64,15 +69,15 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 
     <div class="hero__chrome">
       <p class="hero__counter mono" data-hero-counter>01 / {String(projects.length).padStart(2, '0')}</p>
-      <div class="hero__nav" role="group" aria-label="Листание карусели">
-        <button type="button" class="hero__nav-btn mono" data-hero-prev data-cursor="hover" aria-label="Предыдущий проект">
+      <div class="hero__nav" role="group" aria-label={t.home.carouselNav}>
+        <button type="button" class="hero__nav-btn mono" data-hero-prev data-cursor="hover" aria-label={t.home.carouselPrev}>
           ←
         </button>
-        <button type="button" class="hero__nav-btn mono" data-hero-next data-cursor="hover" aria-label="Следующий проект">
+        <button type="button" class="hero__nav-btn mono" data-hero-next data-cursor="hover" aria-label={t.home.carouselNext}>
           →
         </button>
       </div>
-      <p class="hero__hint mono" data-hero-hint>тяните или ← →</p>
+      <p class="hero__hint mono" data-hero-hint>{t.home.carouselHint}</p>
       <p class="hero__caption mono" data-hero-caption aria-live="polite">
         {firstProject && (
           <>
@@ -137,7 +142,15 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     const nextBtn = root.querySelector<HTMLButtonElement>('[data-hero-next]');
 
     const { isWeakGpu, mountHeroFallback } = await import('../scripts/hero-fallback');
-    const preferFallback = reduce || isWeakGpu();
+    const { getPerfTier, perfAllows } = await import('../scripts/perf');
+    // Mobile / narrow: CSS snap — better touch UX and keeps three.js off the critical path.
+    const narrow = window.matchMedia('(max-width: 900px)').matches;
+    const preferFallback =
+      reduce ||
+      narrow ||
+      !perfAllows('webgl') ||
+      isWeakGpu() ||
+      getPerfTier() === 'low';
 
     const enableFallback = (): void => {
       if (!staticGrid) return;
@@ -329,11 +342,12 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     position: relative;
     min-height: 0;
     height: 100%;
-    margin-block: clamp(0.25rem, 1.2vh, 0.75rem) 0;
+    margin-block: 0;
     overflow: visible;
     background: transparent;
     border: 0;
     pointer-events: auto;
+    contain: layout paint;
     -webkit-mask-image:
       linear-gradient(90deg, transparent 0%, #000 10%, #000 100%),
       linear-gradient(180deg, transparent 0%, #000 2%, #000 100%);
@@ -365,8 +379,8 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     grid-template-columns: auto auto 1fr;
     gap: var(--space-1) var(--space-3);
     align-items: center;
-    margin-top: -0.35rem;
-    padding: 0 var(--page-pad) clamp(0.4rem, 1.2vh, 0.75rem) var(--space-5);
+    margin-top: 0;
+    padding: 0 var(--page-pad) clamp(0.25rem, 0.8vh, 0.5rem) var(--space-5);
     pointer-events: none;
     isolation: isolate;
   }
@@ -444,7 +458,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 
   .hero__static {
     position: absolute;
-    inset: 4% 3% 8%;
+    inset: 1% 2% 2%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
@@ -457,9 +471,9 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
   }
 
   .hero[data-carousel='snap'] .hero__static {
-    inset: auto 0 6%;
-    top: 4%;
-    bottom: 6%;
+    inset: auto 0 2%;
+    top: 1%;
+    bottom: 2%;
     display: flex;
     gap: var(--space-4);
     padding-inline: var(--page-pad);
@@ -540,11 +554,13 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
       max-width: 100vw;
       margin-inline: calc(50% - 50vw);
       height: auto;
-      min-height: 55svh;
+      /* Fixed seat avoids CLS when snap cards paint. */
+      min-height: 48svh;
     }
 
     .hero__stage {
-      min-height: 55svh;
+      min-height: 48svh;
+      height: 48svh;
       -webkit-mask-image: linear-gradient(
         90deg,
         transparent 0%,
@@ -564,17 +580,17 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     }
 
     .hero__chrome {
-      padding: var(--space-2) var(--page-pad) var(--space-4);
+      padding: var(--space-1) var(--page-pad) var(--space-2);
     }
 
     .hero__static {
-      inset: 4% var(--page-pad) 18%;
+      inset: 1% var(--page-pad) 4%;
     }
 
     .hero[data-carousel='snap'] .hero__static {
-      inset: auto 0 16%;
-      top: 6%;
-      bottom: 16%;
+      inset: auto 0 4%;
+      top: 1%;
+      bottom: 4%;
     }
 
     .hero[data-carousel='snap'] .hero__static-card {

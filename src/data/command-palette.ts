@@ -13,7 +13,7 @@ export type PaletteItem = {
   hint?: string;
   keywords: string;
   href?: string;
-  action?: 'theme' | 'copy-email' | 'telegram' | 'github' | 'locale' | 'resume';
+  action?: 'theme' | 'copy-email' | 'telegram' | 'github' | 'locale' | 'resume' | 'less-motion';
 };
 
 export function buildPaletteItems(projects: Project[], t: UiDict): PaletteItem[] {
@@ -75,6 +75,13 @@ export function buildPaletteItems(projects: Project[], t: UiDict): PaletteItem[]
       title: t.cmdk.theme,
       keywords: 'theme dark light тема',
       action: 'theme',
+    },
+    {
+      id: 'action-less-motion',
+      type: 'action',
+      title: t.cmdk.lessMotion,
+      keywords: 'motion animation perf fps меньше анимаций reduce',
+      action: 'less-motion',
     },
   ];
 

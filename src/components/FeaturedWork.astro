@@ -34,6 +34,8 @@ const featured: Project[] = await getFeaturedProjects(locale);
               <ProjectCover
                 src={project.cover}
                 transitionName={project.hasPage ? `work-cover-${project.slug}` : undefined}
+                index={index + 1}
+                title={project.title}
               />
             </span>
             <span class="featured__num mono">{String(index + 1).padStart(2, '0')}</span>

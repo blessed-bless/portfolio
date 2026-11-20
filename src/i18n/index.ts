@@ -36,7 +36,21 @@ export function localizedPath(locale: Locale, path = '/'): string {
   return `/en${normalized}`.replace(/\/{2,}/g, '/');
 }
 
+/** Paths that exist only in RU (no /en twin). Locale switch falls back to EN home. */
+const ruOnlyRoots = new Set(['/notes', '/system', '/404']);
+
+export function hasLocaleTwin(pathname: string, locale: Locale): boolean {
+  if (locale === 'ru') return true;
+  const bare = stripLocalePrefix(pathname).replace(/\/$/, '') || '/';
+  if (bare === '/') return true;
+  const root = `/${bare.split('/').filter(Boolean)[0] ?? ''}`;
+  return !ruOnlyRoots.has(root);
+}
+
 export function switchLocalePath(currentPathname: string, nextLocale: Locale): string {
   const bare = stripLocalePrefix(currentPathname);
+  if (nextLocale === 'en' && !hasLocaleTwin(bare, 'en')) {
+    return localizedPath('en', '/');
+  }
   return localizedPath(nextLocale, bare.endsWith('/') || bare.includes('#') || bare.includes('?') ? bare : `${bare}/`);
 }

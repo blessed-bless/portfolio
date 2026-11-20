@@ -1,14 +1,17 @@
 ---
 import { stackRowA, stackRowB } from '../data/home';
+import { defaultLocale, isLocale, ui, type Locale } from '../i18n';
 
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
 const rowA = [...stackRowA, ...stackRowA];
 const rowB = [...stackRowB, ...stackRowB];
 ---
 
-<section class="stack page-pad" data-stack aria-label="Стек">
+<section class="stack page-pad" data-stack aria-label={t.home.stackTitle}>
   <div class="stack__head">
-    <p class="eyebrow">Инструменты</p>
-    <h2 class="stack__title">Стек</h2>
+    <p class="eyebrow">{t.home.stackEyebrow}</p>
+    <h2 class="stack__title">{t.home.stackTitle}</h2>
   </div>
 
   <div class="stack__rails" aria-hidden="true">

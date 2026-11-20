@@ -1,3 +1,5 @@
+import { demoLocale, demoShell } from '../i18n/demo-copy';
+
 export function mountReadingProgress(bar: HTMLElement): () => void {
   const onScroll = (): void => {
     const doc = document.documentElement;
@@ -11,6 +13,7 @@ export function mountReadingProgress(bar: HTMLElement): () => void {
 }
 
 export function mountCodeCopy(root: HTMLElement): () => void {
+  const copy = demoShell(demoLocale());
   const blocks = [...root.querySelectorAll('pre')];
   const cleanups: Array<() => void> = [];
 
@@ -24,7 +27,7 @@ export function mountCodeCopy(root: HTMLElement): () => void {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'code-block__copy mono';
-    button.textContent = 'Копировать';
+    button.textContent = copy.copy;
     button.setAttribute('data-cursor', 'hover');
     wrap.appendChild(button);
 
@@ -32,12 +35,12 @@ export function mountCodeCopy(root: HTMLElement): () => void {
       const text = pre.textContent || '';
       try {
         await navigator.clipboard.writeText(text);
-        button.textContent = 'Скопировано';
+        button.textContent = copy.copied;
       } catch {
-        button.textContent = 'Не вышло';
+        button.textContent = copy.copyFailed;
       }
       window.setTimeout(() => {
-        button.textContent = 'Копировать';
+        button.textContent = copy.copy;
       }, 1600);
     };
     button.addEventListener('click', () => {
@@ -48,4 +51,3 @@ export function mountCodeCopy(root: HTMLElement): () => void {
 
   return () => cleanups.forEach((fn) => fn());
 }
-

@@ -6,10 +6,16 @@ import {
   type Texture,
 } from 'three';
 
+export type CoverLabel = {
+  number: string;
+  title: string;
+};
+
 export type CoverRasterOptions = {
   width: number;
   height?: number;
   anisotropy?: number;
+  label?: CoverLabel;
 };
 
 function themeCoverVars(): Record<string, string> {
@@ -74,6 +80,18 @@ export async function rasterizeCoverSvg(
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
   context.drawImage(image, 0, 0, width, height);
+
+  if (options.label && layer === 'base') {
+    const scale = width / 1600;
+    const fontPx = Math.max(12, Math.round(42 * scale));
+    context.font = `650 ${fontPx}px Unbounded, Onest, system-ui, sans-serif`;
+    context.textBaseline = 'alphabetic';
+    context.fillStyle = vars['--cover-line'] || '#A78BFA';
+    context.fillText(options.label.number, 100 * scale, 144 * scale);
+    const numWidth = context.measureText(options.label.number).width;
+    context.fillStyle = vars['--cover-ink'] || '#E9E3FF';
+    context.fillText(options.label.title, Math.max(206 * scale, 100 * scale + numWidth + 12 * scale), 144 * scale);
+  }
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;

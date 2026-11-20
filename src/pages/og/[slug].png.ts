@@ -1,12 +1,25 @@
 import type { APIRoute } from 'astro';
 import sharp from 'sharp';
-import { getStaticPaths } from './[slug].svg';
-import { workCover } from '../../lib/work-cover';
+import { getCaseEntries } from '../../lib/work';
+import { workCoverLabeled } from '../../lib/work-cover';
 
-export { getStaticPaths };
+export async function getStaticPaths() {
+  const cases = await getCaseEntries('ru');
+  return cases.map(({ data }, index) => ({
+    params: { slug: data.slug },
+    props: {
+      cover: data.cover,
+      title: data.title,
+      number: String(index + 1).padStart(2, '0'),
+    },
+  }));
+}
 
 export const GET: APIRoute = async ({ props }) => {
-  const svg = workCover(props.cover).replace(/var\(--cover-[a-z]+, (#[A-Fa-f0-9]{6})\)/g, '$1');
+  const svg = workCoverLabeled(props.cover, {
+    number: props.number,
+    title: props.title,
+  }).replace(/var\(--cover-[a-z]+, (#[A-Fa-f0-9]{6})\)/g, '$1');
   const png = await sharp(new TextEncoder().encode(svg))
     .resize(1200, 630, {
       fit: 'contain',

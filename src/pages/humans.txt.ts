@@ -6,7 +6,6 @@ Site: https://dubstepmolitva.ru
 GitHub: https://github.com/blessed-bless
 Contact: bogdan@dubstepmolitva.ru
 Telegram: https://t.me/ketasonx
-From: Omsk, Russia
 
 /* SITE */
 Last update: 2026-11
@@ -16,7 +15,7 @@ Standards: Astro, MDX, TypeScript
 Stack: Astro 7, GSAP, Lenis, Three.js
 Fonts: Onest, Unbounded, IBM Plex Mono
 Hosting: Timeweb Cloud
-IDE: Cursor
+IDE: VS Code
 
 /* THANKS */
 Onest / Unbounded / IBM Plex Mono — readable Cyrillic under load

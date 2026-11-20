@@ -27,11 +27,13 @@ const catalogJson = JSON.stringify(catalog).replace(/</g, '\\u003c');
         id="cmdk-input"
         class="cmdk__input"
         type="search"
+        role="combobox"
         data-cmdk-input
         placeholder={t.cmdk.placeholder}
         autocomplete="off"
         spellcheck="false"
         aria-autocomplete="list"
+        aria-expanded="false"
         aria-controls="cmdk-listbox"
         aria-activedescendant=""
       />

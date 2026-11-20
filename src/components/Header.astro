@@ -87,7 +87,7 @@ function isActive(href: string): boolean {
         class="site-header__cmdk mono"
         data-cmdk-open
         data-cursor="hover"
-        aria-label={t.header.cmdk}
+        aria-label={`${t.header.cmdk} ${t.header.cmdkShort}`}
         title={t.header.cmdk}
       >
         <span class="site-header__cmdk-label">{t.header.cmdkShort}</span>
@@ -416,6 +416,10 @@ function isActive(href: string): boolean {
 
   @media (max-width: 768px) {
     .site-header__nav {
+      display: none;
+    }
+
+    .site-header__cmdk {
       display: none;
     }
 

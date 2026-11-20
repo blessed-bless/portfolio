@@ -1,42 +1,94 @@
+import { initPerfProfile, onPerfChange, perfAllows } from './perf';
 import { applyTheme, resolveInitialTheme } from './theme';
-import { startLenis, stopLenis } from './lenis-scroll';
-import { mountCustomCursor } from './cursor';
-import { mountMetrika } from './metrika';
-import { mountDevEggs } from './dev-eggs';
-import { mountPageTransitions } from './page-transitions';
-import { ensureScrollTrigger } from './scroll-sync';
 
 let cursorTeardown: (() => void) | null = null;
+let resizeTimer = 0;
+let chromeBound = false;
+let stopLenisFn: (() => void) | null = null;
 
-function bootChrome(): void {
-  applyTheme(resolveInitialTheme());
-  stopLenis();
-  startLenis();
-
-  const cursorRoot = document.querySelector<HTMLElement>('[data-site-cursor]');
-  cursorTeardown?.();
-  cursorTeardown = null;
-  if (cursorRoot) {
-    cursorTeardown = mountCustomCursor(cursorRoot);
+async function ensureCursor(): Promise<void> {
+  if (!perfAllows('cursor')) {
+    cursorTeardown?.();
+    cursorTeardown = null;
+    return;
+  }
+  const { canUseCustomCursor, isCursorMountedOn, mountCustomCursor } = await import('./cursor');
+  if (!canUseCustomCursor()) {
+    cursorTeardown?.();
+    cursorTeardown = null;
+    return;
   }
 
-  window.requestAnimationFrame(() => {
-    try {
-      ensureScrollTrigger().refresh();
-    } catch {
-      /* ok */
-    }
+  const cursorRoot = document.querySelector<HTMLElement>('[data-site-cursor]');
+  if (!cursorRoot) return;
+  if (isCursorMountedOn(cursorRoot)) return;
+
+  cursorTeardown?.();
+  cursorTeardown = mountCustomCursor(cursorRoot);
+}
+
+async function bootChrome(): Promise<void> {
+  applyTheme(resolveInitialTheme());
+
+  // Lenis is desktop-only — on narrow/touch it fights native scroll and burns TBT.
+  const allowLenis =
+    perfAllows('lenis') &&
+    window.matchMedia('(min-width: 901px)').matches &&
+    window.matchMedia('(pointer: fine)').matches;
+
+  if (allowLenis) {
+    const { stopLenis, startLenis } = await import('./lenis-scroll');
+    stopLenisFn = stopLenis;
+    stopLenis();
+    startLenis();
+  } else {
+    stopLenisFn?.();
+    stopLenisFn = null;
+  }
+
+  await ensureCursor();
+}
+
+function bindResizeRefresh(): void {
+  window.addEventListener(
+    'resize',
+    () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        void import('./scroll-sync')
+          .then(({ ensureScrollTrigger }) => {
+            try {
+              ensureScrollTrigger().refresh();
+            } catch {
+              /* ok */
+            }
+          })
+          .catch(() => undefined);
+      }, 180);
+    },
+    { passive: true },
+  );
+}
+
+initPerfProfile();
+
+void import('./raf-hub').then(({ bindVisibilityPause }) => bindVisibilityPause());
+void import('./metrika').then(({ mountMetrika }) => mountMetrika());
+void import('./dev-eggs').then(({ mountDevEggs }) => mountDevEggs());
+void import('./page-transitions').then(({ mountPageTransitions }) => mountPageTransitions());
+void bootChrome();
+
+if (!chromeBound) {
+  chromeBound = true;
+  bindResizeRefresh();
+  onPerfChange(() => {
+    void bootChrome();
   });
 }
 
-mountMetrika();
-mountDevEggs();
-mountPageTransitions();
-bootChrome();
-
-document.addEventListener('astro:page-load', bootChrome);
+document.addEventListener('astro:page-load', () => {
+  void bootChrome();
+});
 document.addEventListener('astro:before-swap', () => {
-  cursorTeardown?.();
-  cursorTeardown = null;
-  stopLenis();
+  stopLenisFn?.();
 });

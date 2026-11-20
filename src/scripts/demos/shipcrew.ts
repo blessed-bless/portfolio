@@ -1,55 +1,22 @@
+import { demoLocale, demoProjectLabel, shipcrewCopy } from '../../i18n/demo-copy';
 import { button, clear, el, wait, wantSameCta } from './shared';
-
-const PIPELINE = [
-  {
-    role: 'pm',
-    title: 'PM',
-    summary: 'Собрал бриф: API gateway + агенты с общим blackboard.',
-    logStart: 'PM приступил к брифу',
-    logDone: 'PM собрал бриф: API gateway и общая доска агентов',
-  },
-  {
-    role: 'architect',
-    title: 'Architect',
-    summary: 'Наметил FastAPI + React UI + zip ship bundle.',
-    logStart: 'Архитектор проектирует стек',
-    logDone: 'Архитектор наметил FastAPI, React UI и zip-бандл',
-  },
-  {
-    role: 'engineer',
-    title: 'Engineer',
-    summary: 'Сгенерировал код сервисов и каркас фронта.',
-    logStart: 'Инженер пишет код',
-    logDone: 'Инженер сгенерировал сервисы и каркас фронта',
-  },
-  {
-    role: 'reviewer',
-    title: 'Reviewer',
-    summary: 'approved=true, required_fixes=[].',
-    logStart: 'Ревьюер проверяет результат',
-    logDone: 'Ревьюер одобрил без правок',
-  },
-  {
-    role: 'devops',
-    title: 'DevOps',
-    summary: 'Собрал prod zip и проверил /api/health.',
-    logStart: 'DevOps собирает релиз',
-    logDone: 'DevOps собрал prod zip и проверил /api/health',
-  },
-] as const;
 
 export function mountShipcrewDemo(root: HTMLElement): () => void {
   clear(root);
+  const locale = demoLocale();
+  const t = shipcrewCopy(locale);
+  const projectLabel = demoProjectLabel[locale].shipcrew;
+
   const ui = el('div', 'demo-ui');
   const controls = el('div', 'demo-ui__row');
-  const runBtn = button('Запустить миссию', { primary: true });
-  const againBtn = button('Запустить снова');
+  const runBtn = button(t.run, { primary: true });
+  const againBtn = button(t.again);
   againBtn.disabled = true;
   controls.append(runBtn, againBtn);
 
   const logPanel = el('div', 'demo-ui__panel');
-  logPanel.append(el('p', 'demo-ui__label', 'Журнал событий'));
-  const log = el('pre', 'demo-ui__log', 'Нажмите «Запустить миссию».');
+  logPanel.append(el('p', 'demo-ui__label', t.logLabel));
+  const log = el('pre', 'demo-ui__log', t.idle);
   logPanel.append(log);
 
   const roles = el('ul', 'demo-ui__list');
@@ -58,17 +25,17 @@ export function mountShipcrewDemo(root: HTMLElement): () => void {
 
   const renderRoles = (active = -1, done = -1): void => {
     clear(roles);
-    PIPELINE.forEach((step, index) => {
+    t.steps.forEach((step, index) => {
       const item = el('li', 'demo-ui__item');
       const left = el('div');
       left.append(el('div', '', step.title), el('span', 'demo-ui__meta', step.role));
-      let label = 'ожидает';
+      let label = t.waiting;
       let tone = 'warn';
-      if (index < done || (done === PIPELINE.length && index < PIPELINE.length)) {
-        label = 'готово';
+      if (index < done || (done === t.steps.length && index < t.steps.length)) {
+        label = t.done;
         tone = 'ok';
       } else if (index === active) {
-        label = 'работает';
+        label = t.working;
         tone = 'warn';
       }
       const status = el('span', 'demo-ui__status', label);
@@ -79,7 +46,7 @@ export function mountShipcrewDemo(root: HTMLElement): () => void {
   };
 
   const appendLog = (line: string): void => {
-    if (log.textContent === 'Нажмите «Запустить миссию».') log.textContent = '';
+    if (log.textContent === t.idle) log.textContent = '';
     log.textContent += `${line}\n`;
     log.scrollTop = log.scrollHeight;
   };
@@ -90,20 +57,20 @@ export function mountShipcrewDemo(root: HTMLElement): () => void {
     runBtn.disabled = true;
     againBtn.disabled = true;
     log.textContent = '';
-    appendLog('Миссия запущена');
-    for (let i = 0; i < PIPELINE.length; i++) {
+    appendLog(t.started);
+    for (let i = 0; i < t.steps.length; i++) {
       if (disposed) return;
-      const step = PIPELINE[i];
+      const step = t.steps[i];
       renderRoles(i, i);
       appendLog(step.logStart);
       await wait(550);
       appendLog(step.logDone);
-      if (step.role === 'reviewer') appendLog('Повторное ревью не нужно — всё одобрено');
+      if (step.role === 'reviewer') appendLog(t.reviewOk);
       renderRoles(i + 1, i + 1);
       await wait(220);
     }
-    appendLog('Миссия завершена: бандл shipcrew-demo.zip готов');
-    renderRoles(-1, PIPELINE.length);
+    appendLog(t.finished);
+    renderRoles(-1, t.steps.length);
     playing = false;
     againBtn.disabled = false;
   };
@@ -116,7 +83,7 @@ export function mountShipcrewDemo(root: HTMLElement): () => void {
   });
 
   const footer = el('div', 'demo-ui__footer');
-  footer.append(wantSameCta('ShipCrew'));
+  footer.append(wantSameCta(projectLabel));
 
   ui.append(controls, roles, logPanel, footer);
   root.append(ui);
