@@ -1,0 +1,99 @@
+---
+type Variant = 'primary' | 'ghost' | 'link';
+
+interface Props {
+  href?: string;
+  variant?: Variant;
+  type?: 'button' | 'submit' | 'reset';
+  class?: string;
+}
+
+const {
+  href,
+  variant = 'primary',
+  type = 'button',
+  class: className = '',
+} = Astro.props;
+
+const classes = ['btn', `btn--${variant}`, className].filter(Boolean).join(' ');
+---
+
+{
+  href ? (
+    <a class={classes} href={href} data-cursor="hover">
+      <slot />
+    </a>
+  ) : (
+    <button class={classes} type={type} data-cursor="hover">
+      <slot />
+    </button>
+  )
+}
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    padding: 0.7rem 1.25rem;
+    border: var(--stroke) solid transparent;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    text-decoration: none;
+    transition:
+      background var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn--primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  .btn--primary:hover {
+    background: color-mix(in srgb, var(--accent) 82%, white);
+    color: var(--accent-ink);
+  }
+
+  :global([data-theme='light']) .btn--primary:hover {
+    background: var(--accent-strong);
+    color: var(--accent-ink);
+  }
+
+  .btn--ghost {
+    background: transparent;
+    border-color: var(--border-strong);
+    color: var(--fg);
+  }
+
+  .btn--ghost:hover {
+    border-color: var(--fg);
+    color: var(--fg);
+  }
+
+  .btn--link {
+    min-height: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    color: var(--fg);
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+  }
+
+  .btn--link:hover {
+    color: var(--accent);
+  }
+</style>

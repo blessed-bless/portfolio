@@ -1,0 +1,56 @@
+---
+---
+
+<div class="site-cursor" data-site-cursor hidden data-visible="false" data-hover="false" aria-hidden="true">
+  <span class="site-cursor__dot" data-cursor-dot></span>
+  <span class="site-cursor__ring" data-cursor-ring></span>
+</div>
+
+<style>
+  .site-cursor {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--dur-2) var(--ease-out);
+  }
+
+  .site-cursor[data-visible='true'] {
+    opacity: 1;
+  }
+
+  .site-cursor__dot,
+  .site-cursor__ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    will-change: transform;
+  }
+
+  .site-cursor__dot {
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    background: var(--cursor-fill);
+  }
+
+  .site-cursor__ring {
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    border: 1px solid color-mix(in srgb, var(--cursor-fill) 55%, transparent);
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  .site-cursor[data-hover='true'] .site-cursor__ring {
+    border-color: var(--accent);
+  }
+
+  @media (pointer: coarse), (hover: none) {
+    .site-cursor {
+      display: none !important;
+    }
+  }
+</style>

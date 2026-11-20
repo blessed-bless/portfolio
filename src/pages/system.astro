@@ -1,0 +1,320 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+
+const placeholder = '{{заполнить}}';
+
+const typeScale = [
+  { name: 'display', varName: '--text-display', sample: 'Богдан' },
+  { name: 'hero', varName: '--text-hero', sample: 'Сигнал' },
+  { name: 'xl', varName: '--text-xl', sample: 'Заголовок секции' },
+  { name: 'lg', varName: '--text-lg', sample: 'Подзаголовок' },
+  { name: 'md', varName: '--text-md', sample: 'Крупный текст' },
+  { name: 'base', varName: '--text-base', sample: 'Основной текст интерфейса' },
+  { name: 'sm', varName: '--text-sm', sample: 'Вторичный текст' },
+  { name: 'xs', varName: '--text-xs', sample: 'Мета / mono label' },
+];
+
+const colors = [
+  { name: 'bg', varName: '--bg' },
+  { name: 'bg-elevated', varName: '--bg-elevated' },
+  { name: 'bg-soft', varName: '--bg-soft' },
+  { name: 'fg', varName: '--fg' },
+  { name: 'fg-muted', varName: '--fg-muted' },
+  { name: 'border', varName: '--border' },
+  { name: 'accent', varName: '--accent' },
+  { name: 'accent-strong', varName: '--accent-strong' },
+];
+
+const spaces = [1, 2, 3, 4, 5, 6, 7, 8];
+---
+
+<BaseLayout title="Система — портфолио" description="Витрина дизайн-токенов">
+  <div class="system page-pad">
+    <header class="system__header">
+      <p class="eyebrow">Design system</p>
+      <h1 class="system__title">Токены и компоненты</h1>
+      <p class="system__lead">
+        Шрифты, фиолетовый акцент, кнопки, ссылки и карточка проекта. Тема переключается в шапке.
+      </p>
+    </header>
+
+    <section class="system__section">
+      <h2>Типографика</h2>
+      <div class="type-stack">
+        {
+          typeScale.map((item) => (
+            <div class="type-row">
+              <div class="type-row__meta mono">
+                <span>{item.name}</span>
+                <span>{item.varName}</span>
+              </div>
+              <p class:list={['type-row__sample', { mono: item.name === 'xs' }]} style={`font-size: var(${item.varName})`}>
+                {item.sample}
+              </p>
+            </div>
+          ))
+        }
+      </div>
+      <div class="font-cards">
+        <div class="font-card">
+          <p class="eyebrow">Display</p>
+          <p class="font-card__name" style="font-family: var(--font-display)">Bricolage Grotesque</p>
+          <p>Крупный гротеск для имени и заголовков.</p>
+        </div>
+        <div class="font-card">
+          <p class="eyebrow">Mono</p>
+          <p class="font-card__name mono">IBM Plex Mono</p>
+          <p>Акцент для меток, навигации и служебных строк.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="system__section">
+      <h2>Цвет</h2>
+      <div class="swatches">
+        {
+          colors.map((color) => (
+            <div class="swatch">
+              <div class="swatch__chip" style={`background: var(${color.varName})`}></div>
+              <p class="mono">{color.name}</p>
+              <p class="mono swatch__token">{color.varName}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="system__section">
+      <h2>Отступы</h2>
+      <div class="space-list">
+        {
+          spaces.map((n) => (
+            <div class="space-row">
+              <span class="mono">--space-{n}</span>
+              <span class="space-row__bar" style={`width: var(--space-${n})`}></span>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="system__section">
+      <h2>Сетка</h2>
+      <div class="grid-demo grid-12" aria-hidden="true">
+        {Array.from({ length: 12 }).map((_, i) => <div class="grid-demo__cell">{i + 1}</div>)}
+      </div>
+    </section>
+
+    <section class="system__section">
+      <h2>Кнопки и ссылки</h2>
+      <div class="actions">
+        <Button href="#" variant="primary">Primary</Button>
+        <Button href="#" variant="ghost">Ghost</Button>
+        <Button href="#" variant="link">Текстовая ссылка</Button>
+        <a href="#" data-cursor="hover">Обычная ссылка</a>
+      </div>
+    </section>
+
+    <section class="system__section">
+      <h2>Карточка проекта</h2>
+      <div class="card-demo">
+        <ProjectCard
+          title={placeholder}
+          summary="Короткое описание результата и роли — без маркетингового тумана."
+          meta="Case"
+          year="2026"
+        />
+      </div>
+    </section>
+
+    <section class="system__section">
+      <h2>Motion</h2>
+      <ul class="motion-list mono">
+        <li>--ease-out · --dur-2</li>
+        <li>--ease-in-out · --dur-3</li>
+        <li>--ease-spring · --dur-4</li>
+        <li>--dur-preloader ≤ 1.5s</li>
+      </ul>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .system {
+    width: min(100%, var(--grid-max));
+    margin-inline: auto;
+    padding-block: var(--space-8) var(--section-gap);
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .system__header {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 40rem;
+  }
+
+  .system__title {
+    margin: 0;
+    font-size: var(--text-xl);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+  }
+
+  .system__lead {
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: var(--text-md);
+  }
+
+  .system__section {
+    display: grid;
+    gap: var(--space-5);
+    padding-top: var(--space-6);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .system__section h2 {
+    margin: 0;
+    font-size: var(--text-lg);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .type-stack {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .type-row__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+  }
+
+  .type-row__sample {
+    margin: 0;
+    font-weight: 650;
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-snug);
+  }
+
+  .font-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--grid-gutter);
+  }
+
+  .font-card {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border: var(--stroke) solid var(--border);
+    background: var(--bg-elevated);
+  }
+
+  .font-card p {
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
+  .font-card__name {
+    color: var(--fg);
+    font-size: var(--text-lg);
+    font-weight: 650;
+  }
+
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--grid-gutter);
+  }
+
+  .swatch {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .swatch__chip {
+    aspect-ratio: 1.4 / 1;
+    border: var(--stroke) solid var(--border);
+  }
+
+  .swatch p {
+    margin: 0;
+    font-size: var(--text-xs);
+  }
+
+  .swatch__token {
+    color: var(--fg-muted);
+  }
+
+  .space-list {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .space-row {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+  }
+
+  .space-row__bar {
+    display: block;
+    height: 0.65rem;
+    background: var(--accent);
+  }
+
+  .grid-demo__cell {
+    min-height: 2.5rem;
+    display: grid;
+    place-items: center;
+    border: var(--stroke) solid var(--border);
+    background: var(--bg-elevated);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .card-demo {
+    max-width: 28rem;
+  }
+
+  .motion-list {
+    margin: 0;
+    padding-left: 1.1rem;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  @media (max-width: 900px) {
+    .swatches {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .font-cards {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
