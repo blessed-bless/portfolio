@@ -6,11 +6,34 @@ import FeaturedWork from '../components/FeaturedWork.astro';
 import Services from '../components/Services.astro';
 import StackMarquee from '../components/StackMarquee.astro';
 import Contact from '../components/Contact.astro';
+import {
+  defaultDescription,
+  personJobTitle,
+  personName,
+  siteUrl,
+} from '../lib/site';
+import { isFilled } from '../lib/fill';
+import { contactLinks } from '../data/home';
 
-const placeholder = '{{заполнить}}';
+const sameAs = [contactLinks.github, contactLinks.telegram].filter(isFilled);
+
+const personLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: personName,
+  jobTitle: personJobTitle,
+  url: siteUrl,
+  ...(sameAs.length ? { sameAs } : {}),
+};
 ---
 
-<BaseLayout title="Богдан — портфолио" description={placeholder}>
+<BaseLayout
+  title="Богдан — портфолио"
+  description={defaultDescription}
+  canonicalPath="/"
+  ogImage="/og/home.svg"
+  jsonLd={personLd}
+>
   <Hero />
   <Manifest />
   <FeaturedWork />
@@ -20,32 +43,33 @@ const placeholder = '{{заполнить}}';
 </BaseLayout>
 
 <script>
-  let started = false;
+  let manifest: HTMLElement | null = null;
+  let observer: IntersectionObserver | null = null;
   let unmountHomePage: (() => void) | null = null;
 
-  const boot = async () => {
-    if (!document.querySelector('[data-manifest]')) return;
-    const home = await import('../scripts/home-page');
-    unmountHomePage?.();
-    home.unmountHomePage();
-    home.mountHomePage();
-    unmountHomePage = home.unmountHomePage;
-    started = true;
-  };
+  function scheduleHome(): void {
+    const root = document.querySelector<HTMLElement>('[data-manifest]');
+    if (!root || root === manifest) return;
+    manifest = root;
 
-  const run = () => {
-    void boot();
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', run, { once: true });
-  } else {
-    run();
+    observer = new IntersectionObserver(async ([entry]) => {
+      if (!entry?.isIntersecting) return;
+      observer?.disconnect();
+      const home = await import('../scripts/home-page');
+      if (manifest !== root) return;
+      home.mountHomePage();
+      unmountHomePage = home.unmountHomePage;
+    }, { rootMargin: '0px 0px -10% 0px' });
+    observer.observe(root);
   }
 
-  document.addEventListener('astro:page-load', run);
+  scheduleHome();
+  document.addEventListener('astro:page-load', scheduleHome);
   document.addEventListener('astro:before-swap', () => {
-    if (started) unmountHomePage?.();
-    started = false;
+    observer?.disconnect();
+    observer = null;
+    manifest = null;
+    unmountHomePage?.();
+    unmountHomePage = null;
   });
 </script>

@@ -76,9 +76,9 @@ function mountFeaturedPreview(): void {
 
   const showFor = (row: HTMLAnchorElement, event?: Event): void => {
     activeRow = row;
-    const cover = row.dataset.cover || '';
-    if (media) {
-      media.style.backgroundImage = cover ? `url(${cover})` : '';
+    const cover = row.querySelector('.project-cover');
+    if (media && cover) {
+      media.replaceChildren(cover.cloneNode(true));
     }
     if (mobile || reduce) {
       follower.dataset.mode = 'static';

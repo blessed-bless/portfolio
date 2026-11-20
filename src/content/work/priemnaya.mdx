@@ -1,0 +1,99 @@
+---
+title: Приёмная
+slug: priemnaya
+year: '2025'
+role: Продукт и бэкенд
+stack:
+  - Next.js
+  - TypeScript
+  - PostgreSQL
+  - Drizzle
+  - pg-boss
+  - Telegram
+status: в разработке
+cover: ../../assets/covers/priemnaya.svg
+summary: Запись в шиномонтаж после пропущенного звонка — SMS со ссылкой, общий календарь и уведомления мастеру.
+links: {}
+order: 1
+tags:
+  - TypeScript
+  - Web
+  - Bots
+hasPage: true
+featured: true
+carousel: true
+---
+
+## Задача
+
+Независимый шиномонтаж с небольшим автосервисом теряет часть звонков в сезон: мастер занят в боксе и не отвечает. Записи из тетради, звонков и живой очереди конфликтуют. Клиент не понимает, когда его примут.
+
+«Приёмная» закрывает путь от пропущенного звонка до подтверждённой веб-записи на стандартную услугу — без отдельного администратора и без новой CRM на старте.
+
+## Решения и почему
+
+- **SMS со ссылкой на запись.** По первому подходящему пропуску клиент получает SMS с названием точки и ссылкой на мобильную веб-форму. Повтор с того же номера в ту же точку в окне 24 часов не создаёт второе SMS.
+- **Уведомления в Telegram.** Мастер получает событие о новой записи; запасной канал — SMS со ссылкой на рабочую панель, если Telegram недоступен.
+- **Один календарь.** Веб-запись, телефон и очная очередь пишут в одно расписание. Подтверждается только окно, где пост свободен на всю длительность с буфером и соблюдён лимит машин.
+- **Защита от двойных записей.** В PostgreSQL — exclusion constraint по интервалу занятости поста (`tstzrange` + GiST). Общий лимит машин проверяется в транзакции с блокировкой строки точки.
+- **Очередь на pg-boss.** Событие АТС и постановка задачи живут в одной транзакции. Воркер шлёт SMS и Telegram, обрабатывает напоминания и очистку номеров без записи.
+
+Цифры пилота и конверсии в кейсе не публикую, пока нет согласованных замеров.
+
+## Архитектура
+
+<Diagram caption="Поток: клиент и АТС → Next.js → PostgreSQL → воркер → SMS / Telegram">
+  <svg viewBox="0 0 720 280" role="img" aria-label="Схема потоков Приёмной">
+    <rect x="16" y="24" width="140" height="56" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="86" y="58" text-anchor="middle" fill="var(--fg)" font-size="14" font-family="var(--font-mono)">Клиент / мастер</text>
+    <rect x="16" y="120" width="140" height="56" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="86" y="154" text-anchor="middle" fill="var(--fg)" font-size="14" font-family="var(--font-mono)">АТС / SMS</text>
+    <rect x="220" y="72" width="150" height="72" rx="4" fill="var(--bg-elevated)" stroke="var(--accent)" />
+    <text x="295" y="114" text-anchor="middle" fill="var(--fg)" font-size="15" font-family="var(--font-display)" font-weight="650">Next.js</text>
+    <rect x="430" y="72" width="150" height="72" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="505" y="114" text-anchor="middle" fill="var(--fg)" font-size="15" font-family="var(--font-display)" font-weight="650">PostgreSQL</text>
+    <rect x="430" y="180" width="150" height="64" rx="4" fill="var(--bg-elevated)" stroke="var(--accent-strong)" />
+    <text x="505" y="218" text-anchor="middle" fill="var(--fg)" font-size="14" font-family="var(--font-mono)">pg-boss воркер</text>
+    <path d="M156 52 H210" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#arrow)" />
+    <path d="M156 148 H210" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#arrow)" />
+    <path d="M370 108 H420" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#arrow)" />
+    <path d="M505 144 V180" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#arrow)" />
+    <path d="M430 212 H300 V148" stroke="var(--fg-muted)" stroke-width="1.5" fill="none" marker-end="url(#arrow)" />
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="var(--fg-muted)" />
+      </marker>
+    </defs>
+  </svg>
+</Diagram>
+
+Веб и панель — Next.js App Router. Схема и миграции — Drizzle + ручной SQL для `btree_gist` и exclusion. Очередь pg-boss в той же PostgreSQL.
+
+## Код
+
+Идея ограничения на пересечение занятости поста:
+
+```sql
+-- защита поста: активные интервалы не пересекаются
+EXCLUDE USING gist (
+  point_id WITH =,
+  post_id WITH =,
+  tstzrange(occupied_from, occupied_until, '[)') WITH &&
+) WHERE (active)
+```
+
+Идемпотентность веб-формы через ключ запроса:
+
+```ts
+// повтор отправки той же формы не создаёт второй визит
+await db.transaction(async (tx) => {
+  await lockPoint(tx, pointId);
+  const existing = await findByFormKey(tx, pointId, formKey);
+  if (existing) return existing;
+  return bookVisit(tx, payload);
+});
+```
+
+## Результат
+
+Пилот ещё идёт. Публичные метрики конверсии и объёма SMS появятся после согласованных замеров. На уровне продукта зафиксированы сценарии пропуска → SMS → запись, общий календарь и правила конфликта поста.

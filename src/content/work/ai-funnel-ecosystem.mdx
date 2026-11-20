@@ -1,0 +1,148 @@
+---
+title: AI Funnel Ecosystem
+slug: ai-funnel-ecosystem
+year: '2026'
+role: Продукт и бэкенд
+stack:
+  - Python 3.12
+  - FastAPI
+  - SQLAlchemy
+  - SQLite
+  - aiogram 3
+  - Alembic
+  - Docker
+status: готов
+cover: ../../assets/covers/ai-funnel-ecosystem.svg
+summary: >-
+  Воронка лидов, Telegram AI-бот и mini-CRM с outbox-воркером — от хита на
+  лендинге до менеджера в Telegram.
+links:
+  github: https://github.com/blessed-bless/ai-funnel-ecosystem
+order: 4
+tags:
+  - Python
+  - Bots
+  - Web
+hasPage: true
+featured: true
+carousel: true
+---
+
+import screenshot from "../../assets/screenshots/ai-funnel-ecosystem.png";
+
+## Задача
+
+Один стек от хита на лендинге до менеджера: диалог `/api/chat`, Telegram-бот с квалификацией, mini-CRM (фильтры, заметки, timeline, soft-delete, CSV) и исходящие webhook / notify без потери при падении процесса.
+
+## Решение и архитектура
+
+Landing и бот пишут в FastAPI. Данные в SQLite. Outbox копит jobs; отдельный worker шлёт webhook и Telegram менеджеру. HTML CRM поверх того же API.
+
+<Diagram caption="Landing / bot → FastAPI → SQLite + outbox worker → webhook / Telegram; CRM читает API">
+  <svg viewBox="0 0 720 280" role="img" aria-label="Архитектура AI Funnel Ecosystem">
+    <rect x="16" y="24" width="120" height="48" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="76" y="53" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">Landing</text>
+    <rect x="16" y="92" width="120" height="48" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="76" y="121" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">TG bot</text>
+    <rect x="200" y="56" width="130" height="64" rx="4" fill="var(--bg-elevated)" stroke="var(--accent)" />
+    <text x="265" y="94" text-anchor="middle" fill="var(--fg)" font-size="14" font-family="var(--font-display)" font-weight="650">FastAPI</text>
+    <rect x="390" y="24" width="110" height="48" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="445" y="53" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">SQLite</text>
+    <rect x="390" y="92" width="110" height="48" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="445" y="121" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">Outbox</text>
+    <rect x="560" y="92" width="130" height="48" rx="4" fill="var(--bg-elevated)" stroke="var(--accent-strong)" />
+    <text x="625" y="121" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">Worker</text>
+    <rect x="560" y="168" width="130" height="40" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="625" y="193" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">Webhook</text>
+    <rect x="560" y="220" width="130" height="40" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="625" y="245" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">TG manager</text>
+    <rect x="200" y="168" width="130" height="48" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="265" y="197" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">HTML CRM</text>
+    <path d="M136 48 H190" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#af-arrow)" />
+    <path d="M136 116 H190" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#af-arrow)" />
+    <path d="M330 76 H380 V48" stroke="var(--fg-muted)" stroke-width="1.5" fill="none" marker-end="url(#af-arrow)" />
+    <path d="M330 100 H380 V116" stroke="var(--fg-muted)" stroke-width="1.5" fill="none" marker-end="url(#af-arrow)" />
+    <path d="M500 116 H550" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#af-arrow)" />
+    <path d="M625 140 V168" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#af-arrow)" />
+    <path d="M625 208 V220" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#af-arrow)" />
+    <path d="M265 120 V168" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#af-arrow)" />
+    <defs>
+      <marker id="af-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="var(--fg-muted)" />
+      </marker>
+    </defs>
+  </svg>
+</Diagram>
+
+<Figure src={screenshot} alt="Панель заявок с четырьмя счётчиками, фильтром статуса и поиском" caption="Мини-CRM: счётчики заявок и фильтры до поступления первого лида." />
+
+## Инженерные решения
+
+**Dedupe по телефону.** Нормализованный номер ищет существующий лид; поля дополняются, пишется activity `dedupe_merge`, дубликат не создаётся.
+
+```python
+# src/aifunnel/services/leads.py
+if data["phone_normalized"]:
+    existing = await find_by_phone(session, data["phone_normalized"], include_deleted=False)
+    if existing:
+        # Dedupe: enrich the existing lead instead of inserting a duplicate
+        merged = False
+        for key in (
+            "name",
+            "email",
+            "need",
+            "budget_note",
+            "telegram_id",
+            "telegram_username",
+            "tags",
+        ):
+            val = data.get(key)
+            if val and not getattr(existing, key):
+                setattr(existing, key, val)
+                merged = True
+```
+
+**Circuit breaker для AI.** После порога failures — OPEN, через `recovery_timeout` — HALF_OPEN; success возвращает CLOSED.
+
+```python
+# src/aifunnel/reliability/circuit_breaker.py
+def allow(self) -> bool:
+    if self.state == CircuitState.CLOSED:
+        return True
+    if self.state == CircuitState.OPEN:
+        if time.monotonic() - self.opened_at >= self.recovery_timeout:
+            self.state = CircuitState.HALF_OPEN
+            return True
+        return False
+    return True
+```
+
+**Outbox worker.** Цикл claim → process; ошибка — `mark_failed` с retry, пауза 2 с между тиками.
+
+```python
+# src/aifunnel/worker/main.py
+while not _stop.is_set():
+    async with SessionLocal() as session:
+        jobs = await outbox.claim_pending(session, limit=25)
+        for job in jobs:
+            try:
+                await outbox.process_job(session, job)
+            except Exception as exc:
+                await outbox.mark_failed(session, job, str(exc), retry=True)
+    try:
+        await asyncio.wait_for(_stop.wait(), timeout=2.0)
+    except TimeoutError:
+        continue
+```
+
+## Стек
+
+Python 3.12, FastAPI, SQLAlchemy async, SQLite, aiogram 3, Alembic, Redis (optional), Docker — из README.
+
+## Что бы улучшил дальше
+
+Вынести claim outbox на `FOR UPDATE SKIP LOCKED` под Postgres, если уйду от SQLite по умолчанию. Сейчас Redis опционален только для общего rate-limit — для нескольких инстансов API это стоит сделать обязательным в prod-профиле.
+
+## Ссылки
+
+Репозиторий: [github.com/blessed-bless/ai-funnel-ecosystem](https://github.com/blessed-bless/ai-funnel-ecosystem). Публичного demo нет — локальный CRM на `127.0.0.1:8080/crm/login`.

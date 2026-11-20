@@ -1,59 +1,84 @@
 ---
-import { projects } from '../data/projects';
+import ProjectCover from './ProjectCover.astro';
+import { getCarouselProjects } from '../lib/work';
 
+const projects = await getCarouselProjects();
+const projectsJson = JSON.stringify(projects);
+const firstProject = projects[0];
 const subtitle = 'Делаю продукты от идеи до продакшена';
 const role = 'Fullstack · AI';
 ---
 
-<section class="hero" data-hero aria-label="Первый экран">
+<section class="hero" data-hero aria-label="Первый экран" data-projects={projectsJson}>
   <div class="hero__copy">
     <h1 class="hero__name" data-hero-name>Богдан</h1>
     <p class="hero__line" data-hero-line>{subtitle}</p>
     <div class="hero__foot hero__foot--desktop" data-hero-foot>
       <p class="hero__role mono">{role}</p>
-      <a class="hero__scroll mono" href="#work" data-cursor="hover">К работам</a>
+      <a class="hero__scroll mono" href="/work" data-cursor="hover">К работам</a>
     </div>
   </div>
 
   <div class="hero__stage-wrap">
     <div class="hero__stage">
-      <canvas class="hero__canvas" data-hero-canvas aria-hidden="true"></canvas>
-      <div class="hero__static" data-hero-static hidden>
+      <canvas class="hero__canvas" data-hero-canvas></canvas>
+      <div class="hero__static" data-hero-static>
         {
-          projects.map((project, index) => (
-            <a
-              class="hero__static-card"
-              href={project.hasPage ? `/work/${project.slug}` : '#work'}
-              data-cursor="hover"
-              style={`background-image: url(${project.cover})`}
-            >
-              <span class="mono">
-                {String(index + 1).padStart(2, '0')} · {project.title}
-              </span>
-            </a>
-          ))
+          projects.map((project, index) => {
+            const label = `${String(index + 1).padStart(2, '0')} · ${project.title}`;
+            return (
+              <a
+                class="hero__static-card"
+                href={`/work/${project.slug}`}
+                data-cursor="hover"
+                aria-label={label}
+                data-hero-cover={project.slug}
+                transition:name={`work-cover-${project.slug}`}
+              >
+                <ProjectCover src={project.cover} />
+              </a>
+            );
+          })
         }
       </div>
     </div>
 
     <div class="hero__chrome">
-      <p class="hero__counter mono" data-hero-counter>01 / 05</p>
+      <p class="hero__counter mono" data-hero-counter>01 / {String(projects.length).padStart(2, '0')}</p>
       <p class="hero__hint mono" data-hero-hint>листайте</p>
-      <p class="hero__caption mono" data-hero-caption aria-live="polite"></p>
+      <p class="hero__caption mono" data-hero-caption aria-live="polite">
+        {firstProject && (
+          <>
+            <span>01</span>
+            <span>{firstProject.title}</span>
+            <span>{firstProject.year}</span>
+            <span>{firstProject.stack}</span>
+          </>
+        )}
+      </p>
     </div>
   </div>
 
   <div class="hero__foot hero__foot--mobile" data-hero-foot-mobile>
     <p class="hero__role mono">{role}</p>
-    <a class="hero__scroll mono" href="#work" data-cursor="hover">К работам</a>
+    <a class="hero__scroll mono" href="/work" data-cursor="hover">К работам</a>
   </div>
 </section>
 
 <script>
-  import { projects } from '../data/projects';
-  import type { Project } from '../data/projects';
+  import type { Project } from '../lib/work-types';
 
   let sceneTeardown: (() => void) | null = null;
+
+  function readProjects(root: HTMLElement): Project[] {
+    try {
+      const raw = root.dataset.projects || '[]';
+      const parsed = JSON.parse(raw) as Project[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
 
   async function openProject(project: Project): Promise<void> {
     if (!project.hasPage) return;
@@ -77,6 +102,7 @@ const role = 'Fullstack · AI';
     sceneTeardown?.();
     sceneTeardown = null;
 
+    const projects = readProjects(root);
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const canvas = root.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
     const caption = root.querySelector<HTMLElement>('[data-hero-caption]');
@@ -92,29 +118,56 @@ const role = 'Fullstack · AI';
       if (caption) caption.hidden = true;
       if (hint) hint.hidden = true;
     } else if (canvas) {
-      const { mountHeroScene } = await import('../scripts/hero-scene');
-      const handle = mountHeroScene(canvas, {
-        projects,
-        caption,
-        counter,
-        hint,
-        reducedMotion: false,
-        onSelect: (project) => {
-          void openProject(project);
-        },
-      });
-      if (handle) {
+      root.dataset.webgl = 'pending';
+      staticGrid?.removeAttribute('hidden');
+
+      const scenePromise = (async () => {
+        await new Promise<void>((resolve) => {
+          if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(() => resolve(), { timeout: 1200 });
+          } else {
+            window.setTimeout(() => resolve(), 220);
+          }
+        });
+        if (!document.contains(root)) return null;
+        const { mountHeroScene } = await import('../scripts/hero-scene');
+        const handle = await mountHeroScene(canvas, {
+          projects,
+          caption,
+          counter,
+          hint,
+          reducedMotion: false,
+          onSelect: (project) => {
+            void openProject(project);
+          },
+        });
+        if (!document.contains(root)) {
+          handle?.dispose();
+          return null;
+        }
+        return handle;
+      })();
+
+      playIntro = async () => {
+        const handle = await scenePromise;
+        if (!handle) {
+          root.dataset.webgl = 'off';
+          staticGrid?.removeAttribute('hidden');
+          return;
+        }
         root.dataset.webgl = 'on';
         sceneTeardown = handle.dispose;
-        playIntro = handle.playIntro;
         staticGrid?.setAttribute('hidden', '');
-      } else {
-        root.dataset.webgl = 'off';
-        staticGrid?.removeAttribute('hidden');
-      }
+        await handle.playIntro();
+      };
     } else {
       root.dataset.webgl = 'off';
       staticGrid?.removeAttribute('hidden');
+    }
+
+    if (reduce || window.matchMedia('(max-width: 900px)').matches) {
+      await playIntro?.();
+      return;
     }
 
     const { animateHeroIntro } = await import('../scripts/hero-split');
@@ -125,11 +178,19 @@ const role = 'Fullstack · AI';
     });
   }
 
-  void bootHero();
-  document.addEventListener('astro:page-load', () => {
+  let activeHero: HTMLElement | null = null;
+
+  function startHero(): void {
+    const root = document.querySelector<HTMLElement>('[data-hero]');
+    if (!root || root === activeHero) return;
+    activeHero = root;
     void bootHero();
-  });
+  }
+
+  startHero();
+  document.addEventListener('astro:page-load', startHero);
   document.addEventListener('astro:before-swap', () => {
+    activeHero = null;
     sceneTeardown?.();
     sceneTeardown = null;
   });
@@ -279,6 +340,10 @@ const role = 'Fullstack · AI';
     min-height: 1.2em;
   }
 
+  .hero__caption[hidden] {
+    display: none;
+  }
+
   .hero__caption span:nth-child(3),
   .hero__caption span:nth-child(4) {
     color: var(--fg-muted);
@@ -345,18 +410,11 @@ const role = 'Fullstack · AI';
   }
 
   .hero__static-card {
-    aspect-ratio: 4 / 3;
-    display: grid;
-    align-items: end;
-    padding: var(--space-3);
+    aspect-ratio: 16 / 10;
+    display: block;
     border: var(--stroke) solid var(--border);
     background-color: var(--bg-elevated);
-    background-position: center;
-    background-size: cover;
-    color: var(--fg);
-    text-decoration: none;
-    font-size: var(--text-xs);
-    box-shadow: var(--shadow-soft);
+    overflow: hidden;
   }
 
   :global(.hero-char) {
@@ -372,7 +430,11 @@ const role = 'Fullstack · AI';
   @media (max-width: 900px) {
     .hero {
       display: grid;
-      grid-template-rows: auto minmax(55svh, 1fr) auto auto;
+      grid-template-rows: auto minmax(48svh, 1fr) auto;
+      height: auto;
+      max-height: none;
+      min-height: calc(100svh - var(--header-h));
+      overflow: visible;
       padding-inline: 0;
     }
 
@@ -412,19 +474,24 @@ const role = 'Fullstack · AI';
       -webkit-mask-image: linear-gradient(
         90deg,
         transparent 0%,
-        #000 5%,
-        #000 95%,
+        #000 1.5%,
+        #000 98.5%,
         transparent 100%
       );
       -webkit-mask-composite: source-over;
       mask-image: linear-gradient(
         90deg,
         transparent 0%,
-        #000 5%,
-        #000 95%,
+        #000 1.5%,
+        #000 98.5%,
         transparent 100%
       );
       mask-composite: add;
+      overflow: visible;
+    }
+
+    .hero__caption {
+      min-height: 3em;
     }
 
     .hero__chrome {

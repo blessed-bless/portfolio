@@ -4,17 +4,35 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import SiteCursor from '../components/SiteCursor.astro';
 import Preloader from '../components/Preloader.astro';
+import { defaultDescription, siteName, siteUrl } from '../lib/site';
+import { isFilled } from '../lib/fill';
 import '../styles/global.css';
 
 interface Props {
   title: string;
   description?: string;
+  canonicalPath?: string;
+  ogImage?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  printCase?: boolean;
 }
 
 const {
   title,
-  description = '{{заполнить}}',
+  description,
+  canonicalPath = Astro.url.pathname,
+  ogImage = '/og/home.svg',
+  noindex = false,
+  jsonLd,
+  printCase = false,
 } = Astro.props;
+
+const resolvedDescription = isFilled(description) ? description : defaultDescription;
+const canonical = new URL(canonicalPath, siteUrl).href;
+const ogImageUrl = new URL(ogImage, siteUrl).href;
+const fontStylesheet = 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,560;12..96,650;12..96,750&family=IBM+Plex+Mono:wght@400;500&display=swap';
+const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 ---
 
 <!doctype html>
@@ -22,15 +40,27 @@ const {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={description} />
+    <meta name="description" content={resolvedDescription} />
     <meta name="color-scheme" content="dark light" />
+    {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={resolvedDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={resolvedDescription} />
+    <meta name="twitter:image" content={ogImageUrl} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="alternate" type="application/rss+xml" title="Заметки" href="/rss.xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,560;12..96,650;12..96,750&family=IBM+Plex+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="stylesheet" href={fontStylesheet} media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href={fontStylesheet} /></noscript>
     <script is:inline>
       (() => {
         try {
@@ -49,10 +79,15 @@ const {
         }
       })();
     </script>
+    {
+      jsonLdBlocks.map((block) => (
+        <script type="application/ld+json" set:html={JSON.stringify(block)} />
+      ))
+    }
     <ClientRouter />
     <title>{title}</title>
   </head>
-  <body>
+  <body class:list={[{ 'print-case': printCase }]}>
     <a class="skip-link" href="#main">К содержимому</a>
     <Preloader />
     <SiteCursor />

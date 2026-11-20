@@ -1,7 +1,5 @@
 import {
-  AdditiveBlending,
   Clock,
-  Color,
   Group,
   MathUtils,
   Mesh,
@@ -14,8 +12,8 @@ import {
   Vector2,
   WebGLRenderer,
 } from 'three';
-import type { Project } from '../data/projects';
-import { paintPreviewTexture } from './preview-textures';
+import type { Project } from '../lib/work-types';
+import { rasterizeCover } from './cover-texture';
 
 export type SceneHandle = {
   dispose: () => void;
@@ -32,73 +30,6 @@ type MountOptions = {
   reducedMotion: boolean;
 };
 
-const smokeVertex = /* glsl */ `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-
-const smokeFragment = /* glsl */ `
-  precision highp float;
-  varying vec2 vUv;
-  uniform float uTime;
-  uniform vec2 uMouse;
-  uniform vec2 uRes;
-  uniform vec3 uPlum;
-  uniform vec3 uAccent;
-  uniform float uMobile;
-  uniform float uLight;
-
-  float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-  }
-
-  float noise(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    float a = hash(i);
-    float b = hash(i + vec2(1.0, 0.0));
-    float c = hash(i + vec2(0.0, 1.0));
-    float d = hash(i + vec2(1.0, 1.0));
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-  }
-
-  float fbm(vec2 p) {
-    float v = 0.0;
-    float a = 0.5;
-    for (int i = 0; i < 4; i++) {
-      v += a * noise(p);
-      p *= 2.05;
-      a *= 0.55;
-    }
-    return v;
-  }
-
-  void main() {
-    vec2 aspect = vec2(uRes.x / max(uRes.y, 1.0), 1.0);
-    vec2 p = (vUv - 0.5) * aspect;
-    vec2 mouse = (uMouse - 0.5) * aspect;
-    float t = uTime * 0.045;
-
-    float field = fbm(p * mix(1.55, 1.15, uMobile) + vec2(t, -t * 0.35));
-    float ridges = smoothstep(0.28, 0.72, abs(field * 2.0 - 1.0));
-    float glow = 1.0 - smoothstep(0.0, 0.75, length(p - mouse));
-
-    vec3 col = mix(uPlum, uAccent, 0.4 + glow * 0.3);
-    float alpha = (ridges * 0.16 + glow * 0.2) * mix(0.4, 0.1, uLight);
-    float edgeFade =
-      smoothstep(0.0, 0.18, vUv.x) *
-      smoothstep(1.0, 0.82, vUv.x) *
-      smoothstep(0.0, 0.14, vUv.y) *
-      smoothstep(1.0, 0.86, vUv.y);
-    alpha *= edgeFade;
-    gl_FragColor = vec4(col, clamp(alpha, 0.0, 0.35));
-  }
-`;
-
 const cardVertex = /* glsl */ `
   varying vec2 vUv;
   void main() {
@@ -110,89 +41,19 @@ const cardVertex = /* glsl */ `
 const cardFragment = /* glsl */ `
   precision highp float;
   varying vec2 vUv;
-  uniform sampler2D uMap;
+  uniform sampler2D uBase;
+  uniform sampler2D uArt;
   uniform float uHover;
-  uniform float uVelocity;
-  uniform float uTime;
-  uniform float uSimplify;
   uniform float uDim;
-  uniform float uLight;
 
   void main() {
-    vec2 uv = vUv;
-    float wave = sin((uv.y + uTime * 0.8) * 18.0 + uVelocity * 4.0) * 0.012 * uHover * (1.0 - uSimplify);
-    float shift = (0.01 + abs(uVelocity) * 0.025) * uHover;
-
-    vec2 uvR = uv + vec2(shift + wave, wave * 0.4);
-    vec2 uvG = uv + vec2(wave * 0.2, -shift * 0.4);
-    vec2 uvB = uv - vec2(shift * 0.7, wave);
-
-    vec4 base = texture2D(uMap, uv);
-    vec3 rgb = mix(
-      base.rgb,
-      vec3(texture2D(uMap, uvR).r, texture2D(uMap, uvG).g, texture2D(uMap, uvB).b),
-      uHover * mix(1.0, 0.45, uSimplify)
-    );
-
-    if (uLight > 0.5 && uDim > 0.01) {
-      vec2 px = vec2(0.004, 0.004);
-      vec3 blur =
-        texture2D(uMap, uv + px).rgb +
-        texture2D(uMap, uv - px).rgb +
-        texture2D(uMap, uv + vec2(px.x, -px.y)).rgb +
-        texture2D(uMap, uv + vec2(-px.x, px.y)).rgb;
-      blur *= 0.25;
-      rgb = mix(rgb, blur, clamp(uDim * 0.7, 0.0, 0.7));
-    } else {
-      rgb *= mix(1.0, 0.75, uDim);
-    }
-
-    float edge = smoothstep(0.0, 0.035, uv.x) * smoothstep(1.0, 0.965, uv.x)
-      * smoothstep(0.0, 0.035, uv.y) * smoothstep(1.0, 0.965, uv.y);
-    rgb *= mix(0.92 + edge * 0.08, 0.98 + edge * 0.02, uLight);
-
-    float softShadow = (1.0 - smoothstep(0.78, 1.0, uv.y)) * 0.12 * uLight;
-    softShadow += (1.0 - smoothstep(0.0, 0.14, uv.x)) * 0.06 * uLight;
-    vec3 lilac = vec3(0.86, 0.8, 0.96);
-    rgb = mix(rgb, rgb * lilac, softShadow);
-
-    float alpha = mix(1.0, mix(1.0, 0.55, uDim), uLight);
-    gl_FragColor = vec4(rgb, alpha);
+    vec2 shift = vec2(20.0 / 1600.0, 16.0 / 1000.0) * uHover;
+    vec3 base = texture2D(uBase, vUv).rgb;
+    vec4 art = texture2D(uArt, vUv - shift);
+    vec3 rgb = mix(base, art.rgb, art.a);
+    gl_FragColor = vec4(rgb, 1.0 - uDim * 0.20);
   }
 `;
-
-const bloomFragment = /* glsl */ `
-  precision highp float;
-  varying vec2 vUv;
-  uniform vec3 uAccent;
-  uniform float uStrength;
-  void main() {
-    float d = length(vUv - 0.5);
-    float spot = smoothstep(0.55, 0.0, d);
-    vec3 col = uAccent * spot * uStrength;
-    gl_FragColor = vec4(col, spot * uStrength);
-  }
-`;
-
-function parseCssColor(value: string, fallback: string): Color {
-  const color = new Color();
-  try {
-    color.setStyle(value.trim());
-    return color;
-  } catch {
-    return new Color(fallback);
-  }
-}
-
-function readTheme(): { bg: Color; accent: Color; plum: Color; isLight: boolean } {
-  const styles = getComputedStyle(document.documentElement);
-  return {
-    bg: parseCssColor(styles.getPropertyValue('--bg'), '#0d0b12'),
-    accent: parseCssColor(styles.getPropertyValue('--accent'), '#7c3aed'),
-    plum: parseCssColor(styles.getPropertyValue('--accent-plum'), '#3b2458'),
-    isLight: document.documentElement.dataset.theme === 'light',
-  };
-}
 
 function wrapIndex(value: number, length: number): number {
   return ((value % length) + length) % length;
@@ -205,10 +66,10 @@ function shortestOffset(index: number, current: number, length: number): number 
   return diff;
 }
 
-export function mountHeroScene(
+export async function mountHeroScene(
   canvas: HTMLCanvasElement,
   options: MountOptions,
-): SceneHandle | null {
+): Promise<SceneHandle | null> {
   const { projects, caption, counter, hint, onSelect, reducedMotion } = options;
   if (reducedMotion || projects.length === 0) return null;
 
@@ -222,6 +83,40 @@ export function mountHeroScene(
   })();
   if (!canWebGL) return null;
 
+  const root = canvas.closest('[data-hero]');
+  const covers = Array.from(root?.querySelectorAll<SVGSVGElement>('[data-hero-cover] .project-cover') ?? []);
+  if (covers.length !== projects.length) return null;
+
+  const textureWidth = isMobile ? 480 : 960;
+  const loadCovers = async () => {
+    const layers = await Promise.allSettled(
+      covers.flatMap((cover) => [
+        rasterizeCover(cover, 'base', textureWidth),
+        rasterizeCover(cover, 'art', textureWidth),
+      ]),
+    );
+    const textures = layers.flatMap((layer) => layer.status === 'fulfilled' ? [layer.value] : []);
+    const failure = layers.find((layer) => layer.status === 'rejected');
+    if (failure?.status === 'rejected') {
+      textures.forEach((texture) => texture.dispose());
+      throw failure.reason;
+    }
+    return textures;
+  };
+
+  let textures: Texture[];
+  const initialTheme = document.documentElement.dataset.theme;
+  try {
+    textures = await loadCovers();
+  } catch (error) {
+    console.warn('Could not load carousel covers', error);
+    return null;
+  }
+  if (!canvas.isConnected) {
+    textures.forEach((texture) => texture.dispose());
+    return null;
+  }
+
   const renderer = new WebGLRenderer({
     canvas,
     antialias: !isMobile,
@@ -229,73 +124,26 @@ export function mountHeroScene(
     premultipliedAlpha: false,
     powerPreference: isMobile ? 'low-power' : 'high-performance',
   });
-  let theme = readTheme();
   renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.25 : 1.6));
 
   const scene = new Scene();
-  const camera = new PerspectiveCamera(isMobile ? 40 : 34, 1, 0.1, 40);
-  camera.position.set(0, 0, isMobile ? 5.4 : 5.1);
+  const camera = new PerspectiveCamera(isMobile ? 46 : 34, 1, 0.1, 40);
+  camera.position.set(0, 0, isMobile ? 6.35 : 5.1);
 
   const clock = new Clock();
   const pointerNdc = new Vector2(0, 0);
-  const mouseSmooth = new Vector2(0.5, 0.5);
-  const mouseTarget = new Vector2(0.5, 0.5);
   const raycaster = new Raycaster();
-  const styles = getComputedStyle(document.documentElement);
-  const accentHex = styles.getPropertyValue('--accent').trim() || '#7c3aed';
-  const plumHex = styles.getPropertyValue('--accent-plum').trim() || '#3b2458';
-  const inkHex = styles.getPropertyValue('--fg').trim() || '#f3f1ea';
-  const mutedHex = styles.getPropertyValue('--fg-muted').trim() || '#9a95a8';
-  const surfaceHex = styles.getPropertyValue('--bg').trim() || '#0d0b12';
-  const panelHex = styles.getPropertyValue('--bg-elevated').trim() || '#16131c';
-  const lineHex = styles.getPropertyValue('--border').trim() || '#2c2736';
-
-  const smokeGeo = new PlaneGeometry(18, 12);
-  const smokeMat = new ShaderMaterial({
-    vertexShader: smokeVertex,
-    fragmentShader: smokeFragment,
-    uniforms: {
-      uTime: { value: 0 },
-      uMouse: { value: new Vector2(0.5, 0.5) },
-      uRes: { value: new Vector2(1, 1) },
-      uPlum: { value: theme.plum },
-      uAccent: { value: theme.accent },
-      uMobile: { value: isMobile ? 1 : 0 },
-      uLight: { value: theme.isLight ? 1 : 0 },
-    },
-    transparent: true,
-    depthWrite: false,
-  });
-  const smoke = new Mesh(smokeGeo, smokeMat);
-  smoke.position.z = -4.5;
-  scene.add(smoke);
-
-  const bloomGeo = new PlaneGeometry(5.6, 4.0);
-  const bloomMat = new ShaderMaterial({
-    vertexShader: smokeVertex,
-    fragmentShader: bloomFragment,
-    uniforms: {
-      uAccent: { value: new Color('#a78bfa') },
-      uStrength: { value: theme.isLight ? 0.08 : 0.15 },
-    },
-    transparent: true,
-    depthWrite: false,
-    blending: AdditiveBlending,
-  });
-  const bloom = new Mesh(bloomGeo, bloomMat);
-  bloom.position.set(0, 0.08, -1.05);
-  bloom.renderOrder = 0;
-  scene.add(bloom);
 
   const carousel = new Group();
   carousel.position.set(0, 0.05, 0);
   scene.add(carousel);
 
-  const cardGeo = new PlaneGeometry(isMobile ? 2.9 : 3.55, isMobile ? 1.95 : 2.35, 1, 1);
+  const cardWidth = isMobile ? 3.35 : 3.55;
+  const cardGeo = new PlaneGeometry(cardWidth, cardWidth * 10 / 16);
   const cards: Mesh[] = [];
   const materials: ShaderMaterial[] = [];
-  const textures: Texture[] = [];
+  let themeRevision = 0;
 
   let active = 0;
   let current = 0;
@@ -305,15 +153,16 @@ export function mountHeroScene(
   let dragStartX = 0;
   let dragDistance = 0;
   let hoverIndex = -1;
+  const hoverProgress = projects.map(() => 0);
   let frame = 0;
   let disposed = false;
   let introProgress = 0;
   let introDone = false;
-  let lastCaption = -1;
+  let lastCaption = 0;
   let browsed = false;
 
-  const radius = isMobile ? 3.15 : 3.55;
-  const step = isMobile ? 0.62 : 0.7;
+  const radius = isMobile ? 2.75 : 3.55;
+  const step = isMobile ? 0.78 : 0.7;
   const tiltTarget = new Vector2(0, 0);
   const tilt = new Vector2(0, 0);
 
@@ -325,8 +174,9 @@ export function mountHeroScene(
 
   let captionBusy = false;
 
-  const buildCaptionHtml = (project: Project, number: string): string =>
-    `<span>${number}</span><span>${project.title}</span><span>${project.year}</span><span>${project.stack}</span>`;
+  const buildCaptionHtml = (project: Project, number: string): string => {
+    return `<span>${number}</span><span>${project.title}</span><span>${project.year}</span><span>${project.stack}</span>`;
+  };
 
   const animateCaption = async (html: string): Promise<void> => {
     if (!caption) return;
@@ -372,7 +222,7 @@ export function mountHeroScene(
     }
   };
 
-  const updateCaption = (animate = false): void => {
+  const updateCaption = (): void => {
     const index = wrapIndex(Math.round(current), projects.length);
     const project = projects[index];
     if (!project) return;
@@ -380,35 +230,18 @@ export function mountHeroScene(
     const total = String(projects.length).padStart(2, '0');
     const html = buildCaptionHtml(project, number);
     if (counter) counter.textContent = `${number} / ${total}`;
-    if (!caption) return;
-    if (animate) void animateCaption(html);
-    else caption.innerHTML = html;
+    void animateCaption(html);
   };
 
   projects.forEach((project, index) => {
-    const texture = paintPreviewTexture(project, index, {
-      accent: accentHex,
-      plum: plumHex,
-      ink: inkHex,
-      muted: mutedHex,
-      surface: surfaceHex,
-      panel: panelHex,
-      line: lineHex,
-      isLight: theme.isLight,
-    });
-    textures.push(texture);
-
     const material = new ShaderMaterial({
       vertexShader: cardVertex,
       fragmentShader: cardFragment,
       uniforms: {
-        uMap: { value: texture },
+        uBase: { value: textures[index * 2] },
+        uArt: { value: textures[index * 2 + 1] },
         uHover: { value: 0 },
-        uVelocity: { value: 0 },
-        uTime: { value: 0 },
-        uSimplify: { value: isMobile ? 1 : 0 },
         uDim: { value: 0 },
-        uLight: { value: theme.isLight ? 1 : 0 },
       },
       transparent: true,
       depthWrite: false,
@@ -455,14 +288,12 @@ export function mountHeroScene(
     renderer.setSize(width, height, false);
     camera.aspect = width / Math.max(height, 1);
     camera.updateProjectionMatrix();
-    smokeMat.uniforms.uRes.value.set(width, height);
   };
 
   const setPointer = (clientX: number, clientY: number): void => {
     const rect = canvas.getBoundingClientRect();
     const x = (clientX - rect.left) / Math.max(rect.width, 1);
     const y = (clientY - rect.top) / Math.max(rect.height, 1);
-    mouseTarget.set(x, 1 - y);
     pointerNdc.set(x * 2 - 1, -(y * 2 - 1));
     if (!isMobile) {
       tiltTarget.set((x - 0.5) * 0.12, -(y - 0.5) * 0.07);
@@ -485,14 +316,19 @@ export function mountHeroScene(
       if (dragDistance > 10) markBrowsed();
     } else {
       const hit = pickCard();
-      hoverIndex = hit ? Number(hit.userData.index) : -1;
+      hoverIndex = hit && event.pointerType === 'mouse' ? Number(hit.userData.index) : -1;
       canvas.style.cursor = hit ? 'pointer' : 'grab';
     }
+  };
+
+  const onPointerLeave = (): void => {
+    hoverIndex = -1;
   };
 
   const onPointerDown = (event: PointerEvent): void => {
     if (event.button !== 0) return;
     dragging = true;
+    hoverIndex = -1;
     lastX = event.clientX;
     dragStartX = event.clientX;
     dragDistance = 0;
@@ -532,12 +368,12 @@ export function mountHeroScene(
   const onKey = (event: KeyboardEvent): void => {
     if (event.key === 'ArrowRight') {
       active += 1;
-      velocity += 0.12;
+      velocity = 0;
       markBrowsed();
     }
     if (event.key === 'ArrowLeft') {
       active -= 1;
-      velocity -= 0.12;
+      velocity = 0;
       markBrowsed();
     }
     if (event.key === 'Enter') {
@@ -547,44 +383,21 @@ export function mountHeroScene(
   };
 
   const onTheme = (): void => {
-    theme = readTheme();
-    const nextStyles = getComputedStyle(document.documentElement);
-    const nextAccent = nextStyles.getPropertyValue('--accent').trim() || '#7c3aed';
-    const nextPlum = nextStyles.getPropertyValue('--accent-plum').trim() || '#3b2458';
-    const nextInk = nextStyles.getPropertyValue('--fg').trim() || '#f3f1ea';
-    const nextMuted = nextStyles.getPropertyValue('--fg-muted').trim() || '#9a95a8';
-    const nextSurface = nextStyles.getPropertyValue('--bg').trim() || '#0d0b12';
-    const nextPanel = nextStyles.getPropertyValue('--bg-elevated').trim() || '#16131c';
-    const nextLine = nextStyles.getPropertyValue('--border').trim() || '#2c2736';
-
-    smokeMat.uniforms.uAccent.value.copy(theme.accent);
-    smokeMat.uniforms.uPlum.value.copy(theme.plum);
-    smokeMat.uniforms.uLight.value = theme.isLight ? 1 : 0;
-    bloomMat.uniforms.uAccent.value.copy(
-      theme.isLight ? theme.accent : new Color('#a78bfa'),
-    );
-    bloomMat.uniforms.uStrength.value = theme.isLight ? 0.08 : 0.15;
-
-    materials.forEach((material, index) => {
-      material.uniforms.uLight.value = theme.isLight ? 1 : 0;
-      const project = projects[index];
-      if (!project) return;
-      const prev = textures[index];
-      prev?.dispose();
-      const texture = paintPreviewTexture(project, index, {
-        accent: nextAccent,
-        plum: nextPlum,
-        ink: nextInk,
-        muted: nextMuted,
-        surface: nextSurface,
-        panel: nextPanel,
-        line: nextLine,
-        isLight: theme.isLight,
+    const revision = ++themeRevision;
+    void loadCovers().then((nextTextures) => {
+      if (disposed || revision !== themeRevision) {
+        nextTextures.forEach((texture) => texture.dispose());
+        return;
+      }
+      materials.forEach((material, index) => {
+        material.uniforms.uBase.value = nextTextures[index * 2];
+        material.uniforms.uArt.value = nextTextures[index * 2 + 1];
       });
-      textures[index] = texture;
-      material.uniforms.uMap.value = texture;
+      textures.forEach((texture) => texture.dispose());
+      textures = nextTextures;
+    }).catch((error: unknown) => {
+      console.warn('Could not refresh carousel covers', error);
     });
-    renderer.setClearColor(0x000000, 0);
   };
 
   const themeObserver = new MutationObserver(onTheme);
@@ -593,11 +406,13 @@ export function mountHeroScene(
     attributeFilter: ['data-theme'],
   });
 
+  if (initialTheme !== document.documentElement.dataset.theme) onTheme();
+
   const render = (): void => {
     if (disposed) return;
     frame = requestAnimationFrame(render);
-    const dt = Math.min(clock.getDelta(), 0.033);
-    const time = clock.getElapsedTime();
+    const elapsed = clock.getDelta();
+    const dt = Math.min(elapsed, 0.033);
 
     if (!dragging) {
       const target = active;
@@ -617,49 +432,37 @@ export function mountHeroScene(
       active = Math.round(current);
     }
 
-    mouseSmooth.lerp(mouseTarget, 0.12);
     tilt.lerp(tiltTarget, 0.08);
     carousel.rotation.y = tilt.x;
     carousel.rotation.x = tilt.y;
-    smokeMat.uniforms.uMouse.value.copy(mouseSmooth);
-    smokeMat.uniforms.uTime.value = time;
     layoutCards();
 
     materials.forEach((material, index) => {
-      const hover = hoverIndex === index ? 1 : 0;
-      material.uniforms.uHover.value = MathUtils.damp(
-        material.uniforms.uHover.value,
-        hover,
-        8,
-        dt,
-      );
-      material.uniforms.uVelocity.value = velocity;
-      material.uniforms.uTime.value = time;
+      const direction = hoverIndex === index ? 1 : -1;
+      const progress = MathUtils.clamp(hoverProgress[index] + direction * elapsed / 0.5, 0, 1);
+      hoverProgress[index] = progress;
+      material.uniforms.uHover.value = MathUtils.smoothstep(progress, 0, 1);
     });
 
     const rounded = wrapIndex(Math.round(current), projects.length);
     if (rounded !== lastCaption) {
-      const shouldAnimate = lastCaption !== -1;
       lastCaption = rounded;
-      updateCaption(shouldAnimate);
+      updateCaption();
     }
-
-    bloom.position.x = MathUtils.damp(bloom.position.x, carousel.position.x, 6, dt);
-    bloom.rotation.copy(carousel.rotation);
 
     renderer.render(scene, camera);
   };
 
-  updateCaption(false);
   resize();
   layoutCards();
   window.addEventListener('resize', resize);
   canvas.addEventListener('pointermove', onPointerMove, { passive: true });
+  canvas.addEventListener('pointerleave', onPointerLeave);
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointerup', onPointerUp);
   canvas.addEventListener('pointercancel', onPointerUp);
   canvas.addEventListener('wheel', onWheel, { passive: false });
-  window.addEventListener('keydown', onKey);
+  canvas.addEventListener('keydown', onKey);
   frame = requestAnimationFrame(render);
   canvas.dataset.ready = 'true';
   canvas.tabIndex = 0;
@@ -688,17 +491,14 @@ export function mountHeroScene(
       disposed = true;
       cancelAnimationFrame(frame);
       window.removeEventListener('resize', resize);
-      window.removeEventListener('keydown', onKey);
+      canvas.removeEventListener('keydown', onKey);
       canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointerup', onPointerUp);
       canvas.removeEventListener('pointercancel', onPointerUp);
       canvas.removeEventListener('wheel', onWheel);
       themeObserver.disconnect();
-      smokeGeo.dispose();
-      smokeMat.dispose();
-      bloomGeo.dispose();
-      bloomMat.dispose();
       cardGeo.dispose();
       materials.forEach((material) => material.dispose());
       textures.forEach((texture) => texture.dispose());
@@ -727,11 +527,16 @@ export function expandToWorkPage(project: Project, from: DOMRect): Promise<void>
       `top:${from.top}px`,
       `width:${from.width}px`,
       `height:${from.height}px`,
-      `background:center/cover no-repeat url(${project.cover})`,
+      'display:grid',
+      'place-items:center',
+      'overflow:hidden',
       'z-index:70',
       'border-radius:2px',
       `view-transition-name:work-cover-${project.slug}`,
     ].join(';');
+    const cover = Array.from(document.querySelectorAll<HTMLElement>('[data-hero-cover]'))
+      .find((card) => card.dataset.heroCover === project.slug)?.querySelector('.project-cover');
+    if (cover) shell.appendChild(cover.cloneNode(true));
     document.body.appendChild(shell);
 
     requestAnimationFrame(() => {

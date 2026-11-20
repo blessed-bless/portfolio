@@ -1,17 +1,9 @@
 ---
-import { projects, type Project } from '../data/projects';
+import ProjectCover from './ProjectCover.astro';
+import { getFeaturedProjects } from '../lib/work';
+import type { Project } from '../lib/work-types';
 
-type FeaturedRow = Project & { stub?: boolean };
-
-const featured: FeaturedRow[] = [
-  projects.find((p) => p.slug === 'priemnaya'),
-  projects.find((p) => p.slug === 'placeholder'),
-  projects.find((p) => p.slug === 'project-3'),
-]
-  .filter((item): item is Project => Boolean(item))
-  .map((project) =>
-    project.slug === 'priemnaya' ? project : { ...project, stub: true },
-  );
+const featured: Project[] = await getFeaturedProjects();
 ---
 
 <section class="featured page-pad" id="work" data-featured aria-label="Избранные проекты">
@@ -26,21 +18,16 @@ const featured: FeaturedRow[] = [
         <li>
           <a
             class="featured__row"
-            href={project.hasPage ? `/work/${project.slug}` : '#work'}
+            href={project.hasPage ? `/work/${project.slug}` : '/work'}
             data-featured-row
-            data-cover={project.cover}
             data-cursor="hover"
+            transition:name={project.hasPage ? `work-cover-${project.slug}` : undefined}
           >
-            <span
-              class="featured__mobile-preview"
-              aria-hidden="true"
-              style={`background-image:url(${project.cover})`}
-            />
-            <span class="featured__num mono">{String(index + 1).padStart(2, '0')}</span>
-            <span class="featured__name">
-              {project.title}
-              {project.stub ? <span class="featured__stub mono">скоро</span> : null}
+            <span class="featured__mobile-preview" aria-hidden="true">
+              <ProjectCover src={project.cover} />
             </span>
+            <span class="featured__num mono">{String(index + 1).padStart(2, '0')}</span>
+            <span class="featured__name">{project.title}</span>
             <span class="featured__year mono">{project.year}</span>
             <span class="featured__stack mono">{project.stack}</span>
           </a>
@@ -149,7 +136,7 @@ const featured: FeaturedRow[] = [
     left: 0;
     z-index: 30;
     width: min(18rem, 42vw);
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 10;
     pointer-events: none;
     opacity: 0;
     transform: translate3d(-120%, -120%, 0);

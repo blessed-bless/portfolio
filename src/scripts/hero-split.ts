@@ -49,10 +49,9 @@ export async function animateHeroIntro(
       aria: 'none',
     });
 
-    gsap.set([...nameSplit.chars, ...lineSplit.chars], {
-      yPercent: 115,
-      opacity: 0,
-    });
+    // Keep name opaque for LCP; clip via overflow on the parent.
+    gsap.set(nameSplit.chars, { yPercent: 115 });
+    gsap.set(lineSplit.chars, { yPercent: 115, opacity: 0 });
     if (feet.length) gsap.set(feet, { opacity: 0, y: 12 });
     if (chrome.length) gsap.set(chrome, { opacity: 0, y: 8 });
 
@@ -60,7 +59,6 @@ export async function animateHeroIntro(
 
     tl.to(nameSplit.chars, {
       yPercent: 0,
-      opacity: 1,
       duration: 0.7,
       stagger: 0.022,
     });

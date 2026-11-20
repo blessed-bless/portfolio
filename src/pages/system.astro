@@ -3,8 +3,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Button from '../components/Button.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 
-const placeholder = '{{заполнить}}';
-
 const typeScale = [
   { name: 'display', varName: '--text-display', sample: 'Богдан' },
   { name: 'hero', varName: '--text-hero', sample: 'Сигнал' },
@@ -30,7 +28,11 @@ const colors = [
 const spaces = [1, 2, 3, 4, 5, 6, 7, 8];
 ---
 
-<BaseLayout title="Система — портфолио" description="Витрина дизайн-токенов">
+<BaseLayout
+  title="Система — портфолио"
+  description="Витрина дизайн-токенов"
+  noindex={true}
+>
   <div class="system page-pad">
     <header class="system__header">
       <p class="eyebrow">Design system</p>
@@ -121,7 +123,7 @@ const spaces = [1, 2, 3, 4, 5, 6, 7, 8];
       <h2>Карточка проекта</h2>
       <div class="card-demo">
         <ProjectCard
-          title={placeholder}
+          title="Пример кейса"
           summary="Короткое описание результата и роли — без маркетингового тумана."
           meta="Case"
           year="2026"

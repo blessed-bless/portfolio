@@ -25,4 +25,6 @@ pnpm-debug.log*
 
 # local audit / screenshots
 .tmp-screenshots/
+.tmp-assets/
 lighthouse-*.json
+docs/qa-screenshots/

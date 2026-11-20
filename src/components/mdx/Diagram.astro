@@ -1,0 +1,39 @@
+---
+interface Props {
+  caption?: string;
+}
+
+const { caption } = Astro.props;
+---
+
+<figure class="mdx-diagram">
+  <div class="mdx-diagram__frame">
+    <slot />
+  </div>
+  {caption ? <figcaption class="mdx-diagram__caption mono">{caption}</figcaption> : null}
+</figure>
+
+<style>
+  .mdx-diagram {
+    margin: var(--space-6) 0;
+  }
+
+  .mdx-diagram__frame {
+    padding: var(--space-5);
+    border: var(--stroke) solid var(--border);
+    background: var(--bg-elevated);
+    overflow-x: auto;
+  }
+
+  .mdx-diagram__frame :global(svg) {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .mdx-diagram__caption {
+    margin-top: var(--space-3);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+  }
+</style>

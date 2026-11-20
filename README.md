@@ -41,3 +41,7 @@ All commands are run from the root of the project, from a terminal:
 ## 👀 Want to learn more?
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+
+## Обложки и скриншоты кейсов
+
+Поле `cover` в MDX указывает на SVG в `src/assets/covers`. В HTML SVG использует цветовые переменные темы, карусель растеризует его в две текстуры для отдельного сдвига схемы, а Astro при сборке готовит PNG для OG. Реальные скриншоты лежат в `src/assets/screenshots` и выводятся через `Figure` в тексте кейса.

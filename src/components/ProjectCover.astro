@@ -1,0 +1,46 @@
+---
+import { workCover } from '../lib/work-cover';
+
+interface Props {
+  src: string;
+}
+
+const { src } = Astro.props;
+---
+
+<Fragment set:html={workCover(src)} />
+
+<style is:global>
+  .project-cover {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+  }
+
+  :root[data-theme='light'] .project-cover {
+    --cover-bg: #EDE5FA;
+    --cover-line: #6D28D9;
+    --cover-ink: #32185C;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .project-cover [data-cover-art] {
+      transition: translate 500ms cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    :is(.hero__static-card, .featured__row, .work-index__item):is(:hover, :focus-visible)
+      .project-cover [data-cover-art],
+    :is(.featured__follower, .work-index__follower)[data-visible='true']
+      .project-cover [data-cover-art] {
+      translate: 20px -16px;
+    }
+
+    @starting-style {
+      :is(.featured__follower, .work-index__follower)[data-visible='true']
+        .project-cover [data-cover-art] {
+        translate: none;
+      }
+    }
+  }
+</style>

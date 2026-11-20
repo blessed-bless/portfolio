@@ -6,6 +6,7 @@
   type="button"
   data-theme-toggle
   data-cursor="hover"
+  aria-label="Тема"
 >
   <span class="theme-toggle__track" aria-hidden="true">
     <span class="theme-toggle__knob"></span>
@@ -20,6 +21,7 @@
     const label = button.querySelector('[data-theme-label]');
     const mode = document.documentElement.dataset.theme === 'light' ? 'Светлая' : 'Тёмная';
     if (label) label.textContent = mode;
+    button.setAttribute('aria-label', mode);
     button.setAttribute('aria-pressed', String(document.documentElement.dataset.theme === 'light'));
   }
 

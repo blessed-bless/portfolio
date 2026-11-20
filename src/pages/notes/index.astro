@@ -1,0 +1,108 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPublishedNotes, noteSlug, readingMinutes } from '../../lib/notes';
+import { siteName } from '../../lib/site';
+
+const notes = await getPublishedNotes();
+const rows = notes.map((note) => ({
+  slug: noteSlug(note),
+  title: note.data.title,
+  description: note.data.description,
+  pubDate: note.data.pubDate,
+  minutes: readingMinutes(typeof note.body === 'string' ? note.body : note.data.description),
+}));
+---
+
+<BaseLayout
+  title={`Заметки — ${siteName}`}
+  description="Короткие заметки о разработке и продуктах."
+  canonicalPath="/notes"
+  ogImage="/og/home.svg"
+>
+  <section class="notes page-pad">
+    <header class="notes__head">
+      <p class="eyebrow">Журнал</p>
+      <h1 class="notes__title">Заметки</h1>
+    </header>
+
+    {
+      rows.length === 0 ? (
+        <p class="notes__empty">Пока пусто. Первая заметка появится здесь.</p>
+      ) : (
+        <ul class="notes__list">
+          {rows.map((note) => (
+            <li>
+              <a class="notes__item" href={`/notes/${note.slug}`} data-cursor="hover">
+                <span class="notes__meta mono">
+                  <time datetime={note.pubDate.toISOString()}>
+                    {note.pubDate.toLocaleDateString('ru-RU', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
+                  </time>
+                  <span aria-hidden="true">·</span>
+                  <span>{note.minutes} мин</span>
+                </span>
+                <span class="notes__name">{note.title}</span>
+                <span class="notes__desc">{note.description}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .notes {
+    padding-block: var(--space-8) var(--section-gap);
+  }
+
+  .notes__title {
+    margin: var(--space-3) 0 0;
+    font-size: clamp(2.4rem, 1.4rem + 4vw, 4.5rem);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .notes__empty {
+    margin-top: var(--space-7);
+    color: var(--fg-muted);
+  }
+
+  .notes__list {
+    list-style: none;
+    margin: var(--space-7) 0 0;
+    padding: 0;
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .notes__item {
+    display: grid;
+    gap: var(--space-2);
+    padding-block: var(--space-5);
+    border-bottom: var(--stroke) solid var(--border);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .notes__meta {
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    display: inline-flex;
+    gap: var(--space-2);
+  }
+
+  .notes__name {
+    font-size: clamp(1.35rem, 1rem + 1.4vw, 2rem);
+    font-weight: 650;
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .notes__desc {
+    color: var(--fg-muted);
+    max-width: 40rem;
+  }
+</style>

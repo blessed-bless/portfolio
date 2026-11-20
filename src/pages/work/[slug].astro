@@ -1,94 +1,365 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCover from '../../components/ProjectCover.astro';
 import Button from '../../components/Button.astro';
-import { workPages, type Project } from '../../data/projects';
+import Diagram from '../../components/mdx/Diagram.astro';
+import Figure from '../../components/mdx/Figure.astro';
+import {
+  getCaseEntries,
+  getWorkEntry,
+  nextCaseSlug,
+  renderWork,
+  toProject,
+} from '../../lib/work';
+import { personName, siteUrl } from '../../lib/site';
 
-export function getStaticPaths() {
-  return workPages.map((project) => ({
-    params: { slug: project.slug },
-    props: { project },
+export async function getStaticPaths() {
+  const cases = await getCaseEntries();
+  return cases.map((entry) => ({
+    params: { slug: entry.data.slug },
   }));
 }
 
-interface Props {
-  project: Project;
+const slug = Astro.params.slug;
+if (!slug) {
+  return Astro.redirect('/404');
 }
 
-const { project } = Astro.props;
-const placeholder = '{{заполнить}}';
+const entry = await getWorkEntry(slug);
+if (!entry || !entry.data.hasPage) {
+  return Astro.redirect('/404');
+}
+
+const project = toProject(entry);
+const { Content } = await renderWork(entry);
+const cases = await getCaseEntries();
+const nextSlug = nextCaseSlug(cases, project.slug);
+const nextEntry = nextSlug ? await getWorkEntry(nextSlug) : undefined;
+const next = nextEntry ? toProject(nextEntry) : null;
+
+const creativeWorkLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: project.title,
+  description: project.summary,
+  dateCreated: project.year,
+  author: {
+    '@type': 'Person',
+    name: personName,
+  },
+  url: new URL(`/work/${project.slug}`, siteUrl).href,
+  keywords: project.stackList.join(', '),
+};
 ---
 
-<BaseLayout title={`${project.title} — портфолио`} description={project.summary}>
-  <article class="case">
-    <header
-      class="case__cover"
-      style={`background-image: url(${project.cover})`}
-      transition:name={`work-cover-${project.slug}`}
-    >
-      <div class="case__cover-shade page-pad">
-        <p class="eyebrow mono">{project.year} · {project.stack}</p>
+<BaseLayout
+  title={`${project.title} — портфолио`}
+  description={project.summary}
+  canonicalPath={`/work/${project.slug}`}
+  ogImage={`/og/${project.slug}.png`}
+  jsonLd={creativeWorkLd}
+  printCase={true}
+>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
+
+  <article class="case" data-case>
+    <header class="case__cover page-pad">
+      <div class="case__cover-copy">
+        <p class="eyebrow mono">{project.status}</p>
         <h1 class="case__title">{project.title}</h1>
+        <p class="case__summary">{project.summary}</p>
+      </div>
+      <div class="case__art" transition:name={`work-cover-${project.slug}`}>
+        <ProjectCover src={project.cover} />
       </div>
     </header>
 
-    <div class="case__body page-pad">
-      <p class="case__lead">{project.summary}</p>
-      <p class="case__text">{placeholder}</p>
-      <div class="case__actions">
-        <Button href="/" variant="ghost">На главную</Button>
-        <Button href="/#work" variant="primary">Все проекты</Button>
+    <div class="case__meta page-pad">
+      <dl class="case__meta-grid">
+        <div>
+          <dt class="mono">Роль</dt>
+          <dd>{project.role}</dd>
+        </div>
+        <div>
+          <dt class="mono">Год</dt>
+          <dd>{project.year}</dd>
+        </div>
+        <div>
+          <dt class="mono">Стек</dt>
+          <dd>{project.stack}</dd>
+        </div>
+        <div>
+          <dt class="mono">Статус</dt>
+          <dd>{project.status}</dd>
+        </div>
+      </dl>
+      <div class="case__links">
+        {
+          project.links.github ? (
+            <a href={project.links.github} data-cursor="hover">
+              GitHub
+            </a>
+          ) : null
+        }
+        {
+          project.links.demo ? (
+            <a href={project.links.demo} data-cursor="hover">
+              Демо
+            </a>
+          ) : null
+        }
       </div>
+    </div>
+
+    <div class="case__body page-pad" data-case-body>
+      <Content components={{ Diagram, Figure }} />
+    </div>
+
+    {
+      next ? (
+        <aside class="case__next page-pad" data-next-case data-next-href={`/work/${next.slug}`}>
+          <p class="eyebrow">Дальше</p>
+          <a class="case__next-link" href={`/work/${next.slug}`} data-cursor="hover">
+            <span class="case__next-label mono">Следующий проект</span>
+            <span class="case__next-title">{next.title}</span>
+            <span class="case__next-meta mono">
+              {next.year} · {next.stack}
+            </span>
+          </a>
+        </aside>
+      ) : null
+    }
+
+    <div class="case__actions page-pad">
+      <Button href="/work" variant="ghost">Все работы</Button>
+      <Button href="/" variant="primary">На главную</Button>
     </div>
   </article>
 </BaseLayout>
 
-<style>
-  .case__cover {
-    min-height: clamp(18rem, 52vh, 34rem);
-    display: grid;
-    align-items: end;
-    background-position: center;
-    background-size: cover;
-    border-bottom: var(--stroke) solid var(--border);
-  }
+<script>
+  import { mountCodeCopy, mountNextCase, mountReadingProgress } from '../../scripts/work-case';
 
-  .case__cover-shade {
-    padding-block: var(--space-8) var(--space-7);
-    background: linear-gradient(
-      to top,
-      color-mix(in srgb, var(--bg) 92%, transparent),
-      color-mix(in srgb, var(--bg) 20%, transparent) 55%,
-      transparent
-    );
-  }
+  let cleanups: Array<() => void> = [];
 
-  .case__title {
-    margin: var(--space-3) 0 0;
-    max-width: 12ch;
-    font-size: var(--text-xl);
-    letter-spacing: var(--tracking-tight);
-    line-height: var(--leading-tight);
+  const boot = () => {
+    cleanups.forEach((fn) => fn());
+    cleanups = [];
+    const bar = document.querySelector<HTMLElement>('[data-reading-progress]');
+    const body = document.querySelector<HTMLElement>('[data-case-body]');
+    const next = document.querySelector<HTMLElement>('[data-next-case]');
+    if (bar) cleanups.push(mountReadingProgress(bar));
+    if (body) cleanups.push(mountCodeCopy(body));
+    if (next) {
+      const href = next.dataset.nextHref || '';
+      cleanups.push(mountNextCase(next, href));
+    }
+  };
+
+  boot();
+  document.addEventListener('astro:page-load', boot);
+  document.addEventListener('astro:before-swap', () => {
+    cleanups.forEach((fn) => fn());
+    cleanups = [];
+  });
+</script>
+
+<style is:global>
+  .reading-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    width: 100%;
+    height: 2px;
+    transform: scaleX(0);
+    transform-origin: left center;
+    background: var(--accent-strong);
+    pointer-events: none;
   }
 
   .case__body {
     width: min(100%, 46rem);
     margin-inline: auto;
-    padding-block: var(--space-7) var(--section-gap);
+    padding-block: var(--space-6) var(--space-8);
     display: grid;
-    gap: var(--space-5);
+    gap: var(--space-4);
+    font-size: var(--text-md);
+    line-height: var(--leading-body);
+    color: var(--fg);
   }
 
-  .case__lead,
-  .case__text {
+  .case__body h2 {
+    margin: var(--space-6) 0 var(--space-3);
+    font-size: var(--text-lg);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .case__body p,
+  .case__body ul {
     margin: 0;
+    color: color-mix(in srgb, var(--fg) 92%, var(--fg-muted));
+  }
+
+  .case__body ul {
+    padding-left: 1.2rem;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .case__body pre {
+    margin: 0;
+    padding: var(--space-5);
+    overflow-x: auto;
+    border: var(--stroke) solid var(--border);
+    background: var(--bg-elevated);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    line-height: 1.55;
+  }
+
+  .code-block {
+    position: relative;
+    margin: var(--space-5) 0;
+  }
+
+  .code-block__copy {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    min-height: 36px;
+    padding: 0.25rem 0.7rem;
+    border: var(--stroke) solid var(--border-strong);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+</style>
+
+<style>
+  .case__cover {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: var(--space-6);
+    align-items: center;
+    padding-block: var(--space-8);
+    border-bottom: var(--stroke) solid var(--border);
+  }
+
+  .case__art {
+    border: var(--stroke) solid var(--border);
+  }
+
+  .case__title {
+    margin: var(--space-3) 0 0;
+    max-width: 14ch;
+    font-size: clamp(2.5rem, 1.4rem + 3.2vw, 5.5rem);
+    letter-spacing: var(--tracking-display);
+    line-height: var(--leading-tight);
+  }
+
+  .case__summary {
+    margin: var(--space-4) 0 0;
+    max-width: 42ch;
     color: var(--fg-muted);
     font-size: var(--text-md);
   }
 
+  .case__meta {
+    width: min(100%, 56rem);
+    margin-inline: auto;
+    padding-block: var(--space-6);
+    border-bottom: var(--stroke) solid var(--border);
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .case__meta-grid {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .case__meta-grid dt {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+    text-transform: uppercase;
+  }
+
+  .case__meta-grid dd {
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .case__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  .case__links a {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .case__links-empty {
+    color: var(--fg-muted);
+    font-size: var(--text-xs);
+  }
+
+  .case__next {
+    width: min(100%, 46rem);
+    margin: 0 auto;
+    padding-block: var(--space-8);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .case__next-link {
+    display: grid;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    text-decoration: none;
+  }
+
+  .case__next-label {
+    color: var(--accent-strong);
+    font-size: var(--text-xs);
+  }
+
+  .case__next-title {
+    font-size: clamp(1.8rem, 1.2rem + 2vw, 3rem);
+    font-weight: 650;
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .case__next-meta {
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
   .case__actions {
+    width: min(100%, 46rem);
+    margin: 0 auto;
+    padding-bottom: var(--section-gap);
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3);
-    padding-top: var(--space-4);
+  }
+
+  @media (max-width: 800px) {
+    .case__meta-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .case__cover {
+      grid-template-columns: minmax(0, 1fr);
+      padding-block: var(--space-6);
+    }
   }
 </style>

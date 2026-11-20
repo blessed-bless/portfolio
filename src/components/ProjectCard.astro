@@ -12,14 +12,14 @@ const {
   summary,
   meta,
   href = '#',
-  year = '{{заполнить}}',
+  year = '',
 } = Astro.props;
 ---
 
 <a class="project-card" href={href} data-cursor="hover">
   <div class="project-card__meta mono">
     <span>{meta}</span>
-    <span>{year}</span>
+    {year ? <span>{year}</span> : null}
   </div>
   <h3 class="project-card__title">{title}</h3>
   <p class="project-card__summary">{summary}</p>

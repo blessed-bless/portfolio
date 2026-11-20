@@ -1,0 +1,125 @@
+---
+title: crawlnet
+slug: crawlnet
+year: '2026'
+role: Продукт и бэкенд
+stack:
+  - Python 3.12
+  - asyncio
+  - Redis
+  - httpx
+  - parsel
+  - SQLAlchemy
+  - FastAPI
+  - aiogram 3
+status: готов
+cover: ../../assets/covers/crawlnet.svg
+summary: >-
+  Распределённый краулер на asyncio — общая очередь в Redis, YAML-спайдеры,
+  выгрузка в CSV/Excel.
+links:
+  github: https://github.com/blessed-bless/crawlnet
+order: 3
+tags:
+  - Python
+  - Bots
+  - Infra
+hasPage: true
+featured: true
+carousel: true
+---
+
+## Задача
+
+Нужны несколько воркеров на разных машинах без отдельного координатора: общая очередь с приоритетами и отложенными ретраями, вежливость между хостами, at-least-once через inflight + reaper, YAML-спайдеры без правки кода.
+
+## Решение и архитектура
+
+CLI, бот и дашборд кладут задачи в Redis frontier. Воркеры забирают URL, пишут результат в SQLite или Postgres. Локально можно без Redis — очередь в памяти и SQLite.
+
+<Diagram caption="CLI / bot / dashboard → Redis frontier → workers → SQLite / Postgres">
+  <svg viewBox="0 0 720 240" role="img" aria-label="Архитектура crawlnet">
+    <rect x="16" y="80" width="150" height="64" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="91" y="118" text-anchor="middle" fill="var(--fg)" font-size="13" font-family="var(--font-mono)">CLI / bot / dash</text>
+    <rect x="230" y="80" width="150" height="64" rx="4" fill="var(--bg-elevated)" stroke="var(--accent)" />
+    <text x="305" y="118" text-anchor="middle" fill="var(--fg)" font-size="14" font-family="var(--font-display)" font-weight="650">Redis frontier</text>
+    <rect x="450" y="24" width="120" height="52" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="510" y="55" text-anchor="middle" fill="var(--fg)" font-size="13" font-family="var(--font-mono)">worker</text>
+    <rect x="450" y="96" width="120" height="52" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="510" y="127" text-anchor="middle" fill="var(--fg)" font-size="13" font-family="var(--font-mono)">worker</text>
+    <rect x="450" y="168" width="240" height="52" rx="4" fill="var(--bg-elevated)" stroke="var(--accent-strong)" />
+    <text x="570" y="199" text-anchor="middle" fill="var(--fg)" font-size="13" font-family="var(--font-mono)">SQLite / Postgres</text>
+    <path d="M166 112 H220" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#cn-arrow)" />
+    <path d="M380 100 H440 V50" stroke="var(--fg-muted)" stroke-width="1.5" fill="none" marker-end="url(#cn-arrow)" />
+    <path d="M380 120 H440" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#cn-arrow)" />
+    <path d="M510 148 V168" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#cn-arrow)" />
+    <defs>
+      <marker id="cn-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="var(--fg-muted)" />
+      </marker>
+    </defs>
+  </svg>
+</Diagram>
+
+## Инженерные решения
+
+**Pop + inflight.** Берём earliest ready из ZSET, если score в будущем — кладём обратно; иначе помечаем в `inflight` с дедлайном claim.
+
+```python
+# crawlnet/frontier.py
+async def pop(self) -> Request | None:
+    """Atomically take the earliest ready request and mark it in-flight."""
+    got = await self.r.zpopmin(self.k("frontier"), 1)
+    if not got:
+        return None
+    member, score = got[0]
+    now = time.time()
+    if score > now:
+        await self.r.zadd(self.k("frontier"), {member: score})
+        return None
+    await self.r.zadd(self.k("inflight"), {member: now + self.inflight_timeout})
+    return Request.loads(member)
+```
+
+**Ack без двойного счётчика.** Если reaper уже вернул запрос, повторный `ack` откатывает `pending`, а не ломает job.
+
+```python
+# crawlnet/frontier.py
+async def ack(self, req: Request) -> None:
+    async with self.r.pipeline(transaction=True) as pipe:
+        pipe.zrem(self.k("inflight"), req.dumps())
+        pipe.hincrby(self.k("job", req.job_id), "pending", -1)
+        removed, pending = await pipe.execute()
+    if not removed:
+        # Reaper already returned it; undo double count
+        await self.incr(req.job_id, "pending", 1)
+        return
+    if pending <= 0:
+        await self._finish(req.job_id)
+```
+
+**Вежливость по хосту.** `acquire_slot` ставит NX-ключ с TTL = Crawl-delay; иначе возвращает ожидание по PTTL.
+
+```python
+# crawlnet/frontier.py
+async def acquire_slot(self, host: str, delay: float) -> float:
+    """Politeness: 0 means go now; otherwise seconds to wait."""
+    if delay <= 0:
+        return 0.0
+    if await self.r.set(self.k("slot", host), "1", nx=True, px=int(delay * 1000)):
+        return 0.0
+    ttl = await self.r.pttl(self.k("slot", host))
+    return max(ttl, 50) / 1000
+```
+
+## Стек
+
+Python 3.12, asyncio, Redis, httpx, parsel, SQLAlchemy, FastAPI, aiogram 3, Docker — из README.
+
+## Что бы улучшил дальше
+
+Склеить `zpopmin` и запись в `inflight` в один Lua/Redis-скрипт: сейчас между ними окно, где процесс может упасть. Добавить скрин дашборда в `docs/screenshots` (в README плейсхолдер).
+
+## Ссылки
+
+Репозиторий: [github.com/blessed-bless/crawlnet](https://github.com/blessed-bless/crawlnet). Публичного demo нет — локальный запуск и docker compose.
