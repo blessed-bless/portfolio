@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectCover from '../../components/ProjectCover.astro';
 import Button from '../../components/Button.astro';
+import Demo from '../../components/mdx/Demo.astro';
 import Diagram from '../../components/mdx/Diagram.astro';
 import Figure from '../../components/mdx/Figure.astro';
 import {
@@ -112,7 +113,7 @@ const creativeWorkLd = {
     </div>
 
     <div class="case__body page-pad" data-case-body>
-      <Content components={{ Diagram, Figure }} />
+      <Content components={{ Diagram, Figure, Demo }} />
     </div>
 
     {
@@ -138,6 +139,7 @@ const creativeWorkLd = {
 </BaseLayout>
 
 <script>
+  import { hydrateCaseDemos } from '../../scripts/demos/hydrate';
   import { mountCodeCopy, mountNextCase, mountReadingProgress } from '../../scripts/work-case';
 
   let cleanups: Array<() => void> = [];
@@ -154,6 +156,7 @@ const creativeWorkLd = {
       const href = next.dataset.nextHref || '';
       cleanups.push(mountNextCase(next, href));
     }
+    cleanups.push(hydrateCaseDemos());
   };
 
   boot();
