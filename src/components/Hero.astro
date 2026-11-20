@@ -10,7 +10,7 @@ const projects = await getCarouselProjects();
 const projectsJson = JSON.stringify(projects);
 const firstProject = projects[0];
 const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
-const headline = 'Сайты с онлайн-записью, Telegram-боты и CRM для бизнеса';
+const headline = 'Сайты с онлайн‑записью, Telegram-боты и CRM для бизнеса';
 const subtitle = 'Бэкенд на Python. От заявки до работающего контура.';
 ---
 
@@ -43,7 +43,6 @@ const subtitle = 'Бэкенд на Python. От заявки до работа�
                 data-cursor="hover"
                 aria-label={label}
                 data-hero-cover={project.slug}
-                transition:name={`work-cover-${project.slug}`}
               >
                 <ProjectCover src={project.cover} loading={index === 0 ? 'eager' : 'lazy'} />
               </a>
@@ -308,7 +307,8 @@ const subtitle = 'Бэкенд на Python. От заявки до работа�
     width: 62%;
     z-index: 1;
     display: grid;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-content: stretch;
     pointer-events: none;
     background: transparent;
   }
@@ -317,17 +317,18 @@ const subtitle = 'Бэкенд на Python. От заявки до работа�
     position: relative;
     min-height: 0;
     height: 100%;
+    margin-block: clamp(0.25rem, 1.2vh, 0.75rem) 0;
     overflow: visible;
     background: transparent;
     border: 0;
     pointer-events: auto;
     -webkit-mask-image:
-      linear-gradient(90deg, transparent 0%, #000 14%, #000 100%),
-      linear-gradient(180deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+      linear-gradient(90deg, transparent 0%, #000 10%, #000 100%),
+      linear-gradient(180deg, transparent 0%, #000 2%, #000 100%);
     -webkit-mask-composite: source-in;
     mask-image:
-      linear-gradient(90deg, transparent 0%, #000 14%, #000 100%),
-      linear-gradient(180deg, transparent 0%, #000 4%, #000 98%, transparent 100%);
+      linear-gradient(90deg, transparent 0%, #000 10%, #000 100%),
+      linear-gradient(180deg, transparent 0%, #000 2%, #000 100%);
     mask-composite: intersect;
   }
 
@@ -350,9 +351,10 @@ const subtitle = 'Бэкенд на Python. От заявки до работа�
     z-index: 4;
     display: grid;
     grid-template-columns: auto auto 1fr;
-    gap: var(--space-2) var(--space-4);
+    gap: var(--space-1) var(--space-3);
     align-items: center;
-    padding: var(--space-2) var(--page-pad) clamp(0.5rem, 1.5vh, 0.9rem) var(--space-5);
+    margin-top: -0.35rem;
+    padding: 0 var(--page-pad) clamp(0.4rem, 1.2vh, 0.75rem) var(--space-5);
     pointer-events: none;
     isolation: isolate;
   }
@@ -430,7 +432,7 @@ const subtitle = 'Бэкенд на Python. От заявки до работа�
 
   .hero__static {
     position: absolute;
-    inset: 6% 4% 14%;
+    inset: 4% 3% 8%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
@@ -443,9 +445,9 @@ const subtitle = 'Бэкенд на Python. От заявки до работа�
   }
 
   .hero[data-carousel='snap'] .hero__static {
-    inset: auto 0 14%;
-    top: 8%;
-    bottom: 14%;
+    inset: auto 0 6%;
+    top: 4%;
+    bottom: 6%;
     display: flex;
     gap: var(--space-4);
     padding-inline: var(--page-pad);
@@ -456,6 +458,12 @@ const subtitle = 'Бэкенд на Python. От заявки до работа�
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
     align-items: center;
+    cursor: grab;
+    touch-action: pan-x;
+  }
+
+  .hero[data-carousel='snap'] .hero__static:active {
+    cursor: grabbing;
   }
 
   .hero[data-carousel='snap'] .hero__static-card {

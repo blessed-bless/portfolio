@@ -1,6 +1,7 @@
 :root {
   /* Type */
-  --font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', 'Arial Narrow', sans-serif;
+  --font-sans: 'Onest Variable', Onest, system-ui, sans-serif;
+  --font-display: Unbounded, 'Onest Variable', Onest, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   --text-xs: clamp(0.72rem, 0.68rem + 0.15vw, 0.8rem);

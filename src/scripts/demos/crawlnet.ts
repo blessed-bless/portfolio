@@ -1,4 +1,4 @@
-import { button, clear, el, wait } from './shared';
+import { button, clear, el, wait, wantSameCta } from './shared';
 
 const SEEDS = [
   'https://quotes.toscrape.com/',
@@ -23,11 +23,11 @@ export function mountCrawlnetDemo(root: HTMLElement): () => void {
   const startBtn = button('Запустить обход', { primary: true });
   const exportBtn = button('Экспорт CSV');
   exportBtn.disabled = true;
-  controls.append(el('p', 'demo-ui__label', 'Start URL'), select, startBtn, exportBtn);
+  controls.append(el('p', 'demo-ui__label', 'Стартовый URL'), select, startBtn, exportBtn);
 
   const stats = el('div', 'demo-ui__row');
-  const pagesStat = el('span', 'demo-ui__meta', 'pages: 0');
-  const errStat = el('span', 'demo-ui__meta', 'errors: 0');
+  const pagesStat = el('span', 'demo-ui__meta', 'страниц: 0');
+  const errStat = el('span', 'demo-ui__meta', 'ошибок: 0');
   stats.append(pagesStat, errStat);
 
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -38,7 +38,7 @@ export function mountCrawlnetDemo(root: HTMLElement): () => void {
 
   const tableWrap = el('div', 'demo-ui__table-wrap');
   const table = el('table', 'demo-ui__table');
-  table.innerHTML = '<thead><tr><th>url</th><th>depth</th><th>status</th></tr></thead>';
+  table.innerHTML = '<thead><tr><th>URL</th><th>глубина</th><th>статус</th></tr></thead>';
   const tbody = document.createElement('tbody');
   table.append(tbody);
   tableWrap.append(table);
@@ -73,12 +73,13 @@ export function mountCrawlnetDemo(root: HTMLElement): () => void {
       circle.setAttribute('fill', 'currentColor');
       svg.append(circle);
     }
-    pagesStat.textContent = `pages: ${pages}`;
-    errStat.textContent = `errors: ${errors}`;
+    pagesStat.textContent = `страниц: ${pages}`;
+    errStat.textContent = `ошибок: ${errors}`;
     clear(tbody);
     for (const row of rows) {
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${row.url}</td><td>${row.depth}</td><td>${row.status}</td>`;
+      const statusLabel = row.status === 'ok' ? 'ок' : 'ошибка';
+      tr.innerHTML = `<td>${row.url}</td><td>${row.depth}</td><td>${statusLabel}</td>`;
       tbody.append(tr);
     }
   };
@@ -162,7 +163,10 @@ export function mountCrawlnetDemo(root: HTMLElement): () => void {
     URL.revokeObjectURL(href);
   });
 
-  ui.append(controls, stats, svg, tableWrap);
+  const footer = el('div', 'demo-ui__footer');
+  footer.append(wantSameCta('crawlnet'));
+
+  ui.append(controls, stats, svg, tableWrap, footer);
   root.append(ui);
   paint();
   return () => clear(root);

@@ -6,7 +6,7 @@ interface Props {
 const { id } = Astro.props;
 ---
 
-<section class="case-demo" data-case-demo={id} aria-label="Интерактивное демо">
+<section class="case-demo" id="demo" data-case-demo={id} aria-label="Интерактивное демо">
   <header class="case-demo__head">
     <h2 class="case-demo__title">Попробовать</h2>
     <p class="case-demo__badge mono">Демо на тестовых данных</p>
@@ -222,6 +222,19 @@ const { id } = Astro.props;
   .demo-ui {
     min-width: 0;
     max-width: 100%;
+  }
+
+  .demo-ui__footer {
+    margin-top: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  a.demo-ui__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
   }
 
   .demo-ui__table-wrap {

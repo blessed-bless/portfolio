@@ -1,10 +1,15 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
+import Button from './Button.astro';
+import { contactLinks } from '../data/home';
+import { isFilled } from '../lib/fill';
 import { hasPublishedNotes } from '../lib/notes';
 import { withTrailingSlash } from '../lib/paths';
 
 const pathname = Astro.url.pathname;
 const showNotes = await hasPublishedNotes();
+const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
+const email = isFilled(contactLinks.email) ? contactLinks.email : null;
 
 const links = [
   { href: withTrailingSlash('/'), label: 'Главная' },
@@ -94,6 +99,27 @@ function isActive(href: string): boolean {
         }
       </ul>
     </nav>
+    <div class="site-header__panel-foot" data-nav-item>
+      {
+        telegram ? (
+          <a class="site-header__panel-link" href={telegram} data-cursor="hover">
+            Telegram
+          </a>
+        ) : null
+      }
+      {
+        email ? (
+          <a class="site-header__panel-link" href={`mailto:${email}`} data-cursor="hover">
+            {email}
+          </a>
+        ) : null
+      }
+      {
+        telegram ? (
+          <Button href={telegram} variant="primary">Обсудить задачу</Button>
+        ) : null
+      }
+    </div>
   </div>
 </header>
 
@@ -274,6 +300,27 @@ function isActive(href: string): boolean {
   }
 
   .site-header__panel-nav a.is-active {
+    color: var(--accent-strong);
+  }
+
+  .site-header__panel-foot {
+    margin-top: var(--space-7);
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+  }
+
+  .site-header__panel-link {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    text-decoration: none;
+    color: var(--fg-muted);
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .site-header__panel-link:hover {
     color: var(--accent-strong);
   }
 

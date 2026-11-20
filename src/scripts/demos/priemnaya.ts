@@ -1,4 +1,4 @@
-import { button, clear, el, wait } from './shared';
+import { button, clear, el, wait, wantSameCta } from './shared';
 
 const SERVICES = [
   { id: 'change', title: 'Сезонная смена', minutes: 40 },
@@ -102,7 +102,10 @@ export function mountPriemnayaDemo(root: HTMLElement): () => void {
   }
 
   slotPanel.append(slotList);
-  ui.append(serviceRow, slotPanel, schedule, note);
+  const footer = el('div', 'demo-ui__footer');
+  footer.append(wantSameCta('Приёмная'));
+
+  ui.append(serviceRow, slotPanel, schedule, note, footer);
   root.append(ui);
   renderSlots();
   renderVisits();

@@ -1,4 +1,4 @@
-import { button, clear, el, wait } from './shared';
+import { button, clear, el, wait, wantSameCta } from './shared';
 
 type WorkerStatus = 'работает' | 'пауза' | 'офлайн';
 type JobStatus = 'ожидает' | 'работает' | 'готово' | 'ошибка';
@@ -183,7 +183,10 @@ export function mountFleetkitDemo(root: HTMLElement): () => void {
   failBtn.addEventListener('click', () => enqueue(`demo.fail-${seq}`, true));
   actions.append(enqueueBtn, failBtn);
 
-  ui.append(workersPanel, jobsPanel, dlqPanel);
+  const footer = el('div', 'demo-ui__footer');
+  footer.append(wantSameCta('FleetKit'));
+
+  ui.append(workersPanel, jobsPanel, dlqPanel, footer);
   root.append(ui);
   renderWorkers();
   renderJobs();

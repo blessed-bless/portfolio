@@ -88,8 +88,8 @@ export async function mountHeroScene(
 
   const root = canvas.closest('[data-hero]');
   const coverUrls = Array.from(
-    root?.querySelectorAll<HTMLImageElement>('[data-hero-cover] .project-cover') ?? [],
-  ).map((img) => img.dataset.coverSrc || img.currentSrc || img.src);
+    root?.querySelectorAll<HTMLElement>('[data-hero-cover] [data-cover-src]') ?? [],
+  ).map((node) => node.dataset.coverSrc || '');
   if (coverUrls.length !== projects.length || coverUrls.some((url) => !url)) return null;
 
   const renderer = new WebGLRenderer({
@@ -150,14 +150,14 @@ export async function mountHeroScene(
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(isMobile ? 46 : 34, 1, 0.1, 40);
-  camera.position.set(0, isMobile ? 0 : -0.22, isMobile ? 6.35 : 5.1);
+  camera.position.set(0, isMobile ? 0.08 : -0.08, isMobile ? 5.9 : 4.85);
 
   const clock = new Clock();
   const pointerNdc = new Vector2(0, 0);
   const raycaster = new Raycaster();
 
   const carousel = new Group();
-  carousel.position.set(0, isMobile ? 0.05 : -0.42, 0);
+  carousel.position.set(0, isMobile ? 0.12 : -0.18, 0);
   scene.add(carousel);
 
   const cardWidth = isMobile ? 3.35 : 3.55;
@@ -570,10 +570,10 @@ export function expandToWorkPage(project: Project, from: DOMRect): Promise<void>
       'overflow:hidden',
       'z-index:70',
       'border-radius:2px',
-      `view-transition-name:work-cover-${project.slug}`,
     ].join(';');
     const cover = Array.from(document.querySelectorAll<HTMLElement>('[data-hero-cover]'))
-      .find((card) => card.dataset.heroCover === project.slug)?.querySelector('.project-cover');
+      .find((card) => card.dataset.heroCover === project.slug)
+      ?.querySelector('.project-cover--dark, .project-cover');
     if (cover) shell.appendChild(cover.cloneNode(true));
     document.body.appendChild(shell);
 

@@ -99,7 +99,12 @@ export async function rasterizeCoverUrl(
   layer: 'art' | 'base',
   options: CoverRasterOptions,
 ): Promise<CanvasTexture> {
-  const svg = await svgFromUrl(url);
+  const theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+  const themedUrl =
+    theme === 'light' && url.includes('/covers/') && !url.includes('/covers/light/')
+      ? url.replace('/covers/', '/covers/light/')
+      : url;
+  const svg = await svgFromUrl(themedUrl);
   return rasterizeCoverSvg(svg, layer, options);
 }
 

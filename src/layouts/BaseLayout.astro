@@ -8,7 +8,8 @@ import { defaultDescription, siteName, siteUrl } from '../lib/site';
 import { isFilled } from '../lib/fill';
 import { hasPublishedNotes } from '../lib/notes';
 import { withTrailingSlash } from '../lib/paths';
-import bricolageWoff2 from '@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2?url';
+import onestWoff2 from '@fontsource-variable/onest/files/onest-cyrillic-wght-normal.woff2?url';
+import unboundedWoff2 from '@fontsource/unbounded/files/unbounded-cyrillic-700-normal.woff2?url';
 import plexMonoWoff2 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-cyrillic-400-normal.woff2?url';
 import '../styles/global.css';
 
@@ -66,7 +67,8 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     {showNotesRss ? (
       <link rel="alternate" type="application/rss+xml" title="Заметки" href="/rss.xml" />
     ) : null}
-    <link rel="preload" href={bricolageWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={onestWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={unboundedWoff2} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={plexMonoWoff2} as="font" type="font/woff2" crossorigin />
     <script is:inline>
       (() => {

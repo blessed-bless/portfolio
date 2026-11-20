@@ -1,6 +1,6 @@
-import { button, clear, el, wait } from './shared';
+import { button, clear, el, wait, wantSameCta } from './shared';
 
-type LeadStatus = 'new' | 'qualified' | 'won' | 'lost';
+type LeadStatus = 'новый' | 'квалифицирован' | 'сделка' | 'отказ';
 
 type Lead = {
   id: string;
@@ -18,6 +18,8 @@ const SCRIPT: Array<{ from: 'bot' | 'user'; text: string }> = [
   { from: 'user', text: '50–150к, старт в этом месяце.' },
   { from: 'bot', text: 'Ок. Передам менеджеру — в CRM появится лид с тегами bot и booking.' },
 ];
+
+const STATUSES: LeadStatus[] = ['новый', 'квалифицирован', 'сделка', 'отказ'];
 
 export function mountAiFunnelDemo(root: HTMLElement): () => void {
   clear(root);
@@ -37,7 +39,7 @@ export function mountAiFunnelDemo(root: HTMLElement): () => void {
   chatPanel.append(chat, nextBtn);
 
   const crm = el('div', 'demo-ui__panel');
-  crm.append(el('p', 'demo-ui__label', 'Mini-CRM'));
+  crm.append(el('p', 'demo-ui__label', 'Мини-CRM'));
   const leadsList = el('ul', 'demo-ui__list');
   crm.append(leadsList);
 
@@ -57,7 +59,7 @@ export function mountAiFunnelDemo(root: HTMLElement): () => void {
       el('span', 'demo-ui__meta', `${lead.source} · ${lead.tags.join(', ')}`),
     );
     const statusWrap = el('div', 'demo-ui__row');
-    for (const status of ['new', 'qualified', 'won', 'lost'] as LeadStatus[]) {
+    for (const status of STATUSES) {
       const btn = button(status, { pressed: lead.status === status });
       if (lead.status === status) btn.classList.add('is-active');
       btn.addEventListener('click', () => {
@@ -85,10 +87,10 @@ export function mountAiFunnelDemo(root: HTMLElement): () => void {
     lead = {
       id: 'lead-1',
       name: 'Анна К.',
-      source: 'landing',
+      source: 'лендинг',
       need: 'бот для записи',
-      tags: ['landing'],
-      status: 'new',
+      tags: ['лендинг'],
+      status: 'новый',
     };
     renderCrm();
     await wait(200);
@@ -105,8 +107,8 @@ export function mountAiFunnelDemo(root: HTMLElement): () => void {
     await wait(260);
     pushBubble(line.from, line.text);
     if (step === SCRIPT.length - 1 && lead) {
-      lead.tags = ['landing', 'bot', 'booking'];
-      lead.status = 'qualified';
+      lead.tags = ['лендинг', 'бот', 'запись'];
+      lead.status = 'квалифицирован';
       lead.need = 'бот для записи · бюджет 50–150к';
       renderCrm();
       nextBtn.textContent = 'Сценарий завершён';
@@ -115,7 +117,10 @@ export function mountAiFunnelDemo(root: HTMLElement): () => void {
     nextBtn.disabled = false;
   });
 
-  ui.append(landing, chatPanel, crm);
+  const footer = el('div', 'demo-ui__footer');
+  footer.append(wantSameCta('AI Funnel Ecosystem'));
+
+  ui.append(landing, chatPanel, crm, footer);
   root.append(ui);
   renderCrm();
   return () => clear(root);

@@ -12,9 +12,19 @@ function escapeXml(value: string): string {
 
 export const GET: APIRoute = async () => {
   const notes = await getPublishedNotes();
+  if (notes.length === 0) {
+    return new Response('Notes feed is empty', {
+      status: 404,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'X-Robots-Tag': 'noindex, nofollow',
+      },
+    });
+  }
+
   const items = notes
     .map((note) => {
-      const link = new URL(`/notes/${noteSlug(note)}`, siteUrl).href;
+      const link = new URL(`/notes/${noteSlug(note)}/`, siteUrl).href;
       return `    <item>
       <title>${escapeXml(note.data.title)}</title>
       <link>${link}</link>
@@ -29,7 +39,7 @@ export const GET: APIRoute = async () => {
 <rss version="2.0">
   <channel>
     <title>${escapeXml(`${siteName} — заметки`)}</title>
-    <link>${new URL('/notes', siteUrl).href}</link>
+    <link>${new URL('/notes/', siteUrl).href}</link>
     <description>Заметки о разработке и продуктах</description>
     <language>ru</language>
 ${items}

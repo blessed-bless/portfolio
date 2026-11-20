@@ -1,3 +1,5 @@
+import { contactLinks } from '../../data/home';
+
 export function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
@@ -27,4 +29,17 @@ export function button(label: string, opts?: { primary?: boolean; pressed?: bool
 
 export function clear(node: HTMLElement): void {
   node.replaceChildren();
+}
+
+export function wantSameCta(projectLabel: string): HTMLAnchorElement {
+  const base = contactLinks.telegram.replace(/\/$/, '');
+  const text = encodeURIComponent(
+    `Привет! Хочу такое же, как «${projectLabel}» на портфолио. Расскажи сроки и следующий шаг.`,
+  );
+  const link = el('a', 'demo-ui__btn demo-ui__btn--primary demo-ui__cta', 'Хочу такое же');
+  link.href = `${base}?text=${text}`;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.setAttribute('data-cursor', 'hover');
+  return link;
 }
