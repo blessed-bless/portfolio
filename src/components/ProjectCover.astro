@@ -8,21 +8,41 @@ interface Props {
 }
 
 const { src, alt = '', loading = 'lazy' } = Astro.props;
-const href = coverPublicUrl(src);
+const darkHref = coverPublicUrl(src);
+const lightHref = darkHref.replace('/covers/', '/covers/light/');
 ---
 
-<img
-  class="project-cover"
-  src={href}
-  alt={alt}
-  width="1600"
-  height="1000"
-  decoding="async"
-  loading={loading}
-  data-cover-src={href}
-/>
+<span class="project-cover-wrap" data-cover-src={darkHref} data-cover-src-light={lightHref}>
+  <img
+    class="project-cover project-cover--dark"
+    src={darkHref}
+    alt={alt}
+    width="1600"
+    height="1000"
+    decoding="async"
+    loading={loading}
+  />
+  <img
+    class="project-cover project-cover--light"
+    src={lightHref}
+    alt=""
+    width="1600"
+    height="1000"
+    decoding="async"
+    loading={loading}
+    aria-hidden="true"
+  />
+</span>
 
 <style is:global>
+  .project-cover-wrap {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: var(--bg-elevated);
+    position: relative;
+  }
+
   .project-cover {
     display: block;
     width: 100%;
@@ -30,5 +50,19 @@ const href = coverPublicUrl(src);
     aspect-ratio: 16 / 10;
     object-fit: cover;
     background: var(--bg-elevated);
+  }
+
+  .project-cover-wrap .project-cover {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Theme set in <head> before paint — no flash between variants. */
+  html[data-theme='light'] .project-cover--dark {
+    visibility: hidden;
+  }
+
+  html:not([data-theme='light']) .project-cover--light {
+    visibility: hidden;
   }
 </style>

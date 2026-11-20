@@ -76,7 +76,7 @@ function mountFeaturedPreview(): void {
 
   const showFor = (row: HTMLAnchorElement, event?: Event): void => {
     activeRow = row;
-    const cover = row.querySelector('.project-cover');
+    const cover = row.querySelector('.project-cover-wrap') ?? row.querySelector('.project-cover');
     if (media && cover) {
       media.replaceChildren(cover.cloneNode(true));
     }

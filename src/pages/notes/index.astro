@@ -16,8 +16,9 @@ const rows = notes.map((note) => ({
 <BaseLayout
   title={`Заметки — ${siteName}`}
   description="Короткие заметки о разработке и продуктах."
-  canonicalPath="/notes"
-  ogImage="/og/home.svg"
+  canonicalPath="/notes/"
+  ogImage="/og/home.png"
+  noindex={notes.length === 0}
 >
   <section class="notes page-pad">
     <header class="notes__head">

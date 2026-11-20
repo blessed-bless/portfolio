@@ -8,8 +8,8 @@ export function withTrailingSlash(path: string): string {
   return `${withSlash}${query ? `?${query}` : ''}${hash ? `#${hash}` : ''}`;
 }
 
-export function coverPublicUrl(assetPath: string): string {
+export function coverPublicUrl(assetPath: string, theme: 'dark' | 'light' = 'dark'): string {
   const match = assetPath.match(/covers\/([^/]+)\.svg$/);
   if (!match) throw new Error(`Unexpected cover path: ${assetPath}`);
-  return `/covers/${match[1]}.svg`;
+  return theme === 'light' ? `/covers/light/${match[1]}.svg` : `/covers/${match[1]}.svg`;
 }

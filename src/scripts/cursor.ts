@@ -41,7 +41,9 @@ export function mountCustomCursor(root: HTMLElement): () => void {
     const target = event.target;
     if (!(target instanceof Element)) return;
     hovering = Boolean(target.closest(HOVER_SELECTOR));
+    const onControl = Boolean(target.closest('a, button, .btn, [role="button"]'));
     root.dataset.hover = hovering ? 'true' : 'false';
+    root.dataset.onControl = onControl ? 'true' : 'false';
   };
 
   const onLeave = (): void => {

@@ -35,13 +35,31 @@ body {
   min-height: 100dvh;
   background: var(--bg);
   color: var(--fg);
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: var(--leading-body);
   font-optical-sizing: auto;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.hero__brand,
+.hero__line,
+.case__title,
+.about__title,
+.work-index__title,
+.featured__title,
+.offers__title,
+.process__title,
+.contact__title,
+.faq__title,
+.not-found__title,
+.notes__title {
+  font-family: var(--font-display);
 }
 
 body.has-custom-cursor,
@@ -159,6 +177,14 @@ html[data-theme='light'] .astro-code span {
   font-style: var(--shiki-light-font-style) !important;
   font-weight: var(--shiki-light-font-weight) !important;
   text-decoration: var(--shiki-light-text-decoration) !important;
+}
+
+/* Orange tokens from GitHub themes fail AA on white (~3.5:1). */
+html[data-theme='light'] .astro-code span[style*='E36209'],
+html[data-theme='light'] .astro-code span[style*='e36209'],
+html[data-theme='light'] .astro-code span[style*='--shiki-light:#E36209'],
+html[data-theme='light'] .astro-code span[style*='--shiki-light: #E36209'] {
+  color: #9a3412 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

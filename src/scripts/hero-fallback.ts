@@ -1,4 +1,5 @@
 import type { Project } from '../lib/work-types';
+import { getLenis } from './lenis-scroll';
 
 export function isWeakGpu(): boolean {
   try {
@@ -10,7 +11,6 @@ export function isWeakGpu(): boolean {
       const renderer = String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL) || '');
       if (/SwiftShader|llvmpipe|Softwar|Microsoft Basic/i.test(renderer)) return true;
     }
-    // Soft phone heuristic: very low core count + mobile UA.
     const mobile = /Mobi|Android/i.test(navigator.userAgent);
     if (mobile && (navigator.hardwareConcurrency || 8) <= 4) return true;
     return false;
@@ -36,6 +36,11 @@ export function mountHeroFallback(
   const cards = Array.from(track.querySelectorAll<HTMLElement>('[data-hero-cover]'));
   let active = 0;
   let settleTimer = 0;
+  let dragging = false;
+  let dragStartX = 0;
+  let dragOriginScroll = 0;
+  let dragDistance = 0;
+  let pointerId: number | null = null;
 
   root.dataset.webgl = 'off';
   root.dataset.carousel = 'snap';
@@ -73,6 +78,11 @@ export function mountHeroFallback(
     return best;
   };
 
+  const wrap = (value: number): number => {
+    const len = projects.length;
+    return ((value % len) + len) % len;
+  };
+
   const goTo = (index: number, smooth = true): void => {
     const target = cards[wrap(index)];
     if (!target) return;
@@ -88,11 +98,6 @@ export function mountHeroFallback(
     if (hint) hint.dataset.hidden = 'true';
   };
 
-  const wrap = (value: number): number => {
-    const len = projects.length;
-    return ((value % len) + len) % len;
-  };
-
   const onScroll = (): void => {
     window.clearTimeout(settleTimer);
     settleTimer = window.setTimeout(() => {
@@ -105,6 +110,10 @@ export function mountHeroFallback(
   };
 
   const onClick = (event: Event): void => {
+    if (dragDistance > 8) {
+      event.preventDefault();
+      return;
+    }
     const card = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-hero-cover]');
     if (!card || !track.contains(card)) return;
     const index = cards.indexOf(card);
@@ -116,6 +125,47 @@ export function mountHeroFallback(
     }
     event.preventDefault();
     goTo(index);
+  };
+
+  const onPointerDown = (event: PointerEvent): void => {
+    if (event.button !== 0) return;
+    dragging = true;
+    pointerId = event.pointerId;
+    dragStartX = event.clientX;
+    dragOriginScroll = track.scrollLeft;
+    dragDistance = 0;
+    getLenis()?.stop();
+    try {
+      track.setPointerCapture(event.pointerId);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const onPointerMove = (event: PointerEvent): void => {
+    if (!dragging || (pointerId !== null && event.pointerId !== pointerId)) return;
+    const dx = event.clientX - dragStartX;
+    dragDistance = Math.abs(dx);
+    track.scrollLeft = dragOriginScroll - dx;
+    if (hint) hint.dataset.hidden = 'true';
+  };
+
+  const onPointerUp = (event: PointerEvent): void => {
+    if (!dragging || (pointerId !== null && event.pointerId !== pointerId)) return;
+    dragging = false;
+    pointerId = null;
+    getLenis()?.start();
+    try {
+      track.releasePointerCapture(event.pointerId);
+    } catch {
+      /* ignore */
+    }
+    if (dragDistance > 24) {
+      const delta = event.clientX < dragStartX ? 1 : -1;
+      goTo(active + delta);
+    } else {
+      goTo(nearestIndex());
+    }
   };
 
   const onKey = (event: KeyboardEvent): void => {
@@ -136,6 +186,10 @@ export function mountHeroFallback(
 
   track.addEventListener('scroll', onScroll, { passive: true });
   track.addEventListener('click', onClick);
+  track.addEventListener('pointerdown', onPointerDown);
+  track.addEventListener('pointermove', onPointerMove);
+  track.addEventListener('pointerup', onPointerUp);
+  track.addEventListener('pointercancel', onPointerUp);
   root.addEventListener('keydown', onKey);
   prev?.addEventListener('click', onPrev);
   next?.addEventListener('click', onNext);
@@ -147,8 +201,13 @@ export function mountHeroFallback(
     window.clearTimeout(settleTimer);
     track.removeEventListener('scroll', onScroll);
     track.removeEventListener('click', onClick);
+    track.removeEventListener('pointerdown', onPointerDown);
+    track.removeEventListener('pointermove', onPointerMove);
+    track.removeEventListener('pointerup', onPointerUp);
+    track.removeEventListener('pointercancel', onPointerUp);
     root.removeEventListener('keydown', onKey);
     prev?.removeEventListener('click', onPrev);
     next?.removeEventListener('click', onNext);
+    getLenis()?.start();
   };
 }
