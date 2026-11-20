@@ -7,6 +7,7 @@ export const GET: APIRoute = () => {
 Allow: /
 Disallow: /system
 
+# humans.txt — https://dubstepmolitva.ru/humans.txt
 Sitemap: ${sitemap}
 `;
   return new Response(body, {

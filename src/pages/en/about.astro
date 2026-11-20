@@ -1,0 +1,364 @@
+---
+import { Picture } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import { contactLinks } from '../../data/home';
+import { personName, resumeHref } from '../../lib/site';
+import { isFilled } from '../../lib/fill';
+import { ui } from '../../i18n';
+import portrait from '../../assets/portrait.png';
+
+const t = ui('en');
+const resume = isFilled(resumeHref) ? resumeHref : null;
+const github = isFilled(contactLinks.github) ? contactLinks.github : null;
+const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
+const email = isFilled(contactLinks.email) ? contactLinks.email : null;
+const aboutIntro = t.aboutIntro;
+const aboutPrinciples = t.aboutPrinciples;
+const aboutStackGroups = t.aboutStackGroups;
+const aboutHire = t.aboutHire;
+
+const photoSizes = '(max-width: 900px) min(22rem, 100vw), min(28vw, 22rem)';
+---
+
+<BaseLayout
+  title={t.about.title}
+  description={t.about.description}
+  canonicalPath="/en/about/"
+  ogImage="/og/home.png"
+>
+  <article class="about page-pad">
+    <header class="about__hero">
+      <p class="eyebrow">{t.about.eyebrow}</p>
+      <h1 class="about__title" data-page-title>{personName}</h1>
+      <div class="about__lead">
+        {aboutIntro.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+      {
+        resume ? (
+          <div class="about__actions">
+            <Button href={resume} variant="primary">
+              {t.about.resume}
+            </Button>
+          </div>
+        ) : null
+      }
+    </header>
+
+    <div class="about__layout">
+      <figure class="about__photo-wrap">
+        <div class="about__photo-frame">
+          <Picture
+            src={portrait}
+            alt="Богдан"
+            formats={['avif', 'webp']}
+            widths={[400, 800, 1200]}
+            sizes={photoSizes}
+            width={400}
+            height={Math.round((400 * portrait.height) / portrait.width)}
+            quality={85}
+            loading="eager"
+            decoding="async"
+            pictureAttributes={{ class: 'about__photo' }}
+          />
+        </div>
+      </figure>
+
+      <div class="about__copy">
+        <section class="about__block">
+          <h2 class="about__h2">{t.about.how}</h2>
+          <ul class="about__principles">
+            {
+              aboutPrinciples.map((item) => (
+                <li>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </li>
+              ))
+            }
+          </ul>
+        </section>
+
+        <section class="about__block">
+          <h2 class="about__h2">{t.about.stack}</h2>
+          <div class="about__stack">
+            {
+              aboutStackGroups.map((group) => (
+                <div class="about__stack-group">
+                  <h3 class="mono">{group.title}</h3>
+                  <ul>
+                    {group.items.map((item) => (
+                      <li>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            }
+          </div>
+        </section>
+
+        <section class="about__block">
+          <h2 class="about__h2">{t.about.hire}</h2>
+          <ul class="about__hire">
+            {aboutHire.map((item) => <li>{item}</li>)}
+          </ul>
+        </section>
+
+        <section class="about__block">
+          <h2 class="about__h2">{t.about.contacts}</h2>
+          <ul class="about__contacts">
+            {
+              github ? (
+                <li>
+                  <span class="mono">GitHub</span>
+                  <a href={github} data-cursor="hover">
+                    github.com/blessed-bless
+                  </a>
+                </li>
+              ) : null
+            }
+            <li>
+              <span class="mono">Telegram</span>
+              {
+                telegram ? (
+                  <a href={telegram} data-cursor="hover">
+                    @ketasonx
+                  </a>
+                ) : (
+                  <span class="about__pending">{"{{заполнить}}"}</span>
+                )
+              }
+            </li>
+            <li>
+              <span class="mono">Email</span>
+              {
+                email ? (
+                  <a href={`mailto:${email}`} data-cursor="hover">
+                    {email}
+                  </a>
+                ) : (
+                  <span class="about__pending">{"{{заполнить}}"}</span>
+                )
+              }
+            </li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .about {
+    padding-block: var(--space-8) var(--section-gap);
+  }
+
+  .about__hero {
+    max-width: 42rem;
+    margin-bottom: var(--space-8);
+  }
+
+  .about__title {
+    margin: var(--space-3) 0 0;
+    font-size: clamp(2.2rem, 1.2rem + 3.2vw, 3.8rem);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+    overflow-wrap: anywhere;
+    max-width: 18ch;
+  }
+
+  .about__lead {
+    margin: var(--space-5) 0 0;
+    display: grid;
+    gap: var(--space-3);
+    font-size: var(--text-md);
+    color: var(--fg-muted);
+    max-width: 36rem;
+  }
+
+  .about__lead p {
+    margin: 0;
+  }
+
+  .about__actions {
+    margin-top: var(--space-6);
+  }
+
+  .about__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: start;
+  }
+
+  .about__photo-wrap {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-5));
+    margin: 0;
+  }
+
+  .about__photo-frame {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border: var(--stroke) solid #2a2438;
+    background: #1f1a2b;
+  }
+
+  :global([data-theme='light']) .about__photo-frame {
+    background: #ebe4f0;
+  }
+
+  .about__photo {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .about__photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 18%;
+    filter: grayscale(1) contrast(1.06) brightness(0.92) sepia(0.4) hue-rotate(225deg)
+      saturate(1.25);
+    transition: filter var(--dur-3) var(--ease-out);
+  }
+
+  .about__photo-wrap:hover .about__photo :global(img),
+  .about__photo-wrap:focus-within .about__photo :global(img) {
+    filter: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .about__photo :global(img) {
+      filter: none;
+      transition: none;
+    }
+  }
+
+  .about__block + .about__block {
+    margin-top: var(--space-8);
+  }
+
+  .about__h2 {
+    margin: 0 0 var(--space-5);
+    font-size: var(--text-lg);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .about__principles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .about__principles h3 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-md);
+  }
+
+  .about__principles p {
+    margin: 0;
+    color: var(--fg-muted);
+    max-width: 36rem;
+  }
+
+  .about__stack {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6) var(--space-5);
+  }
+
+  .about__stack-group h3 {
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    color: var(--accent-strong);
+  }
+
+  .about__stack-group ul,
+  .about__hire,
+  .about__contacts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .about__stack-group li,
+  .about__hire li {
+    font-size: var(--text-sm);
+    color: var(--fg-muted);
+  }
+
+  .about__hire li {
+    padding-left: 1rem;
+    position: relative;
+  }
+
+  .about__hire li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--fg-faint);
+  }
+
+  .about__contacts {
+    gap: var(--space-3);
+  }
+
+  .about__contacts li {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: baseline;
+    font-size: var(--text-sm);
+  }
+
+  .about__contacts .mono {
+    color: var(--fg-muted);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+  }
+
+  .about__contacts a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .about__contacts a:hover {
+    color: var(--accent-strong);
+  }
+
+  .about__pending {
+    color: var(--fg-faint);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  @media (max-width: 900px) {
+    .about__layout {
+      grid-template-columns: 1fr;
+    }
+
+    .about__photo-wrap {
+      position: static;
+      max-width: 22rem;
+    }
+
+    .about__stack {
+      grid-template-columns: 1fr;
+    }
+
+    .about__contacts li {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
+  }
+</style>

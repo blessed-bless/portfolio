@@ -2,8 +2,11 @@
 import Button from './Button.astro';
 import { contactLinks } from '../data/home';
 import { isFilled } from '../lib/fill';
+import { defaultLocale, isLocale, ui, type Locale } from '../i18n';
 
-const title = 'Давайте сделаем';
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const title = t.home.contactTitle;
 const letters = [...title];
 const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 const github = isFilled(contactLinks.github) ? contactLinks.github : null;
@@ -11,8 +14,8 @@ const email = isFilled(contactLinks.email) ? contactLinks.email : null;
 const hasLinks = Boolean(telegram || github || email);
 ---
 
-<section class="contact page-pad" id="contact" data-contact aria-label="Контакт">
-  <p class="eyebrow">Связь</p>
+<section class="contact page-pad" id="contact" data-contact aria-label={t.nav.contact}>
+  <p class="eyebrow">{t.nav.contact}</p>
   <h2 class="contact__title" data-magnetic-title aria-label={title}>
     {
       letters.map((ch) =>
@@ -44,6 +47,7 @@ const hasLinks = Boolean(telegram || github || email);
             type="button"
             data-copy-email
             data-email={email}
+            data-copy-label={t.home.copied}
             data-cursor="hover"
           >
             {email}
@@ -51,7 +55,7 @@ const hasLinks = Boolean(telegram || github || email);
         ) : null}
       </div>
     ) : (
-      <p class="contact__pending">Контакты скоро появятся здесь.</p>
+      <p class="contact__pending">{t.home.contactPending}</p>
     )
   }
 
@@ -59,7 +63,7 @@ const hasLinks = Boolean(telegram || github || email);
     email ? (
       <div class="contact__cta">
         <Button href={`mailto:${email}`} variant="primary">
-          Написать
+          {t.home.contactWrite}
         </Button>
       </div>
     ) : null

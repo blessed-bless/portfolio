@@ -1,0 +1,201 @@
+---
+import { buildPaletteItems } from '../data/command-palette';
+import { getProjects } from '../lib/work';
+import { defaultLocale, isLocale, ui, type Locale } from '../i18n';
+
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const projects = await getProjects(locale);
+const catalog = buildPaletteItems(projects, t);
+const catalogJson = JSON.stringify(catalog).replace(/</g, '\\u003c');
+---
+
+<div
+  class="cmdk"
+  data-cmdk
+  data-open="false"
+  hidden
+  role="dialog"
+  aria-modal="true"
+    aria-label={t.cmdk.label}
+  transition:persist="cmdk"
+>
+  <div class="cmdk__panel">
+    <div class="cmdk__search">
+      <label class="sr-only" for="cmdk-input">{t.cmdk.label}</label>
+      <input
+        id="cmdk-input"
+        class="cmdk__input"
+        type="search"
+        data-cmdk-input
+        placeholder={t.cmdk.placeholder}
+        autocomplete="off"
+        spellcheck="false"
+        aria-autocomplete="list"
+        aria-controls="cmdk-listbox"
+        aria-activedescendant=""
+      />
+      <button type="button" class="cmdk__esc mono" data-cmdk-close data-cursor="hover">Esc</button>
+    </div>
+    <div
+      class="cmdk__list"
+      id="cmdk-listbox"
+      data-cmdk-list
+      role="listbox"
+      aria-label={t.cmdk.label}
+    ></div>
+  </div>
+</div>
+
+<script type="application/json" data-cmdk-catalog set:html={catalogJson} />
+
+<style is:global>
+  .cmdk {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: start center;
+    padding: max(12vh, 2rem) var(--page-pad) var(--space-6);
+    background: color-mix(in srgb, var(--bg) 72%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms var(--ease-out);
+  }
+
+  .cmdk[data-open='true'] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .cmdk__panel {
+    width: min(100%, 34rem);
+    border: var(--stroke) solid var(--border-strong);
+    background: var(--bg-elevated);
+    transform: translateY(6px);
+    transition: transform 150ms var(--ease-out);
+  }
+
+  .cmdk[data-open='true'] .cmdk__panel {
+    transform: translateY(0);
+  }
+
+  .cmdk__search {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    border-bottom: var(--stroke) solid var(--border);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .cmdk__input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
+    font-size: var(--text-md);
+    outline: none;
+  }
+
+  .cmdk__esc {
+    border: var(--stroke) solid var(--border);
+    background: transparent;
+    color: var(--fg-muted);
+    font-size: var(--text-xs);
+    min-height: 2rem;
+    padding: 0 0.55rem;
+    cursor: pointer;
+  }
+
+  .cmdk__list {
+    max-height: min(50vh, 22rem);
+    overflow: auto;
+    padding: var(--space-2);
+  }
+
+  .cmdk__group {
+    margin: var(--space-2) var(--space-2) var(--space-1);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-mono);
+    text-transform: uppercase;
+    color: var(--fg-faint);
+  }
+
+  .cmdk__option {
+    width: 100%;
+    display: grid;
+    gap: 0.15rem;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0.7rem 0.75rem;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .cmdk__option[aria-selected='true'],
+  .cmdk__option:hover {
+    background: var(--bg-soft);
+  }
+
+  .cmdk__option-title mark {
+    background: transparent;
+    color: var(--accent-strong);
+    font-weight: 650;
+  }
+
+  .cmdk__option-hint {
+    font-size: var(--text-xs);
+    color: var(--fg-muted);
+  }
+
+  .cmdk__empty {
+    margin: 0;
+    padding: var(--space-5) var(--space-3);
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
+  html[data-cmdk-open='true'] {
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cmdk,
+    .cmdk__panel {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  function bootCmdk() {
+    const host = document.querySelector<HTMLElement>('[data-cmdk]');
+    const raw = document.querySelector('[data-cmdk-catalog]');
+    if (!host || !raw?.textContent) return;
+
+    const schedule =
+      typeof window.requestIdleCallback === 'function'
+        ? (cb: () => void) => window.requestIdleCallback(() => cb(), { timeout: 1200 })
+        : (cb: () => void) => window.setTimeout(cb, 1);
+
+    schedule(async () => {
+      const { mountCommandPalette } = await import('../scripts/command-palette');
+      let catalog: unknown = [];
+      try {
+        catalog = JSON.parse(raw.textContent || '[]');
+      } catch {
+        catalog = [];
+      }
+      if (!Array.isArray(catalog)) return;
+      mountCommandPalette(host, catalog as import('../data/command-palette').PaletteItem[]);
+    });
+  }
+
+  bootCmdk();
+  document.addEventListener('astro:page-load', bootCmdk);
+</script>

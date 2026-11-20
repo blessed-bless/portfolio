@@ -5,38 +5,55 @@ import { contactLinks } from '../data/home';
 import { isFilled } from '../lib/fill';
 import { hasPublishedNotes } from '../lib/notes';
 import { withTrailingSlash } from '../lib/paths';
+import {
+  defaultLocale,
+  isLocale,
+  localizedPath,
+  stripLocalePrefix,
+  switchLocalePath,
+  ui,
+  type Locale,
+} from '../i18n';
 
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
 const pathname = Astro.url.pathname;
-const showNotes = await hasPublishedNotes();
+const bare = stripLocalePrefix(pathname);
+const showNotes = locale === 'ru' && (await hasPublishedNotes());
 const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 const email = isFilled(contactLinks.email) ? contactLinks.email : null;
+const otherLocale: Locale = locale === 'ru' ? 'en' : 'ru';
+const localeSwitchHref = switchLocalePath(pathname, otherLocale);
 
 const links = [
-  { href: withTrailingSlash('/'), label: 'Главная' },
-  { href: withTrailingSlash('/work'), label: 'Работы' },
-  { href: withTrailingSlash('/about'), label: 'Обо мне' },
-  ...(showNotes ? [{ href: withTrailingSlash('/notes'), label: 'Заметки' }] : []),
-  { href: '/#contact', label: 'Контакт' },
+  { href: localizedPath(locale, '/'), label: t.nav.home },
+  { href: localizedPath(locale, '/work/'), label: t.nav.work },
+  { href: localizedPath(locale, '/about/'), label: t.nav.about },
+  ...(showNotes ? [{ href: localizedPath(locale, '/notes/'), label: t.nav.notes }] : []),
+  { href: `${localizedPath(locale, '/')}#contact`, label: t.nav.contact },
 ];
 
 function isActive(href: string): boolean {
-  if (href === '/' || href === '') return pathname === '/' || pathname === '';
-  if (href.startsWith('/#')) return false;
-  const bare = href.replace(/\/$/, '');
-  if (bare === '/work') return pathname === '/work' || pathname === '/work/' || pathname.startsWith('/work/');
-  if (bare === '/notes') return pathname === '/notes' || pathname === '/notes/' || pathname.startsWith('/notes/');
-  return pathname === href || pathname === bare || pathname.startsWith(`${bare}/`);
+  const pathOnly = href.split('#')[0] ?? href;
+  if (pathOnly === '/' || pathOnly === '/en/') {
+    return bare === '/' || bare === '';
+  }
+  const target = stripLocalePrefix(pathOnly).replace(/\/$/, '');
+  const current = bare.replace(/\/$/, '') || '/';
+  if (target === '/work') return current === '/work' || current.startsWith('/work/');
+  if (target === '/notes') return current === '/notes' || current.startsWith('/notes/');
+  return current === target || current.startsWith(`${target}/`);
 }
 ---
 
 <header class="site-header page-pad" data-site-header>
   <div class="site-header__inner">
-    <a class="site-header__brand" href={withTrailingSlash('/')} data-cursor="hover">
+    <a class="site-header__brand" href={localizedPath(locale, '/')} data-cursor="hover">
       <span class="site-header__mark" aria-hidden="true"></span>
-      <span class="site-header__name">Богдан</span>
+      <span class="site-header__name">{t.brand}</span>
     </a>
 
-    <nav class="site-header__nav" aria-label="Основная" data-nav-desktop>
+    <nav class="site-header__nav" aria-label={locale === 'en' ? 'Primary' : 'Основная'} data-nav-desktop>
       <ul>
         {
           links.map((link) => (
@@ -56,7 +73,26 @@ function isActive(href: string): boolean {
     </nav>
 
     <div class="site-header__aside">
-      <ThemeToggle />
+      <a
+        class="site-header__locale mono"
+        href={localeSwitchHref}
+        data-cursor="hover"
+        hreflang={otherLocale}
+        lang={otherLocale}
+      >
+        {otherLocale.toUpperCase()}
+      </a>
+      <button
+        type="button"
+        class="site-header__cmdk mono"
+        data-cmdk-open
+        data-cursor="hover"
+        aria-label={t.header.cmdk}
+        title={t.header.cmdk}
+      >
+        <span class="site-header__cmdk-label">{t.header.cmdkShort}</span>
+      </button>
+      <ThemeToggle lightLabel={t.header.themeLight} darkLabel={t.header.themeDark} />
       <button
         type="button"
         class="site-header__menu-btn"
@@ -64,7 +100,7 @@ function isActive(href: string): boolean {
         data-cursor="hover"
         aria-expanded="false"
         aria-controls="site-nav-panel"
-        aria-label="Открыть меню"
+        aria-label={t.header.openMenu}
       >
         <span class="site-header__menu-icon" aria-hidden="true"></span>
       </button>
@@ -79,9 +115,9 @@ function isActive(href: string): boolean {
     aria-hidden="true"
     role="dialog"
     aria-modal="true"
-    aria-label="Меню"
+    aria-label={t.header.menuLabel}
   >
-    <nav class="site-header__panel-nav" aria-label="Мобильная">
+    <nav class="site-header__panel-nav" aria-label={t.header.mobileNav}>
       <ul>
         {
           links.map((link) => (
@@ -100,6 +136,12 @@ function isActive(href: string): boolean {
       </ul>
     </nav>
     <div class="site-header__panel-foot" data-nav-item>
+      <button type="button" class="site-header__panel-link" data-cmdk-open data-cursor="hover">
+        {t.header.cmdk}
+      </button>
+      <a class="site-header__panel-link" href={localeSwitchHref} data-cursor="hover" hreflang={otherLocale}>
+        {otherLocale.toUpperCase()}
+      </a>
       {
         telegram ? (
           <a class="site-header__panel-link" href={telegram} data-cursor="hover">
@@ -116,7 +158,9 @@ function isActive(href: string): boolean {
       }
       {
         telegram ? (
-          <Button href={telegram} variant="primary">Обсудить задачу</Button>
+          <Button href={telegram} variant="primary">
+            {t.header.discuss}
+          </Button>
         ) : null
       }
     </div>
@@ -220,6 +264,44 @@ function isActive(href: string): boolean {
     gap: var(--space-2);
   }
 
+  .site-header__locale {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 2.5rem;
+    padding: 0 0.45rem;
+    border: var(--stroke) solid var(--border);
+    color: var(--fg-muted);
+    text-decoration: none;
+    font-size: var(--text-xs);
+  }
+
+  .site-header__locale:hover {
+    color: var(--fg);
+    border-color: var(--border-strong);
+  }
+
+  .site-header__cmdk {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 0.55rem;
+    border: var(--stroke) solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--fg-muted);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-mono);
+    cursor: pointer;
+  }
+
+  .site-header__cmdk:hover {
+    color: var(--fg);
+    border-color: var(--border-strong);
+  }
+
   .site-header__menu-btn {
     display: none;
     width: 44px;
@@ -318,13 +400,17 @@ function isActive(href: string): boolean {
     min-height: 44px;
     display: inline-flex;
     align-items: center;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
   }
 
   .site-header__panel-link:hover {
     color: var(--accent-strong);
   }
 
-  :global(body.nav-lock) {
+  body.nav-lock {
     overflow: hidden;
   }
 

@@ -1,4 +1,10 @@
 ---
+interface Props {
+  lightLabel?: string;
+  darkLabel?: string;
+}
+
+const { lightLabel = 'Светлая', darkLabel = 'Тёмная' } = Astro.props;
 ---
 
 <button
@@ -6,12 +12,14 @@
   type="button"
   data-theme-toggle
   data-cursor="hover"
-  aria-label="Тема"
+  data-theme-light={lightLabel}
+  data-theme-dark={darkLabel}
+  aria-label={lightLabel}
 >
   <span class="theme-toggle__track" aria-hidden="true">
     <span class="theme-toggle__knob"></span>
   </span>
-  <span class="theme-toggle__label mono" data-theme-label>Тема</span>
+  <span class="theme-toggle__label mono" data-theme-label>{lightLabel}</span>
 </button>
 
 <script>
@@ -19,7 +27,9 @@
 
   function syncLabel(button: HTMLElement): void {
     const label = button.querySelector('[data-theme-label]');
-    const mode = document.documentElement.dataset.theme === 'light' ? 'Светлая' : 'Тёмная';
+    const light = button.dataset.themeLight || 'Светлая';
+    const dark = button.dataset.themeDark || 'Тёмная';
+    const mode = document.documentElement.dataset.theme === 'light' ? light : dark;
     if (label) label.textContent = mode;
     button.setAttribute('aria-label', mode);
     button.setAttribute('aria-pressed', String(document.documentElement.dataset.theme === 'light'));

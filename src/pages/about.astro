@@ -30,7 +30,7 @@ const photoSizes = '(max-width: 900px) min(22rem, 100vw), min(28vw, 22rem)';
   <article class="about page-pad">
     <header class="about__hero">
       <p class="eyebrow">Обо мне</p>
-      <h1 class="about__title">{personName}</h1>
+      <h1 class="about__title" data-page-title>{personName}</h1>
       <div class="about__lead">
         {aboutIntro.map((paragraph) => <p>{paragraph}</p>)}
       </div>

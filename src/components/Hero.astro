@@ -4,28 +4,38 @@ import Button from './Button.astro';
 import { getCarouselProjects } from '../lib/work';
 import { contactLinks } from '../data/home';
 import { isFilled } from '../lib/fill';
-import { withTrailingSlash } from '../lib/paths';
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
-const projects = await getCarouselProjects();
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const projects = await getCarouselProjects(locale);
 const projectsJson = JSON.stringify(projects);
 const firstProject = projects[0];
 const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
-const headline = 'Сайты с онлайн‑записью, Telegram-боты и CRM для бизнеса';
-const subtitle = 'Бэкенд на Python. От заявки до работающего контура.';
 ---
 
-<section class="hero" data-hero aria-label="Первый экран" data-projects={projectsJson}>
+<section
+  class="hero"
+  data-hero
+  data-locale={locale}
+  aria-label={t.home.heroHeadline}
+  data-projects={projectsJson}
+>
   <div class="hero__copy">
-    <p class="hero__brand" data-hero-name>Богдан</p>
-    <h1 class="hero__line" data-hero-line>{headline}</h1>
-    <p class="hero__sub" data-hero-sub>{subtitle}</p>
+    <p class="hero__brand" data-hero-name>{t.brand}</p>
+    <h1 class="hero__line" data-hero-line data-page-title>{t.home.heroHeadline}</h1>
+    <p class="hero__sub" data-hero-sub>{t.home.heroSubtitle}</p>
     <div class="hero__actions" data-hero-foot>
       {
         telegram ? (
-          <Button href={telegram} variant="primary">Обсудить задачу</Button>
+          <Button href={telegram} variant="primary">
+            {t.home.heroCta}
+          </Button>
         ) : null
       }
-      <Button href={withTrailingSlash('/work')} variant="ghost">Смотреть работы</Button>
+      <Button href={localizedPath(locale, '/work/')} variant="ghost">
+        {t.home.heroWork}
+      </Button>
     </div>
   </div>
 
@@ -39,7 +49,7 @@ const subtitle = 'Бэкенд на Python. От заявки до работа�
             return (
               <a
                 class="hero__static-card"
-                href={withTrailingSlash(`/work/${project.slug}`)}
+                href={localizedPath(locale, `/work/${project.slug}/`)}
                 data-cursor="hover"
                 aria-label={label}
                 data-hero-cover={project.slug}
@@ -101,7 +111,9 @@ const subtitle = 'Бэкенд на Python. От заявки до работа�
       new DOMRect(window.innerWidth * 0.35, window.innerHeight * 0.28, 480, 320);
     await expandToWorkPage(project, from);
     const { navigate } = await import('astro:transitions/client');
-    navigate(`/work/${project.slug}/`);
+    const hero = document.querySelector<HTMLElement>('[data-hero]');
+    const locale = hero?.dataset.locale === 'en' ? 'en' : 'ru';
+    navigate(locale === 'en' ? `/en/work/${project.slug}/` : `/work/${project.slug}/`);
     window.setTimeout(() => {
       document.querySelectorAll('.work-expand').forEach((node) => node.remove());
     }, 900);

@@ -6,11 +6,12 @@ import { getProjects } from '../../lib/work';
 import type { WorkTag } from '../../lib/work-types';
 
 const listed = await getProjects();
-const tags: Array<WorkTag | 'all'> = ['all', 'Python', 'TypeScript', 'Bots', 'Infra', 'Web'];
+const tags: Array<WorkTag | 'all'> = ['all', 'Python', 'TypeScript', 'JavaScript', 'Bots', 'Infra', 'Web'];
 const tagLabels: Record<string, string> = {
   all: 'Все',
   Python: 'Python',
   TypeScript: 'TypeScript',
+  JavaScript: 'JavaScript',
   Bots: 'Bots',
   Infra: 'Infra',
   Web: 'Web',
@@ -26,7 +27,7 @@ const tagLabels: Record<string, string> = {
   <section class="work-index page-pad" data-work-index data-view="grid">
     <header class="work-index__head">
       <p class="eyebrow">Портфолио</p>
-      <h1 class="work-index__title">Работы</h1>
+      <h1 class="work-index__title" data-page-title>Работы</h1>
       <div class="work-index__controls">
         <div class="work-index__modes" role="group" aria-label="Режим списка">
           <button type="button" class="work-index__chip mono" data-work-view="list" aria-pressed="false" data-cursor="hover">
@@ -66,10 +67,12 @@ const tagLabels: Record<string, string> = {
               data-work-item
               data-tags={project.tags.join(',')}
               data-cursor={project.hasPage ? 'hover' : undefined}
-              transition:name={project.hasPage ? `work-cover-${project.slug}` : undefined}
             >
               <span class="work-index__cover-wrap" aria-hidden="true">
-                <ProjectCover src={project.cover} />
+                <ProjectCover
+                  src={project.cover}
+                  transitionName={project.hasPage ? `work-cover-${project.slug}` : undefined}
+                />
               </span>
               <span class="work-index__num mono">{String(index + 1).padStart(2, '0')}</span>
               <span class="work-index__name">

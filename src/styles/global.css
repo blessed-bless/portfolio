@@ -1,5 +1,6 @@
 @import './fonts.css';
 @import './tokens.css';
+@import './view-transitions.css';
 
 *,
 *::before,
@@ -58,8 +59,14 @@ h3,
 .contact__title,
 .faq__title,
 .not-found__title,
-.notes__title {
+.notes__title,
+.uses__title {
   font-family: var(--font-display);
+}
+
+.page-title-line {
+  display: block;
+  overflow: hidden;
 }
 
 body.has-custom-cursor,

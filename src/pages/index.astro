@@ -6,22 +6,19 @@ import BusinessOffers from '../components/BusinessOffers.astro';
 import Faq from '../components/Faq.astro';
 import StackMarquee from '../components/StackMarquee.astro';
 import Contact from '../components/Contact.astro';
-import {
-  defaultDescription,
-  personJobTitle,
-  personName,
-  siteUrl,
-} from '../lib/site';
+import { personJobTitle, personName, siteUrl } from '../lib/site';
 import { isFilled } from '../lib/fill';
 import { contactLinks } from '../data/home';
+import { ui } from '../i18n';
 
+const t = ui('ru');
 const sameAs = [contactLinks.github, contactLinks.telegram].filter(isFilled);
 
 const professionalServiceLd = {
   '@context': 'https://schema.org',
   '@type': 'ProfessionalService',
   name: siteUrl.includes('dubstepmolitva') ? 'Богдан — разработка для бизнеса' : personName,
-  description: defaultDescription,
+  description: t.home.description,
   url: siteUrl,
   provider: {
     '@type': 'Person',
@@ -31,13 +28,13 @@ const professionalServiceLd = {
     ...(sameAs.length ? { sameAs } : {}),
   },
   areaServed: 'RU',
-  availableLanguage: ['ru'],
+  availableLanguage: ['ru', 'en'],
 };
 ---
 
 <BaseLayout
-  title="Богдан — сайты, боты и CRM для бизнеса"
-  description={defaultDescription}
+  title={t.home.title}
+  description={t.home.description}
   canonicalPath="/"
   ogImage="/og/home.png"
   jsonLd={professionalServiceLd}

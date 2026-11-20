@@ -1,0 +1,374 @@
+---
+import ProjectCover from '../../../components/ProjectCover.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getProjects } from '../../../lib/work';
+import type { WorkTag } from '../../../lib/work-types';
+import { localizedPath, ui } from '../../../i18n';
+
+const t = ui('en');
+const listed = await getProjects('en');
+const tags: Array<WorkTag | 'all'> = ['all', 'Python', 'TypeScript', 'JavaScript', 'Bots', 'Infra', 'Web'];
+const tagLabels: Record<string, string> = {
+  all: t.work.tagsAll,
+  Python: 'Python',
+  TypeScript: 'TypeScript',
+  JavaScript: 'JavaScript',
+  Bots: 'Bots',
+  Infra: 'Infra',
+  Web: 'Web',
+};
+---
+
+<BaseLayout
+  title={t.work.title}
+  description={t.work.description}
+  canonicalPath="/en/work/"
+  ogImage="/og/work.png"
+>
+  <section class="work-index page-pad" data-work-index data-view="grid">
+    <header class="work-index__head">
+      <p class="eyebrow">{t.work.eyebrow}</p>
+      <h1 class="work-index__title" data-page-title>{t.work.heading}</h1>
+      <div class="work-index__controls">
+        <div class="work-index__modes" role="group" aria-label="List mode">
+          <button type="button" class="work-index__chip mono" data-work-view="list" aria-pressed="false" data-cursor="hover">
+            {t.work.list}
+          </button>
+          <button type="button" class="work-index__chip mono" data-work-view="grid" aria-pressed="true" data-cursor="hover">
+            {t.work.grid}
+          </button>
+        </div>
+        <div class="work-index__tags" role="group" aria-label="Filter by tags">
+          {
+            tags.map((tag) => (
+              <button
+                type="button"
+                class="work-index__chip mono"
+                data-work-tag={tag}
+                aria-pressed={tag === 'all' ? 'true' : 'false'}
+                data-cursor="hover"
+              >
+                {tagLabels[tag]}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+    </header>
+
+    <div class="work-index__list" data-work-list>
+      {
+        listed.map((project, index) => {
+          const href = project.hasPage ? localizedPath('en', `/work/${project.slug}/`) : '#';
+          const Tag = project.hasPage ? 'a' : 'div';
+          return (
+            <Tag
+              class:list={['work-index__item', { 'is-stub': !project.hasPage }]}
+              href={project.hasPage ? href : undefined}
+              data-work-item
+              data-tags={project.tags.join(',')}
+              data-cursor={project.hasPage ? 'hover' : undefined}
+            >
+              <span class="work-index__cover-wrap" aria-hidden="true">
+                <ProjectCover
+                  src={project.cover}
+                  transitionName={project.hasPage ? `work-cover-${project.slug}` : undefined}
+                />
+              </span>
+              <span class="work-index__num mono">{String(index + 1).padStart(2, '0')}</span>
+              <span class="work-index__name">
+                {project.title}
+                {!project.hasPage ? <span class="work-index__stub mono">{t.work.soon}</span> : null}
+              </span>
+              <span class="work-index__year mono">{project.year}</span>
+              <span class="work-index__stack mono">{project.stack}</span>
+              <span class="work-index__status mono">{project.status}</span>
+            </Tag>
+          );
+        })
+      }
+    </div>
+
+    <div class="work-index__follower" data-work-follower data-visible="false" aria-hidden="true">
+      <div class="work-index__follower-media" data-work-follower-media></div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { mountWorkIndex } from '../../../scripts/work-index';
+
+  let teardown: (() => void) | null = null;
+
+  const boot = () => {
+    const root = document.querySelector<HTMLElement>('[data-work-index]');
+    teardown?.();
+    teardown = null;
+    if (root) teardown = mountWorkIndex(root);
+  };
+
+  boot();
+  document.addEventListener('astro:page-load', boot);
+  document.addEventListener('astro:before-swap', () => {
+    teardown?.();
+    teardown = null;
+  });
+</script>
+
+<style>
+  .work-index {
+    position: relative;
+    padding-block: var(--space-7) var(--section-gap);
+    min-height: calc(100svh - var(--header-h));
+  }
+
+  .work-index__head {
+    display: grid;
+    gap: var(--space-4);
+    margin-bottom: var(--space-7);
+  }
+
+  .work-index__title {
+    margin: 0;
+    font-size: var(--text-xl);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+  }
+
+  .work-index__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    justify-content: space-between;
+  }
+
+  .work-index__modes,
+  .work-index__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .work-index__chip {
+    min-height: 40px;
+    padding: 0.35rem 0.85rem;
+    border: var(--stroke) solid var(--border);
+    background: transparent;
+    color: var(--fg-muted);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .work-index__chip[aria-pressed='true'] {
+    color: var(--fg);
+    border-color: var(--border-strong);
+    background: var(--bg-elevated);
+  }
+
+  .work-index__list {
+    display: grid;
+    gap: 0;
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .work-index__item {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr) 4.5rem auto;
+    grid-template-areas:
+      'num name year status'
+      'num stack stack stack';
+    gap: var(--space-1) var(--space-4);
+    align-items: baseline;
+    padding-block: clamp(1.1rem, 2vw, 1.75rem);
+    border-bottom: var(--stroke) solid var(--border);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .work-index__item.is-stub .work-index__name {
+    color: var(--fg);
+  }
+
+  .work-index__cover-wrap {
+    display: none;
+  }
+
+  .work-index__num {
+    grid-area: num;
+    color: var(--accent-strong);
+    font-size: var(--text-sm);
+  }
+
+  .work-index__name {
+    grid-area: name;
+    font-size: clamp(1.35rem, 1rem + 1.5vw, 2.4rem);
+    font-weight: 650;
+    letter-spacing: var(--tracking-tight);
+    display: inline-flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+
+  .work-index__year {
+    grid-area: year;
+  }
+
+  .work-index__stack {
+    grid-area: stack;
+  }
+
+  .work-index__status {
+    grid-area: status;
+    justify-self: end;
+  }
+
+  .work-index__stub,
+  .work-index__year,
+  .work-index__stack,
+  .work-index__status {
+    font-size: var(--text-sm);
+    color: #e8e4f0;
+  }
+
+  :global([data-theme='light']) .work-index__stub,
+  :global([data-theme='light']) .work-index__year,
+  :global([data-theme='light']) .work-index__stack,
+  :global([data-theme='light']) .work-index__status {
+    color: #3f3a4d;
+  }
+
+  .work-index__follower {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 30;
+    width: min(18rem, 42vw);
+    aspect-ratio: 16 / 10;
+    pointer-events: none;
+    opacity: 0;
+    border: var(--stroke) solid var(--border-strong);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    transition: opacity var(--dur-2) var(--ease-out);
+  }
+
+  .work-index__follower[data-visible='true'] {
+    opacity: 1;
+  }
+
+  .work-index__follower-media {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-soft) center / cover no-repeat;
+  }
+
+  .work-index[data-view='grid'] .work-index__list {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--grid-gutter);
+    border-top: 0;
+  }
+
+  .work-index[data-view='grid'] .work-index__item {
+    grid-column: span 2;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'cover cover'
+      'num year'
+      'name name'
+      'stack stack';
+    gap: var(--space-2) var(--space-3);
+    padding: 0;
+    border: 0;
+    align-items: baseline;
+  }
+
+  /* Last incomplete row of 3-col grid: stretch remaining cards */
+  .work-index[data-view='grid'] .work-index__item:last-child:nth-child(3n + 2),
+  .work-index[data-view='grid'] .work-index__item:nth-last-child(2):nth-child(3n + 1) {
+    grid-column: span 3;
+  }
+
+  .work-index[data-view='grid'] .work-index__item:last-child:nth-child(3n + 1) {
+    grid-column: 2 / span 4;
+  }
+
+  .work-index[data-view='grid'] .work-index__cover-wrap {
+    display: block;
+    grid-area: cover;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border: var(--stroke) solid var(--border);
+    background: var(--bg-elevated);
+  }
+
+  .work-index[data-view='grid'] .work-index__num {
+    grid-area: num;
+  }
+
+  .work-index[data-view='grid'] .work-index__name {
+    grid-area: name;
+    font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+  }
+
+  .work-index[data-view='grid'] .work-index__year {
+    grid-area: year;
+    display: block;
+    justify-self: end;
+    text-align: right;
+  }
+
+  .work-index[data-view='grid'] .work-index__stack {
+    grid-area: stack;
+    display: block;
+  }
+
+  .work-index[data-view='grid'] .work-index__stack::before {
+    content: none;
+  }
+
+  .work-index[data-view='grid'] .work-index__status {
+    display: none;
+  }
+
+  .work-index[data-view='grid'] .work-index__follower {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .work-index[data-view='list'] .work-index__item {
+      grid-template-columns: 2.5rem 1fr auto;
+      grid-template-areas:
+        'num name status'
+        'num stack stack'
+        'num year year';
+    }
+
+    .work-index[data-view='list'] .work-index__stack {
+      text-align: left;
+    }
+
+    .work-index[data-view='grid'] .work-index__list {
+      grid-template-columns: 1fr;
+    }
+
+    .work-index[data-view='grid'] .work-index__item,
+    .work-index[data-view='grid'] .work-index__item:last-child:nth-child(3n + 2),
+    .work-index[data-view='grid'] .work-index__item:nth-last-child(2):nth-child(3n + 1),
+    .work-index[data-view='grid'] .work-index__item:last-child:nth-child(3n + 1) {
+      grid-column: auto;
+      grid-template-columns: auto 1fr;
+      grid-template-areas:
+        'cover cover'
+        'num year'
+        'name name'
+        'stack stack';
+    }
+
+    .work-index__follower {
+      display: none;
+    }
+  }
+</style>

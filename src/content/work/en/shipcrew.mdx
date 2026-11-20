@@ -1,0 +1,50 @@
+---
+title: ShipCrew
+slug: shipcrew
+year: '2026'
+role: Product & backend
+stack:
+  - Python 3.12
+  - FastAPI
+  - pydantic-settings
+  - React 19
+  - Vite
+  - Docker
+status: shipped
+cover: ../../assets/covers/shipcrew.svg
+summary: >-
+  An agent crew — PM → Architect → Engineer → Reviewer → DevOps —
+  that takes a brief to a ready prod zip bundle.
+links:
+  github: https://github.com/blessed-bless/shipcrew
+order: 6
+tags:
+  - Python
+  - TypeScript
+  - Infra
+hasPage: true
+featured: true
+carousel: true
+---
+
+import screenshot from "../../../assets/screenshots/shipcrew.png";
+
+## Problem
+
+One loop from brief to archive: roles PM → Architect → Engineer → Reviewer → DevOps, a shared blackboard, LLMs via OpenRouter or subscription runners (Codex / Claude / Cursor), metrics, and a zip ship bundle. Locally it runs in demo mode without keys.
+
+## Approach
+
+FastAPI orchestrates turns. React shows the board. Each role writes artifacts to the blackboard; DevOps packs the prod zip when Reviewer clears the gate.
+
+<Figure src={screenshot} alt="ShipCrew agent board" />
+
+<Demo id="shipcrew" />
+
+## Stack
+
+Python 3.12, FastAPI, pydantic-settings, React 19, Vite, Docker.
+
+## Links
+
+[github.com/blessed-bless/shipcrew](https://github.com/blessed-bless/shipcrew)

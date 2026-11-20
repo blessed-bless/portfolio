@@ -1,0 +1,104 @@
+---
+title: FleetKit
+slug: fleetkit
+year: '2026'
+role: Product & backend
+stack:
+  - Python 3.12
+  - FastAPI
+  - SQLAlchemy
+  - Postgres
+  - Redis
+  - React
+  - Docker Compose
+status: shipped
+cover: ../../assets/covers/fleetkit.svg
+summary: >-
+  A control plane for bots, workers, cron, and inbound webhooks —
+  one API and dashboard instead of scripts scattered across machines.
+links:
+  github: https://github.com/blessed-bless/fleetkit
+order: 3
+tags:
+  - Python
+  - TypeScript
+  - Bots
+  - Infra
+hasPage: true
+featured: true
+carousel: true
+---
+
+## Problem
+
+I needed one place for bots and background agents: a queue with retry and timeout, worker registration, cron, webhook → job, a dashboard, and API keys. Not a zoo of scripts on every box.
+
+## Approach
+
+The React dashboard talks to the API with JWT; the SDK and workers use API keys. Jobs, schedules, and webhooks land in Postgres; Redis covers cache and live views. The scheduler ticks cron and enqueues `scheduled` jobs.
+
+<Diagram caption="Dashboard and SDK → FleetKit API → Postgres / Redis; scheduler and webhooks go through the same API">
+  <svg viewBox="0 0 720 260" role="img" aria-label="FleetKit architecture">
+    <rect x="16" y="24" width="130" height="52" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="81" y="55" text-anchor="middle" fill="var(--fg)" font-size="13" font-family="var(--font-mono)">React dash</text>
+    <rect x="16" y="100" width="130" height="52" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="81" y="131" text-anchor="middle" fill="var(--fg)" font-size="13" font-family="var(--font-mono)">SDK / workers</text>
+    <rect x="16" y="176" width="130" height="52" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="81" y="207" text-anchor="middle" fill="var(--fg)" font-size="13" font-family="var(--font-mono)">Cron / hooks</text>
+    <rect x="220" y="88" width="160" height="72" rx="4" fill="var(--bg-elevated)" stroke="var(--accent)" />
+    <text x="300" y="130" text-anchor="middle" fill="var(--fg)" font-size="15" font-family="var(--font-display)" font-weight="650">FleetKit API</text>
+    <rect x="460" y="40" width="140" height="56" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="530" y="74" text-anchor="middle" fill="var(--fg)" font-size="14" font-family="var(--font-mono)">Postgres</text>
+    <rect x="460" y="140" width="140" height="56" rx="4" fill="var(--bg-elevated)" stroke="var(--accent-strong)" />
+    <text x="530" y="174" text-anchor="middle" fill="var(--fg)" font-size="14" font-family="var(--font-mono)">Redis</text>
+    <path d="M146 50 H210" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#fk-arrow-en)" />
+    <path d="M146 126 H210" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#fk-arrow-en)" />
+    <path d="M146 202 H210 V160" stroke="var(--fg-muted)" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow-en)" />
+    <path d="M380 110 H450 V68" stroke="var(--fg-muted)" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow-en)" />
+    <path d="M380 136 H450 V168" stroke="var(--fg-muted)" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow-en)" />
+    <defs>
+      <marker id="fk-arrow-en" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="var(--fg-muted)" />
+      </marker>
+    </defs>
+  </svg>
+</Diagram>
+
+<Demo id="fleetkit" />
+
+## Engineering notes
+
+**Claim with `FOR UPDATE SKIP LOCKED`.** Several workers take the next queued job without racing; SQLite smoke mode falls back to a plain `SELECT`.
+
+```python
+# backend/fleetkit_api/services/jobs.py
+stmt = (
+    select(Job)
+    .where(
+        Job.app_id == app.id,
+        Job.status == JobStatus.queued,
+        (Job.scheduled_for.is_(None)) | (Job.scheduled_for <= now),
+    )
+    .order_by(Job.created_at.asc())
+    .limit(1)
+)
+settings_url = str(getattr(db.bind, "url", ""))
+if "sqlite" not in settings_url:
+    stmt = stmt.with_for_update(skip_locked=True)
+```
+
+**Cron → job.** `tick_schedules` computes `next_run_at` with croniter and enqueues a `scheduled` job.
+
+**DLQ and requeue.** A job that burns through attempts goes to dead letter; requeue creates a new job with `_requeued_from_dlq` and marks the row.
+
+## Stack
+
+Python 3.12, FastAPI, SQLAlchemy, Postgres / SQLite, Redis, React, Docker Compose.
+
+## Next
+
+Unify the Postgres and SQLite claim paths behind one test contract. Add a real dashboard screenshot under `docs/screenshots`.
+
+## Links
+
+Repo: [github.com/blessed-bless/fleetkit](https://github.com/blessed-bless/fleetkit). Local compose: `localhost:8080` plus API docs.

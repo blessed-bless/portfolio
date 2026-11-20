@@ -1,0 +1,122 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { filledUsesGroups } from '../../data/uses';
+import { ui } from '../../i18n';
+
+const t = ui('en');
+const groups = filledUsesGroups('en');
+---
+
+<BaseLayout
+  title={t.uses.title}
+  description={t.uses.description}
+  canonicalPath="/en/uses/"
+  ogImage="/og/home.png"
+>
+  <article class="uses page-pad">
+    <header class="uses__hero">
+      <p class="eyebrow">{t.uses.eyebrow}</p>
+      <h1 class="uses__title" data-page-title>{t.uses.heading}</h1>
+      <p class="uses__lead">{t.uses.lead}</p>
+    </header>
+
+    {
+      groups.length > 0 ? (
+        <div class="uses__grid">
+          {groups.map((group) => (
+            <section class="uses__block">
+              <h2 class="uses__h2">{group.title}</h2>
+              <ul class="uses__list">
+                {group.items.map((item) => (
+                  <li>
+                    <span class="mono uses__label">{item.label}</span>
+                    <span class="uses__value">{item.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <p class="uses__empty">{t.uses.empty}</p>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .uses {
+    padding-block: var(--space-8) var(--section-gap);
+  }
+
+  .uses__hero {
+    max-width: 42rem;
+    margin-bottom: var(--space-8);
+  }
+
+  .uses__title {
+    margin: var(--space-3) 0 0;
+    font-size: clamp(2.2rem, 1.2rem + 3.2vw, 3.8rem);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+  }
+
+  .uses__lead {
+    margin: var(--space-5) 0 0;
+    font-size: var(--text-md);
+    color: var(--fg-muted);
+    max-width: 36rem;
+  }
+
+  .uses__grid {
+    display: grid;
+    gap: var(--space-8);
+    max-width: 40rem;
+  }
+
+  .uses__h2 {
+    margin: 0 0 var(--space-5);
+    font-size: var(--text-lg);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .uses__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .uses__list li {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: baseline;
+    font-size: var(--text-sm);
+    padding-bottom: var(--space-3);
+    border-bottom: var(--stroke) solid var(--border);
+  }
+
+  .uses__label {
+    color: var(--fg-muted);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+  }
+
+  .uses__value {
+    color: var(--fg);
+  }
+
+  .uses__empty {
+    margin: 0;
+    color: var(--fg-muted);
+  }
+
+  @media (max-width: 640px) {
+    .uses__list li {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
+  }
+</style>

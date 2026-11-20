@@ -1,0 +1,67 @@
+---
+title: Smena
+slug: smena
+year: '2026'
+role: Product & backend
+stack:
+  - Node.js 24
+  - SQLite
+  - Telegram WebApp
+  - zero npm deps
+status: shipped
+cover: ../../assets/covers/smena.svg
+summary: >-
+  Telegram Mini App and bot for a single barber: the day board, clients, free
+  windows, and read-only YCLIENTS sync without storing a password.
+links:
+  github: https://github.com/blessed-bless/smena
+  demo: https://t.me/SmenaBarber_63c342_bot
+order: 2
+tags:
+  - JavaScript
+  - Bots
+  - Web
+hasPage: true
+featured: true
+carousel: true
+---
+
+import dayShot from '../../../assets/screenshots/smena-day.png';
+import clientShot from '../../../assets/screenshots/smena-client.png';
+import overviewShot from '../../../assets/screenshots/smena-overview.png';
+
+## Problem
+
+A solo barber needs the working day inside Telegram: visits, breaks, clients, and free windows — without a separate CRM and without writing back into YCLIENTS. Admin bookings sync read-only; the master keeps personal visits and notes in Smena.
+
+## Decisions
+
+- **Mini App + bot.** Day / week / month, client cards, status buttons, shareable free-window text. The bot answers `/today`, `/free`, `/add`, `/find` and deep-links into the app.
+- **YCLIENTS read-only.** Google Calendar iCal or the official API — no YCLIENTS password stored. The iCal URL lives in SQLite `meta`, not in exports.
+- **HMAC `initData`.** Telegram signature, expiry, allow-listed ids. Eight-hour session: in-memory Bearer + HttpOnly cookie, never `localStorage`.
+- **SSRF hardening on the calendar feed.** Address pinning, IP allow-list, shared timeout, socket re-check after connect.
+- **`revision` concurrency.** Forms carry a data version; a stale save from another device is rejected.
+- **Snapshots and restore.** Daily DB copies; restore keeps a recovery copy first.
+- **Zero npm dependencies.** Node 24 stdlib + SQLite.
+
+<Figure src={dayShot} alt="Master day board with visits in the phone-width demo" caption="Day board — fictional demo data." />
+<Figure src={clientShot} alt="Client card with visit history" caption="Client card: history, contact actions, notes." />
+<Figure src={overviewShot} alt="Overview screen with revenue and load for 7 days" caption="7-day overview: revenue, load, win-back list." />
+
+## Architecture
+
+Telegram WebApp / bot → `server.mjs` → SQLite; optional Google Calendar iCal or YCLIENTS API. Shared day math in `shared.mjs` for UI and chat.
+
+Access: owner plus one second user (admin or assistant) via a one-time invite.
+
+<Demo id="smena" />
+
+## Code
+
+Telegram `initData` HMAC check, calendar fetch SSRF guards, and `freeGaps` from `shared.mjs` — same fragments as the Russian case.
+
+## What was verified
+
+Verified: `npm test` (44), local `/demo`, iCal against a real Google Calendar, widths 320–1060 px.
+
+Not verified here: full Telegram Web iframe on 0.5, a live YCLIENTS branch / API tokens, VPS deploy in this environment.

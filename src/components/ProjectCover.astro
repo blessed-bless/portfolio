@@ -5,34 +5,68 @@ interface Props {
   src: string;
   alt?: string;
   loading?: 'lazy' | 'eager';
+  /** Unique shared-element name for View Transitions (one per page). */
+  transitionName?: string;
 }
 
-const { src, alt = '', loading = 'lazy' } = Astro.props;
+const { src, alt = '', loading = 'lazy', transitionName } = Astro.props;
 const darkHref = coverPublicUrl(src);
 const lightHref = darkHref.replace('/covers/', '/covers/light/');
 ---
 
-<span class="project-cover-wrap" data-cover-src={darkHref} data-cover-src-light={lightHref}>
-  <img
-    class="project-cover project-cover--dark"
-    src={darkHref}
-    alt={alt}
-    width="1600"
-    height="1000"
-    decoding="async"
-    loading={loading}
-  />
-  <img
-    class="project-cover project-cover--light"
-    src={lightHref}
-    alt=""
-    width="1600"
-    height="1000"
-    decoding="async"
-    loading={loading}
-    aria-hidden="true"
-  />
-</span>
+{
+  transitionName ? (
+    <span
+      class="project-cover-wrap"
+      data-cover-src={darkHref}
+      data-cover-src-light={lightHref}
+      data-vt-cover={transitionName}
+      transition:name={transitionName}
+    >
+      <img
+        class="project-cover project-cover--dark"
+        src={darkHref}
+        alt={alt}
+        width="1600"
+        height="1000"
+        decoding="async"
+        loading={loading}
+      />
+      <img
+        class="project-cover project-cover--light"
+        src={lightHref}
+        alt=""
+        width="1600"
+        height="1000"
+        decoding="async"
+        loading={loading}
+        aria-hidden="true"
+      />
+    </span>
+  ) : (
+    <span class="project-cover-wrap" data-cover-src={darkHref} data-cover-src-light={lightHref}>
+      <img
+        class="project-cover project-cover--dark"
+        src={darkHref}
+        alt={alt}
+        width="1600"
+        height="1000"
+        decoding="async"
+        loading={loading}
+      />
+      <img
+        class="project-cover project-cover--light"
+        src={lightHref}
+        alt=""
+        width="1600"
+        height="1000"
+        decoding="async"
+        loading={loading}
+        aria-hidden="true"
+      />
+    </span>
+  )
+}
 
 <style is:global>
   .project-cover-wrap {
@@ -57,7 +91,6 @@ const lightHref = darkHref.replace('/covers/', '/covers/light/');
     inset: 0;
   }
 
-  /* Theme set in <head> before paint — no flash between variants. */
   html[data-theme='light'] .project-cover--dark {
     visibility: hidden;
   }

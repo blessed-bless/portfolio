@@ -2,11 +2,22 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
-const workTag = z.enum(['Python', 'TypeScript', 'Bots', 'Infra', 'Web']);
-const workStatus = z.enum(['в разработке', 'готов', 'концепт']);
+const workTag = z.enum(['Python', 'TypeScript', 'JavaScript', 'Bots', 'Infra', 'Web']);
+const workStatus = z.enum([
+  'в разработке',
+  'готов',
+  'концепт',
+  'in progress',
+  'shipped',
+  'concept',
+]);
 
 const work = defineCollection({
-  loader: glob({ base: './src/content/work', pattern: '**/*.{md,mdx}' }),
+  loader: glob({
+    base: './src/content/work',
+    pattern: '**/*.{md,mdx}',
+    generateId: ({ entry }) => entry.replace(/\.(md|mdx)$/, ''),
+  }),
   schema: z.object({
     title: z.string(),
     slug: z.string(),

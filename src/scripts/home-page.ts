@@ -5,6 +5,7 @@ import {
   isDesktopLayout,
   prefersReducedMotion,
 } from './scroll-sync';
+import { assignCoverVtName, cloneCoverWithoutVt } from './cover-vt';
 
 type Teardown = () => void;
 
@@ -78,7 +79,7 @@ function mountFeaturedPreview(): void {
     activeRow = row;
     const cover = row.querySelector('.project-cover-wrap') ?? row.querySelector('.project-cover');
     if (media && cover) {
-      media.replaceChildren(cover.cloneNode(true));
+      media.replaceChildren(cloneCoverWithoutVt(cover));
     }
     if (mobile || reduce) {
       follower.dataset.mode = 'static';
@@ -98,6 +99,16 @@ function mountFeaturedPreview(): void {
     follower.dataset.mode = 'follow';
     follower.dataset.visible = 'true';
     visible = true;
+  };
+
+  const prepareVt = (row: HTMLAnchorElement): void => {
+    const slug = row.dataset.slug;
+    if (!slug) return;
+    const followerCover = media?.querySelector<HTMLElement>('.project-cover-wrap');
+    const rowCover = row.querySelector<HTMLElement>('.project-cover-wrap');
+    const source =
+      follower.dataset.visible === 'true' && followerCover ? followerCover : rowCover;
+    if (source) assignCoverVtName(source, slug);
   };
 
   const onEnter = (event: Event): void => {
@@ -130,11 +141,16 @@ function mountFeaturedPreview(): void {
     follower.style.transform = `translate3d(${pos.x + 28}px, ${pos.y - 40}px, 0) skewX(${skew}deg)`;
   };
 
+  const onPointerDown = (event: Event): void => {
+    prepareVt(event.currentTarget as HTMLAnchorElement);
+  };
+
   rows.forEach((row) => {
     row.addEventListener('pointerenter', onEnter);
     row.addEventListener('focus', onEnter);
     row.addEventListener('pointerleave', onLeave);
     row.addEventListener('blur', onLeave);
+    row.addEventListener('pointerdown', onPointerDown);
   });
   list.addEventListener('pointerleave', hide);
   if (!mobile && !reduce) {
@@ -148,6 +164,7 @@ function mountFeaturedPreview(): void {
       row.removeEventListener('focus', onEnter);
       row.removeEventListener('pointerleave', onLeave);
       row.removeEventListener('blur', onLeave);
+      row.removeEventListener('pointerdown', onPointerDown);
     });
     list.removeEventListener('pointerleave', hide);
     window.removeEventListener('pointermove', onMove);

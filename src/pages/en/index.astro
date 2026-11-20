@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Hero from '../../components/Hero.astro';
+import FeaturedWork from '../../components/FeaturedWork.astro';
+import BusinessOffers from '../../components/BusinessOffers.astro';
+import Faq from '../../components/Faq.astro';
+import StackMarquee from '../../components/StackMarquee.astro';
+import Contact from '../../components/Contact.astro';
+import { personJobTitle, personName, siteUrl } from '../../lib/site';
+import { isFilled } from '../../lib/fill';
+import { contactLinks } from '../../data/home';
+import { ui } from '../../i18n';
+
+const t = ui('en');
+const sameAs = [contactLinks.github, contactLinks.telegram].filter(isFilled);
+
+const professionalServiceLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: `${personName} — backends & automation`,
+  description: t.home.description,
+  url: `${siteUrl}/en/`,
+  provider: {
+    '@type': 'Person',
+    name: personName,
+    jobTitle: personJobTitle,
+    url: siteUrl,
+    ...(sameAs.length ? { sameAs } : {}),
+  },
+  availableLanguage: ['en', 'ru'],
+};
+---
+
+<BaseLayout
+  title={t.home.title}
+  description={t.home.description}
+  canonicalPath="/en/"
+  ogImage="/og/home.png"
+  jsonLd={professionalServiceLd}
+>
+  <Hero />
+  <BusinessOffers />
+  <FeaturedWork />
+  <StackMarquee />
+  <Faq />
+  <Contact />
+</BaseLayout>
+
+<script>
+  let offers: HTMLElement | null = null;
+  let observer: IntersectionObserver | null = null;
+  let unmountHomePage: (() => void) | null = null;
+
+  function scheduleHome(): void {
+    const root = document.querySelector<HTMLElement>('[data-offers]');
+    if (!root || root === offers) return;
+    offers = root;
+
+    observer = new IntersectionObserver(async ([entry]) => {
+      if (!entry?.isIntersecting) return;
+      observer?.disconnect();
+      const home = await import('../../scripts/home-page');
+      if (offers !== root) return;
+      home.mountHomePage();
+      unmountHomePage = home.unmountHomePage;
+    }, { rootMargin: '0px 0px -10% 0px' });
+    observer.observe(root);
+  }
+
+  scheduleHome();
+  document.addEventListener('astro:page-load', scheduleHome);
+  document.addEventListener('astro:before-swap', () => {
+    observer?.disconnect();
+    observer = null;
+    offers = null;
+    unmountHomePage?.();
+    unmountHomePage = null;
+  });
+</script>

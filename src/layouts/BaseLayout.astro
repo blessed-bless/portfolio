@@ -3,12 +3,13 @@ import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import SiteCursor from '../components/SiteCursor.astro';
-import Preloader from '../components/Preloader.astro';
 import Metrika from '../components/Metrika.astro';
+import CommandPalette from '../components/CommandPalette.astro';
 import { defaultDescription, siteName, siteUrl } from '../lib/site';
 import { isFilled } from '../lib/fill';
 import { hasPublishedNotes } from '../lib/notes';
 import { withTrailingSlash } from '../lib/paths';
+import { defaultLocale, isLocale, localizedPath, stripLocalePrefix, ui, type Locale } from '../i18n';
 import onestWoff2 from '@fontsource-variable/onest/files/onest-cyrillic-wght-normal.woff2?url';
 import unboundedWoff2 from '@fontsource/unbounded/files/unbounded-cyrillic-700-normal.woff2?url';
 import plexMonoWoff2 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-cyrillic-400-normal.woff2?url';
@@ -22,6 +23,8 @@ interface Props {
   noindex?: boolean;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   printCase?: boolean;
+  /** When the EN page has no twin, omit hreflang en. */
+  hasEnAlternate?: boolean;
 }
 
 const {
@@ -32,17 +35,24 @@ const {
   noindex = false,
   jsonLd,
   printCase = false,
+  hasEnAlternate = true,
 } = Astro.props;
 
-const showNotesRss = await hasPublishedNotes();
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const barePath = stripLocalePrefix(withTrailingSlash(canonicalPath));
+const showNotesRss = locale === 'ru' && (await hasPublishedNotes());
 const resolvedDescription = isFilled(description) ? description : defaultDescription;
 const canonical = new URL(withTrailingSlash(canonicalPath), siteUrl).href;
 const ogImageUrl = new URL(ogImage, siteUrl).href;
 const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+const ruHref = new URL(localizedPath('ru', barePath), siteUrl).href;
+const enHref = new URL(localizedPath('en', barePath), siteUrl).href;
+const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
 ---
 
 <!doctype html>
-<html lang="ru">
+<html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -50,8 +60,15 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta name="color-scheme" content="dark light" />
     {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
     <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="ru" href={ruHref} />
+    {hasEnAlternate ? <link rel="alternate" hreflang="en" href={enHref} /> : null}
+    <link rel="alternate" hreflang="x-default" href={ruHref} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={siteName} />
+    <meta property="og:locale" content={ogLocale} />
+    {hasEnAlternate ? (
+      <meta property="og:locale:alternate" content={locale === 'en' ? 'ru_RU' : 'en_US'} />
+    ) : null}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={resolvedDescription} />
     <meta property="og:url" content={canonical} />
@@ -65,6 +82,7 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link type="text/plain" rel="author" href="/humans.txt" />
     {showNotesRss ? (
       <link rel="alternate" type="application/rss+xml" title="Заметки" href="/rss.xml" />
     ) : null}
@@ -99,9 +117,9 @@ const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <title>{title}</title>
   </head>
   <body class:list={[{ 'print-case': printCase }]}>
-    <a class="skip-link" href="#main">К содержимому</a>
-    <Preloader />
+    <a class="skip-link" href="#main">{t.skipToContent}</a>
     <SiteCursor />
+    <CommandPalette />
     <div class="site-shell">
       <Header />
       <main class="site-main" id="main">
