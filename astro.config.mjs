@@ -7,6 +7,13 @@ import mdx from '@astrojs/mdx';
 export default defineConfig({
   site: 'https://dubstepmolitva.ru',
   trailingSlash: 'always',
+  i18n: {
+    defaultLocale: 'ru',
+    locales: ['ru', 'en'],
+    routing: {
+      prefixDefaultLocale: false,
+    },
+  },
   integrations: [mdx()],
   prefetch: true,
   build: { inlineStylesheets: 'always' },

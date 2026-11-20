@@ -1,3 +1,5 @@
+import { cloneCoverWithoutVt } from './cover-vt';
+
 type ViewMode = 'list' | 'grid';
 
 function prefersReducedMotion(): boolean {
@@ -123,8 +125,8 @@ export function mountWorkIndex(root: HTMLElement): () => void {
 
   const showFollower = (row: HTMLElement, event?: Event): void => {
     if (!follower || view !== 'list' || coarse || reduce) return;
-    const cover = row.querySelector('.project-cover');
-    if (media && cover) media.replaceChildren(cover.cloneNode(true));
+    const cover = row.querySelector('.project-cover-wrap') ?? row.querySelector('.project-cover');
+    if (media && cover) media.replaceChildren(cloneCoverWithoutVt(cover));
     if (event && 'clientX' in event) {
       const pointer = event as PointerEvent;
       mouse.x = pointer.clientX;

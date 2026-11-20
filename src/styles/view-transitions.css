@@ -1,0 +1,97 @@
+/* One shared curve for page chrome + shared-element covers */
+:root {
+  --ease-vt: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-vt-out: 240ms;
+  --dur-vt-in: 280ms;
+  --dur-vt-cover: 420ms;
+}
+
+::view-transition-old(root) {
+  animation: vt-out-up var(--dur-vt-out) var(--ease-vt) both;
+}
+
+::view-transition-new(root) {
+  animation: vt-in-up var(--dur-vt-in) var(--ease-vt) both;
+}
+
+::view-transition-group(root) {
+  animation-duration: var(--dur-vt-in);
+  animation-timing-function: var(--ease-vt);
+}
+
+/* Shared cover morph — group name matches Astro transition:name */
+::view-transition-group(work-cover-priemnaya),
+::view-transition-group(work-cover-fleetkit),
+::view-transition-group(work-cover-crawlnet),
+::view-transition-group(work-cover-ai-funnel-ecosystem),
+::view-transition-group(work-cover-shipcrew) {
+  animation-duration: var(--dur-vt-cover);
+  animation-timing-function: var(--ease-vt);
+}
+
+::view-transition-old(work-cover-priemnaya),
+::view-transition-old(work-cover-fleetkit),
+::view-transition-old(work-cover-crawlnet),
+::view-transition-old(work-cover-ai-funnel-ecosystem),
+::view-transition-old(work-cover-shipcrew),
+::view-transition-new(work-cover-priemnaya),
+::view-transition-new(work-cover-fleetkit),
+::view-transition-new(work-cover-crawlnet),
+::view-transition-new(work-cover-ai-funnel-ecosystem),
+::view-transition-new(work-cover-shipcrew) {
+  animation: none;
+  height: 100%;
+  overflow: clip;
+}
+
+@keyframes vt-out-up {
+  to {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes vt-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes vt-crossfade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-crossfade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root) {
+    animation: vt-crossfade-out 160ms linear both;
+  }
+
+  ::view-transition-new(root) {
+    animation: vt-crossfade-in 160ms linear both;
+  }
+
+  ::view-transition-group(work-cover-priemnaya),
+  ::view-transition-group(work-cover-fleetkit),
+  ::view-transition-group(work-cover-crawlnet),
+  ::view-transition-group(work-cover-ai-funnel-ecosystem),
+  ::view-transition-group(work-cover-shipcrew) {
+    animation: none;
+  }
+}
+
+/* Fallback when View Transitions API is missing — no CSS VT rules apply */
+@supports not (view-transition-name: none) {
+  :root {
+    --dur-vt-out: 0ms;
+    --dur-vt-in: 0ms;
+  }
+}

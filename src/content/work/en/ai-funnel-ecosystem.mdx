@@ -1,0 +1,51 @@
+---
+title: AI Funnel Ecosystem
+slug: ai-funnel-ecosystem
+year: '2026'
+role: Product & backend
+stack:
+  - Python 3.12
+  - FastAPI
+  - SQLAlchemy
+  - SQLite
+  - aiogram 3
+  - Alembic
+  - Docker
+status: shipped
+cover: ../../assets/covers/ai-funnel-ecosystem.svg
+summary: >-
+  Lead funnel, Telegram AI bot, and mini-CRM with an outbox worker —
+  from a site form to a manager in Telegram.
+links:
+  github: https://github.com/blessed-bless/ai-funnel-ecosystem
+order: 5
+tags:
+  - Python
+  - Bots
+  - Web
+hasPage: true
+featured: true
+carousel: true
+---
+
+import screenshot from "../../../assets/screenshots/ai-funnel-ecosystem.png";
+
+## Problem
+
+One stack from a site lead to a human: `/api/chat`, a Telegram bot that qualifies, a mini-CRM (filters, notes, timeline, soft-delete, CSV), and outbound webhook / notify that survives process crashes.
+
+## Approach
+
+FastAPI owns the API and outbox. SQLAlchemy + SQLite keep the CRM state. aiogram runs the bot. An outbox worker drains notify jobs so a crash mid-send does not drop the lead.
+
+<Figure src={screenshot} alt="AI Funnel CRM and bot flow" />
+
+<Demo id="ai-funnel-ecosystem" />
+
+## Stack
+
+Python 3.12, FastAPI, SQLAlchemy, SQLite, aiogram 3, Alembic, Docker.
+
+## Links
+
+[github.com/blessed-bless/ai-funnel-ecosystem](https://github.com/blessed-bless/ai-funnel-ecosystem)

@@ -1,0 +1,49 @@
+---
+title: Reception
+slug: priemnaya
+year: '2025'
+role: Product & backend
+stack:
+  - Next.js
+  - TypeScript
+  - PostgreSQL
+  - Drizzle
+  - pg-boss
+  - Telegram
+status: in progress
+cover: ../../assets/covers/priemnaya.svg
+summary: >-
+  Tire-shop booking after a missed call — SMS with a link, a shared calendar,
+  and a ping to the tech on duty.
+links: {}
+order: 1
+tags:
+  - TypeScript
+  - Web
+  - Bots
+hasPage: true
+featured: true
+carousel: true
+---
+
+## Problem
+
+A small tire shop loses calls in peak season: the tech is under the car and cannot pick up. Paper notes, phone bookings, and walk-ins collide. The customer has no idea when they will be seen.
+
+Reception covers the path from a missed call to a confirmed web booking for a standard service — without hiring a front-desk person or standing up a full CRM on day one.
+
+## Decisions
+
+- **SMS with a booking link.** On the first matching miss, the customer gets an SMS with the shop name and a mobile form link. A repeat from the same number to the same shop inside 24 hours does not send another SMS.
+- **Shared calendar.** Slots live in one place so phone, web, and walk-in traffic stop double-booking.
+- **Telegram to the tech.** Confirmed bookings notify the person who actually does the work.
+
+<Demo id="priemnaya" />
+
+## Stack
+
+Next.js, TypeScript, PostgreSQL, Drizzle, pg-boss, Telegram.
+
+## Still open
+
+Finish the missed-call → SMS path in production and tighten the shop-facing calendar UI.

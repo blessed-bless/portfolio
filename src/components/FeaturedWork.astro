@@ -2,15 +2,17 @@
 import ProjectCover from './ProjectCover.astro';
 import { getFeaturedProjects } from '../lib/work';
 import type { Project } from '../lib/work-types';
-import { withTrailingSlash } from '../lib/paths';
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
-const featured: Project[] = await getFeaturedProjects();
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const featured: Project[] = await getFeaturedProjects(locale);
 ---
 
-<section class="featured page-pad" id="work" data-featured aria-label="Избранные проекты">
+<section class="featured page-pad" id="work" data-featured aria-label={t.home.featuredTitle}>
   <div class="featured__head">
-    <p class="eyebrow">Избранное</p>
-    <h2 class="featured__title">Проекты</h2>
+    <p class="eyebrow">{t.home.featuredEyebrow}</p>
+    <h2 class="featured__title">{t.home.featuredTitle}</h2>
   </div>
 
   <ul class="featured__list">
@@ -19,13 +21,20 @@ const featured: Project[] = await getFeaturedProjects();
         <li>
           <a
             class="featured__row"
-            href={project.hasPage ? withTrailingSlash(`/work/${project.slug}`) : withTrailingSlash('/work')}
+            href={
+              project.hasPage
+                ? localizedPath(locale, `/work/${project.slug}/`)
+                : localizedPath(locale, '/work/')
+            }
             data-featured-row
+            data-slug={project.hasPage ? project.slug : undefined}
             data-cursor="hover"
-            transition:name={project.hasPage ? `work-cover-${project.slug}` : undefined}
           >
             <span class="featured__mobile-preview" aria-hidden="true">
-              <ProjectCover src={project.cover} />
+              <ProjectCover
+                src={project.cover}
+                transitionName={project.hasPage ? `work-cover-${project.slug}` : undefined}
+              />
             </span>
             <span class="featured__num mono">{String(index + 1).padStart(2, '0')}</span>
             <span class="featured__name">{project.title}</span>

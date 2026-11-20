@@ -1,4 +1,4 @@
-export type WorkTag = 'Python' | 'TypeScript' | 'Bots' | 'Infra' | 'Web';
+export type WorkTag = 'Python' | 'TypeScript' | 'JavaScript' | 'Bots' | 'Infra' | 'Web';
 export type WorkStatus = 'в разработке' | 'готов' | 'концепт';
 
 export type WorkLinks = {

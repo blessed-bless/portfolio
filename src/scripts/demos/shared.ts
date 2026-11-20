@@ -33,10 +33,13 @@ export function clear(node: HTMLElement): void {
 
 export function wantSameCta(projectLabel: string): HTMLAnchorElement {
   const base = contactLinks.telegram.replace(/\/$/, '');
-  const text = encodeURIComponent(
-    `Привет! Хочу такое же, как «${projectLabel}» на портфолио. Расскажи сроки и следующий шаг.`,
-  );
-  const link = el('a', 'demo-ui__btn demo-ui__btn--primary demo-ui__cta', 'Хочу такое же');
+  const isEn = document.documentElement.lang === 'en';
+  const message = isEn
+    ? `Hi — I want something like “${projectLabel}” from your portfolio. What’s the next step and timeline?`
+    : `Привет! Хочу такое же, как «${projectLabel}» на портфолио. Расскажи сроки и следующий шаг.`;
+  const label = isEn ? 'I want the same' : 'Хочу такое же';
+  const text = encodeURIComponent(message);
+  const link = el('a', 'demo-ui__btn demo-ui__btn--primary demo-ui__cta', label);
   link.href = `${base}?text=${text}`;
   link.target = '_blank';
   link.rel = 'noopener noreferrer';

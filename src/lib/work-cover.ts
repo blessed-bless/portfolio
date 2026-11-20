@@ -5,7 +5,9 @@ const covers = import.meta.glob<string>('../assets/covers/*.svg', {
 });
 
 export function workCover(path: string): string {
-  const cover = covers[path.replace(/^\.\.\/\.\.\//, '../')];
+  const match = path.match(/(?:^|\/)(assets\/covers\/[^/]+\.svg)$/);
+  const key = match ? `../${match[1]}` : path.replace(/^(\.\.\/)+/, '../');
+  const cover = covers[key];
   if (!cover) throw new Error(`Work cover not found: ${path}`);
   return cover;
 }

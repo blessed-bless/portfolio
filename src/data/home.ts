@@ -32,8 +32,8 @@ export const services: ServiceItem[] = [
 export const businessOffers = [
   {
     title: 'Запись и напоминания',
-    text: 'Онлайн-запись, слоты, SMS и Telegram-напоминания — меньше пропусков.',
-    href: '/work/priemnaya/#demo',
+    text: 'День мастера в Telegram: слоты, статусы визитов и текст свободных окон.',
+    href: '/work/smena/#demo',
   },
   {
     title: 'Бот, принимающий заявки',

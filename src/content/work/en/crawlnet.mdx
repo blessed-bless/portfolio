@@ -1,0 +1,52 @@
+---
+title: crawlnet
+slug: crawlnet
+year: '2026'
+role: Product & backend
+stack:
+  - Python 3.12
+  - asyncio
+  - Redis
+  - httpx
+  - parsel
+  - SQLAlchemy
+  - FastAPI
+  - aiogram 3
+status: shipped
+cover: ../../assets/covers/crawlnet.svg
+summary: >-
+  Distributed asyncio crawler — shared Redis queue, YAML spiders,
+  export to CSV/Excel.
+links:
+  github: https://github.com/blessed-bless/crawlnet
+order: 4
+tags:
+  - Python
+  - Bots
+  - Infra
+hasPage: true
+featured: true
+carousel: true
+---
+
+## Problem
+
+Several workers on different machines, no separate coordinator: a shared priority queue with delayed retries, per-host politeness, at-least-once via inflight + reaper, and YAML spiders you can ship without editing code.
+
+## Approach
+
+Redis holds the queue and inflight set. Workers claim URLs, fetch with httpx, parse with parsel, and write results through SQLAlchemy. FastAPI exposes control; aiogram covers ops alerts.
+
+<Demo id="crawlnet" />
+
+## Engineering notes
+
+Claim/release around Redis lists and an inflight hash. A reaper returns stuck URLs. Spiders stay declarative in YAML so content rules change without a redeploy of worker code.
+
+## Stack
+
+Python 3.12, asyncio, Redis, httpx, parsel, SQLAlchemy, FastAPI, aiogram 3.
+
+## Links
+
+[github.com/blessed-bless/crawlnet](https://github.com/blessed-bless/crawlnet)

@@ -1,12 +1,21 @@
 ---
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
+
 const year = new Date().getFullYear();
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
 ---
 
 <footer class="site-footer page-pad" data-site-footer>
   <div class="site-footer__inner">
-    <p class="site-footer__name">Богдан</p>
+    <div class="site-footer__start">
+      <p class="site-footer__name">{t.brand}</p>
+      <a class="site-footer__link mono" href={localizedPath(locale, '/uses/')} data-cursor="hover">
+        {t.footer.uses}
+      </a>
+    </div>
     <p class="site-footer__year mono">{year}</p>
-    <a class="site-footer__top mono" href="#main" data-cursor="hover">Наверх</a>
+    <a class="site-footer__top mono" href="#main" data-cursor="hover">{t.footer.top}</a>
   </div>
 </footer>
 
@@ -29,6 +38,13 @@ const year = new Date().getFullYear();
     letter-spacing: var(--tracking-mono);
   }
 
+  .site-footer__start {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
   .site-footer__name,
   .site-footer__year {
     margin: 0;
@@ -39,8 +55,8 @@ const year = new Date().getFullYear();
     color: var(--fg);
   }
 
+  .site-footer__link,
   .site-footer__top {
-    justify-self: end;
     text-decoration: none;
     color: var(--fg-muted);
     min-height: 44px;
@@ -48,6 +64,11 @@ const year = new Date().getFullYear();
     align-items: center;
   }
 
+  .site-footer__top {
+    justify-self: end;
+  }
+
+  .site-footer__link:hover,
   .site-footer__top:hover {
     color: var(--accent-strong);
   }

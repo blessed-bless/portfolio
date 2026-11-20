@@ -68,11 +68,11 @@ const creativeWorkLd = {
     <header class="case__cover page-pad">
       <div class="case__cover-copy">
         <p class="eyebrow mono">{project.status}</p>
-        <h1 class="case__title">{project.title}</h1>
+        <h1 class="case__title" data-page-title>{project.title}</h1>
         <p class="case__summary">{project.summary}</p>
       </div>
-      <div class="case__art" transition:name={`work-cover-${project.slug}`}>
-        <ProjectCover src={project.cover} />
+      <div class="case__art">
+        <ProjectCover src={project.cover} transitionName={`work-cover-${project.slug}`} />
       </div>
     </header>
 

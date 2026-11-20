@@ -1,37 +1,41 @@
 ---
-import { businessOffers, processSteps, pricingFrom } from '../data/home';
+import { pricingFrom } from '../data/home';
 import { isFilled } from '../lib/fill';
-import { withTrailingSlash } from '../lib/paths';
+import { defaultLocale, isLocale, ui, type Locale } from '../i18n';
 
-const showPricing = pricingFrom.some((item) => isFilled(item.price));
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const offers = t.offers;
+const processSteps = t.process;
+const showPricing = locale === 'ru' && pricingFrom.some((item) => isFilled(item.price));
 const showTiming = processSteps.some((step) => isFilled(step.timing));
+const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо →';
 ---
 
-<section class="offers page-pad" id="services" data-offers aria-label="Что могу сделать для бизнеса">
+<section class="offers page-pad" id="services" data-offers aria-label={t.home.offersTitle}>
   <div class="offers__intro">
-    <p class="eyebrow">Для бизнеса</p>
-    <h2 class="offers__title">Что могу сделать для бизнеса</h2>
-    <p class="offers__lead">Три рабочих контура: запись, заявки в Telegram и мини-CRM. Каждый ведёт в демо.</p>
+    <p class="eyebrow">{t.home.offersEyebrow}</p>
+    <h2 class="offers__title">{t.home.offersTitle}</h2>
   </div>
 
   <div class="offers__grid">
     {
-      businessOffers.map((offer, index) => (
-        <a class="offers__card" href={withTrailingSlash(offer.href)} data-cursor="hover">
+      offers.map((offer, index) => (
+        <a class="offers__card" href={offer.href} data-cursor="hover">
           <p class="offers__num mono">{String(index + 1).padStart(2, '0')}</p>
           <h3 class="offers__card-title">{offer.title}</h3>
           <p class="offers__card-text">{offer.text}</p>
-          <span class="offers__card-link mono">Смотреть демо →</span>
+          <span class="offers__card-link mono">{demoLabel}</span>
         </a>
       ))
     }
   </div>
 </section>
 
-<section class="process page-pad" data-process aria-label="Как проходит работа">
+<section class="process page-pad" data-process aria-label={t.home.processTitle}>
   <div class="process__intro">
-    <p class="eyebrow">Процесс</p>
-    <h2 class="process__title">Как проходит работа</h2>
+    <p class="eyebrow">{t.home.processEyebrow}</p>
+    <h2 class="process__title">{t.home.processTitle}</h2>
   </div>
 
   <ol class="process__list">

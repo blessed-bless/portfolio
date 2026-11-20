@@ -1,7 +1,8 @@
-type DemoId = 'priemnaya' | 'fleetkit' | 'crawlnet' | 'ai-funnel-ecosystem' | 'shipcrew';
+type DemoId = 'priemnaya' | 'smena' | 'fleetkit' | 'crawlnet' | 'ai-funnel-ecosystem' | 'shipcrew';
 
 const loaders: Record<DemoId, () => Promise<(root: HTMLElement) => () => void>> = {
   priemnaya: async () => (await import('./priemnaya')).mountPriemnayaDemo,
+  smena: async () => (await import('./smena')).mountSmenaDemo,
   fleetkit: async () => (await import('./fleetkit')).mountFleetkitDemo,
   crawlnet: async () => (await import('./crawlnet')).mountCrawlnetDemo,
   'ai-funnel-ecosystem': async () => (await import('./ai-funnel')).mountAiFunnelDemo,

@@ -1,8 +1,10 @@
 import { applyTheme, resolveInitialTheme } from './theme';
 import { startLenis, stopLenis } from './lenis-scroll';
 import { mountCustomCursor } from './cursor';
-import { runPreloader } from './preloader';
 import { mountMetrika } from './metrika';
+import { mountDevEggs } from './dev-eggs';
+import { mountPageTransitions } from './page-transitions';
+import { ensureScrollTrigger } from './scroll-sync';
 
 let cursorTeardown: (() => void) | null = null;
 
@@ -18,13 +20,18 @@ function bootChrome(): void {
     cursorTeardown = mountCustomCursor(cursorRoot);
   }
 
-  const preloader = document.querySelector<HTMLElement>('[data-preloader]');
-  if (preloader) {
-    void runPreloader(preloader);
-  }
+  window.requestAnimationFrame(() => {
+    try {
+      ensureScrollTrigger().refresh();
+    } catch {
+      /* ok */
+    }
+  });
 }
 
 mountMetrika();
+mountDevEggs();
+mountPageTransitions();
 bootChrome();
 
 document.addEventListener('astro:page-load', bootChrome);
