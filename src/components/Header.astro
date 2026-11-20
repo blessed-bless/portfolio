@@ -1,17 +1,23 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
+import { hasPublishedNotes } from '../lib/notes';
 
 const pathname = Astro.url.pathname;
+const showNotes = await hasPublishedNotes();
+
 const links = [
   { href: '/', label: 'Главная' },
-  { href: '/system', label: 'Система' },
-  { href: '/#work', label: 'Работы' },
+  { href: '/work', label: 'Работы' },
+  { href: '/about', label: 'Обо мне' },
+  ...(showNotes ? [{ href: '/notes', label: 'Заметки' }] : []),
   { href: '/#contact', label: 'Контакт' },
 ];
 
 function isActive(href: string): boolean {
   if (href === '/') return pathname === '/';
   if (href.startsWith('/#')) return false;
+  if (href === '/work') return pathname === '/work' || pathname.startsWith('/work/');
+  if (href === '/notes') return pathname === '/notes' || pathname.startsWith('/notes/');
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 ---

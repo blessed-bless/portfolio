@@ -1,0 +1,134 @@
+---
+title: ShipCrew
+slug: shipcrew
+year: '2026'
+role: Продукт и бэкенд
+stack:
+  - Python 3.12
+  - FastAPI
+  - pydantic-settings
+  - React 19
+  - Vite
+  - Docker
+status: готов
+cover: ../../assets/covers/shipcrew.svg
+summary: >-
+  Мультиагентная команда PM → Architect → Engineer → Reviewer → DevOps,
+  доводящая задачу до prod-ready zip-бандла.
+links:
+  github: https://github.com/blessed-bless/shipcrew
+order: 5
+tags:
+  - Python
+  - TypeScript
+  - Infra
+hasPage: true
+featured: true
+carousel: true
+---
+
+import screenshot from "../../assets/screenshots/shipcrew.png";
+
+## Задача
+
+Нужен один контур от брифа до архива: роли PM → Architect → Engineer → Reviewer → DevOps, общий blackboard, LLM через OpenRouter или subscription runners (Codex / Claude / Cursor), метрики и zip ship bundle. Локально — demo mode без ключей.
+
+## Решение и архитектура
+
+React UI ходит в FastAPI. Orchestrator гоняет pipeline ролей, пишет в SQLite и файлы проекта, собирает zip. LLM и runners — внешние процессы / HTTP.
+
+<Diagram caption="React UI → FastAPI → Orchestrator → LLM / runners; store SQLite + files → ship zip">
+  <svg viewBox="0 0 720 260" role="img" aria-label="Архитектура ShipCrew">
+    <rect x="16" y="90" width="110" height="56" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="71" y="124" text-anchor="middle" fill="var(--fg)" font-size="13" font-family="var(--font-mono)">React UI</text>
+    <rect x="180" y="90" width="110" height="56" rx="4" fill="var(--bg-elevated)" stroke="var(--accent)" />
+    <text x="235" y="124" text-anchor="middle" fill="var(--fg)" font-size="14" font-family="var(--font-display)" font-weight="650">FastAPI</text>
+    <rect x="350" y="90" width="130" height="56" rx="4" fill="var(--bg-elevated)" stroke="var(--accent-strong)" />
+    <text x="415" y="124" text-anchor="middle" fill="var(--fg)" font-size="13" font-family="var(--font-mono)">Orchestrator</text>
+    <rect x="540" y="24" width="150" height="48" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="615" y="53" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">LLM / OpenRouter</text>
+    <rect x="540" y="90" width="150" height="48" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="615" y="119" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">codex/claude/cursor</text>
+    <rect x="540" y="168" width="150" height="48" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="615" y="197" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">Ship zip</text>
+    <rect x="180" y="180" width="200" height="48" rx="4" fill="var(--bg-elevated)" stroke="var(--border-strong)" />
+    <text x="280" y="209" text-anchor="middle" fill="var(--fg)" font-size="12" font-family="var(--font-mono)">SQLite + files</text>
+    <path d="M126 118 H170" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#sc-arrow)" />
+    <path d="M290 118 H340" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#sc-arrow)" />
+    <path d="M480 110 H530 V48" stroke="var(--fg-muted)" stroke-width="1.5" fill="none" marker-end="url(#sc-arrow)" />
+    <path d="M480 118 H530" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#sc-arrow)" />
+    <path d="M415 146 V168 H530" stroke="var(--fg-muted)" stroke-width="1.5" fill="none" marker-end="url(#sc-arrow)" />
+    <path d="M235 146 V180" stroke="var(--fg-muted)" stroke-width="1.5" marker-end="url(#sc-arrow)" />
+    <defs>
+      <marker id="sc-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="var(--fg-muted)" />
+      </marker>
+    </defs>
+  </svg>
+</Diagram>
+
+<Figure src={screenshot} alt="Роли Product Manager, Architect, Engineer, Reviewer и DevOps" caption="Вкладка «Миссии» в деморежиме ShipCrew: роли команды." />
+
+## Инженерные решения
+
+**Blackboard между ролями.** После каждого агента payload валидируется, кладётся в blackboard и материализуется в файлы артефактов.
+
+```python
+# backend/app/orchestrator.py
+raw = await self._run_role(mission, role, board)
+payload = coerce_role_payload(role.value, normalize_payload(role.value, raw))
+issues = validate_agent_payload(role.value, payload)
+if mission_id in self._cancel_requested:
+    raise asyncio.CancelledError()
+ingest_agent_payload(board, role.value, payload)
+mission.blackboard = board.model_dump(mode="json")
+artifacts = self._materialize_files(mission, role, payload)
+```
+
+**Review loop.** Если reviewer не approved и есть `required_fixes`, при `review_round < max_review_rounds` — повтор engineer.
+
+```python
+# backend/app/orchestrator.py
+if role == AgentRole.reviewer:
+    approved = bool(payload.get("approved", True))
+    fixes = payload.get("required_fixes") or []
+    if (
+        not approved
+        and fixes
+        and mission.review_round < self.settings.max_review_rounds
+    ):
+        mission.review_round += 1
+        self._persist(mission)
+```
+
+**Чистый env для subscription runners.** Перед запуском codex/claude/cursor вычищаю metered API keys, чтобы runner оставался на подписке.
+
+```python
+# backend/app/runners/process.py
+# Strip metered API keys from the env so subscription runners stay on-plan.
+STRIP_ENV = {
+    "OPENAI_API_KEY",
+    "CODEX_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "ANTHROPIC_AUTH_TOKEN",
+    "CLAUDE_API_KEY",
+    "CURSOR_API_KEY",
+}
+
+def clean_env(extra: dict[str, str] | None = None) -> dict[str, str]:
+    env = dict(os.environ)
+    for key in STRIP_ENV:
+        env.pop(key, None)
+```
+
+## Стек
+
+Python 3.12, FastAPI, pydantic-settings, React 19, Vite, Docker — из README.
+
+## Что бы улучшил дальше
+
+Явно развести demo fixtures и live LLM в UI (сейчас demo mode — env-флаг). Документировать минимальный набор артефактов на роль, чтобы schema_issues ловились раньше, чем review round.
+
+## Ссылки
+
+Репозиторий: [github.com/blessed-bless/shipcrew](https://github.com/blessed-bless/shipcrew). Публичного demo нет — локально `127.0.0.1:8787` или `SHIPCREW_DEMO_MODE=true`.

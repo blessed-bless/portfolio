@@ -1,5 +1,5 @@
-import { CanvasTexture, SRGBColorSpace } from 'three';
-import type { Project } from '../data/projects';
+import { CanvasTexture, NoColorSpace } from 'three';
+import type { Project } from '../lib/work-types';
 
 type Palette = {
   accent: string;
@@ -30,8 +30,16 @@ function roundRect(
   ctx.closePath();
 }
 
+const DARK_UNDERLAY = '#1F1A2B';
+const DARK_FRAME = '#2A2438';
+const DARK_PANEL = '#261F33';
+
 function paintChrome(ctx: CanvasRenderingContext2D, p: Palette): void {
-  ctx.fillStyle = p.isLight ? p.surface : '#1f1a2b';
+  const underlay = p.isLight ? p.surface : DARK_UNDERLAY;
+  const panel = p.isLight ? p.panel : DARK_PANEL;
+  const frame = p.isLight ? p.line : DARK_FRAME;
+
+  ctx.fillStyle = frame;
   ctx.fillRect(0, 0, 1024, 720);
 
   if (p.isLight) {
@@ -39,18 +47,20 @@ function paintChrome(ctx: CanvasRenderingContext2D, p: Palette): void {
     ctx.fillRect(18, 22, 988, 676);
   }
 
-  ctx.fillStyle = p.isLight ? p.panel : '#1f1a2b';
+  ctx.fillStyle = underlay;
+  roundRect(ctx, 10, 10, 1004, 700, 12);
+  ctx.fill();
+
+  ctx.fillStyle = underlay;
   roundRect(ctx, 36, 36, 952, 648, 18);
   ctx.fill();
 
-  ctx.strokeStyle = p.isLight ? p.line : '#2a2438';
+  ctx.strokeStyle = frame;
   ctx.lineWidth = 4;
-  roundRect(ctx, 2, 2, 1020, 716, 10);
-  ctx.stroke();
   roundRect(ctx, 36, 36, 952, 648, 18);
   ctx.stroke();
 
-  ctx.fillStyle = p.surface;
+  ctx.fillStyle = panel;
   roundRect(ctx, 36, 36, 952, 64, 18);
   ctx.fill();
   ctx.fillRect(36, 68, 952, 32);
@@ -297,12 +307,12 @@ export function paintPreviewTexture(project: Project, index: number, palette: Pa
     ? palette
     : {
         ...palette,
-        surface: '#1f1a2b',
-        panel: '#1f1a2b',
+        surface: DARK_PANEL,
+        panel: DARK_UNDERLAY,
         accent: '#a78bfa',
         ink: '#f3f1ea',
         muted: '#b7b1c4',
-        line: '#2a2438',
+        line: DARK_FRAME,
         plum: '#2a2038',
       };
 
@@ -311,7 +321,8 @@ export function paintPreviewTexture(project: Project, index: number, palette: Pa
   void project;
 
   const texture = new CanvasTexture(canvas);
-  texture.colorSpace = SRGBColorSpace;
+  // Custom card shader samples with raw texture2D — avoid sRGB double-encode crush to black.
+  texture.colorSpace = NoColorSpace;
   texture.needsUpdate = true;
   return texture;
 }

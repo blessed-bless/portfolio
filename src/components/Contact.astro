@@ -1,9 +1,14 @@
 ---
 import Button from './Button.astro';
 import { contactLinks } from '../data/home';
+import { isFilled } from '../lib/fill';
 
 const title = 'Давайте сделаем';
 const letters = [...title];
+const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
+const github = isFilled(contactLinks.github) ? contactLinks.github : null;
+const email = isFilled(contactLinks.email) ? contactLinks.email : null;
+const hasLinks = Boolean(telegram || github || email);
 ---
 
 <section class="contact page-pad" id="contact" data-contact aria-label="Контакт">
@@ -20,23 +25,45 @@ const letters = [...title];
     }
   </h2>
 
-  <div class="contact__links">
-    <a class="contact__link" href={contactLinks.telegram} data-cursor="hover">Telegram</a>
-    <a class="contact__link" href={contactLinks.github} data-cursor="hover">GitHub</a>
-    <button
-      class="contact__link contact__link--email"
-      type="button"
-      data-copy-email
-      data-email={contactLinks.email}
-      data-cursor="hover"
-    >
-      {contactLinks.email}
-    </button>
-  </div>
+  {
+    hasLinks ? (
+      <div class="contact__links">
+        {telegram ? (
+          <a class="contact__link" href={telegram} data-cursor="hover">
+            Telegram
+          </a>
+        ) : null}
+        {github ? (
+          <a class="contact__link" href={github} data-cursor="hover">
+            GitHub
+          </a>
+        ) : null}
+        {email ? (
+          <button
+            class="contact__link contact__link--email"
+            type="button"
+            data-copy-email
+            data-email={email}
+            data-cursor="hover"
+          >
+            {email}
+          </button>
+        ) : null}
+      </div>
+    ) : (
+      <p class="contact__pending">Контакты скоро появятся здесь.</p>
+    )
+  }
 
-  <div class="contact__cta">
-    <Button href={`mailto:${contactLinks.email}`} variant="primary">Написать</Button>
-  </div>
+  {
+    email ? (
+      <div class="contact__cta">
+        <Button href={`mailto:${email}`} variant="primary">
+          Написать
+        </Button>
+      </div>
+    ) : null
+  }
 
   <p class="contact__toast mono" data-copy-toast data-open="false" role="status" aria-live="polite"></p>
 </section>
@@ -73,6 +100,12 @@ const letters = [...title];
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-4) var(--space-6);
+  }
+
+  .contact__pending {
+    margin: var(--space-7) 0 0;
+    color: var(--fg-muted);
+    max-width: 28rem;
   }
 
   .contact__link {
