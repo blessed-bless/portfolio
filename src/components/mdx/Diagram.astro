@@ -23,10 +23,14 @@ const { caption } = Astro.props;
     border: var(--stroke) solid var(--border);
     background: var(--bg-elevated);
     overflow-x: auto;
+    max-width: 100%;
+    min-width: 0;
   }
 
-  .mdx-diagram__frame :global(svg) {
-    width: 100%;
+  .mdx-diagram__frame :global(svg),
+  .mdx-diagram__frame :global(.mermaid),
+  .mdx-diagram__frame :global(pre) {
+    max-width: 100%;
     height: auto;
     display: block;
   }

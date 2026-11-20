@@ -1,0 +1,222 @@
+---
+import { businessOffers, processSteps, pricingFrom } from '../data/home';
+import { isFilled } from '../lib/fill';
+import { withTrailingSlash } from '../lib/paths';
+
+const showPricing = pricingFrom.some((item) => isFilled(item.price));
+const showTiming = processSteps.some((step) => isFilled(step.timing));
+---
+
+<section class="offers page-pad" id="services" data-offers aria-label="Что могу сделать для бизнеса">
+  <div class="offers__intro">
+    <p class="eyebrow">Для бизнеса</p>
+    <h2 class="offers__title">Что могу сделать для бизнеса</h2>
+    <p class="offers__lead">Три рабочих контура: запись, заявки в Telegram и мини-CRM. Каждый ведёт в демо.</p>
+  </div>
+
+  <div class="offers__grid">
+    {
+      businessOffers.map((offer, index) => (
+        <a class="offers__card" href={withTrailingSlash(offer.href)} data-cursor="hover">
+          <p class="offers__num mono">{String(index + 1).padStart(2, '0')}</p>
+          <h3 class="offers__card-title">{offer.title}</h3>
+          <p class="offers__card-text">{offer.text}</p>
+          <span class="offers__card-link mono">Смотреть демо →</span>
+        </a>
+      ))
+    }
+  </div>
+</section>
+
+<section class="process page-pad" data-process aria-label="Как проходит работа">
+  <div class="process__intro">
+    <p class="eyebrow">Процесс</p>
+    <h2 class="process__title">Как проходит работа</h2>
+  </div>
+
+  <ol class="process__list">
+    {
+      processSteps.map((step, index) => (
+        <li class="process__step">
+          <p class="process__num mono">{String(index + 1).padStart(2, '0')}</p>
+          <h3 class="process__step-title">{step.title}</h3>
+          <p class="process__step-text">{step.text}</p>
+          {showTiming && isFilled(step.timing) ? (
+            <p class="process__timing mono">{step.timing}</p>
+          ) : null}
+        </li>
+      ))
+    }
+  </ol>
+
+  {
+    showPricing ? (
+      <div class="process__pricing">
+        <p class="eyebrow">Ориентир по цене</p>
+        <ul class="process__pricing-list">
+          {pricingFrom
+            .filter((item) => isFilled(item.price))
+            .map((item) => (
+              <li>
+                <span>{item.label}</span>
+                <strong class="mono">от {item.price}</strong>
+              </li>
+            ))}
+        </ul>
+      </div>
+    ) : null
+  }
+</section>
+
+<style>
+  .offers,
+  .process {
+    padding-block: var(--section-gap);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .offers__intro,
+  .process__intro {
+    margin-bottom: var(--space-6);
+    max-width: 42rem;
+  }
+
+  .offers__title,
+  .process__title {
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+  }
+
+  .offers__lead {
+    margin: var(--space-3) 0 0;
+    color: var(--fg-muted);
+    font-size: var(--text-md);
+    max-width: 40ch;
+  }
+
+  .offers__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .offers__card {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    min-width: 0;
+    padding: var(--space-5);
+    border: var(--stroke) solid var(--border);
+    background: var(--bg-elevated);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color var(--dur-2) var(--ease-out);
+  }
+
+  .offers__card:hover {
+    border-color: var(--border-strong);
+    color: inherit;
+  }
+
+  .offers__num {
+    margin: 0;
+    color: var(--accent-strong);
+    font-size: var(--text-sm);
+  }
+
+  .offers__card-title {
+    margin: 0;
+    font-size: clamp(1.25rem, 1rem + 0.8vw, 1.65rem);
+    font-weight: 650;
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-snug);
+  }
+
+  .offers__card-text {
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
+  .offers__card-link {
+    margin-top: var(--space-2);
+    color: var(--accent-strong);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+  }
+
+  .process__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .process__step {
+    min-width: 0;
+    padding-top: var(--space-4);
+    border-top: var(--stroke) solid var(--border-strong);
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+
+  .process__num {
+    margin: 0;
+    color: var(--accent-strong);
+    font-size: var(--text-sm);
+  }
+
+  .process__step-title {
+    margin: 0;
+    font-size: var(--text-md);
+    font-weight: 650;
+  }
+
+  .process__step-text {
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
+  .process__timing {
+    margin: var(--space-2) 0 0;
+    color: var(--fg);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+  }
+
+  .process__pricing {
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .process__pricing-list {
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-3);
+    max-width: 28rem;
+  }
+
+  .process__pricing-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  @media (max-width: 900px) {
+    .offers__grid,
+    .process__list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

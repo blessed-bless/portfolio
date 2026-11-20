@@ -1,35 +1,37 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
 import { hasPublishedNotes } from '../lib/notes';
+import { withTrailingSlash } from '../lib/paths';
 
 const pathname = Astro.url.pathname;
 const showNotes = await hasPublishedNotes();
 
 const links = [
-  { href: '/', label: 'Главная' },
-  { href: '/work', label: 'Работы' },
-  { href: '/about', label: 'Обо мне' },
-  ...(showNotes ? [{ href: '/notes', label: 'Заметки' }] : []),
+  { href: withTrailingSlash('/'), label: 'Главная' },
+  { href: withTrailingSlash('/work'), label: 'Работы' },
+  { href: withTrailingSlash('/about'), label: 'Обо мне' },
+  ...(showNotes ? [{ href: withTrailingSlash('/notes'), label: 'Заметки' }] : []),
   { href: '/#contact', label: 'Контакт' },
 ];
 
 function isActive(href: string): boolean {
-  if (href === '/') return pathname === '/';
+  if (href === '/' || href === '') return pathname === '/' || pathname === '';
   if (href.startsWith('/#')) return false;
-  if (href === '/work') return pathname === '/work' || pathname.startsWith('/work/');
-  if (href === '/notes') return pathname === '/notes' || pathname.startsWith('/notes/');
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const bare = href.replace(/\/$/, '');
+  if (bare === '/work') return pathname === '/work' || pathname === '/work/' || pathname.startsWith('/work/');
+  if (bare === '/notes') return pathname === '/notes' || pathname === '/notes/' || pathname.startsWith('/notes/');
+  return pathname === href || pathname === bare || pathname.startsWith(`${bare}/`);
 }
 ---
 
-<header class="site-header page-pad">
+<header class="site-header page-pad" data-site-header>
   <div class="site-header__inner">
-    <a class="site-header__brand" href="/" data-cursor="hover">
+    <a class="site-header__brand" href={withTrailingSlash('/')} data-cursor="hover">
       <span class="site-header__mark" aria-hidden="true"></span>
       <span class="site-header__name">Богдан</span>
     </a>
 
-    <nav class="site-header__nav" aria-label="Основная">
+    <nav class="site-header__nav" aria-label="Основная" data-nav-desktop>
       <ul>
         {
           links.map((link) => (
@@ -50,9 +52,70 @@ function isActive(href: string): boolean {
 
     <div class="site-header__aside">
       <ThemeToggle />
+      <button
+        type="button"
+        class="site-header__menu-btn"
+        data-nav-toggle
+        data-cursor="hover"
+        aria-expanded="false"
+        aria-controls="site-nav-panel"
+        aria-label="Открыть меню"
+      >
+        <span class="site-header__menu-icon" aria-hidden="true"></span>
+      </button>
     </div>
   </div>
+
+  <div
+    id="site-nav-panel"
+    class="site-header__panel"
+    data-nav-panel
+    hidden
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Меню"
+  >
+    <nav class="site-header__panel-nav" aria-label="Мобильная">
+      <ul>
+        {
+          links.map((link) => (
+            <li data-nav-item>
+              <a
+                href={link.href}
+                class:list={[{ 'is-active': isActive(link.href) }]}
+                data-cursor="hover"
+                aria-current={isActive(link.href) ? 'page' : undefined}
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
 </header>
+
+<script>
+  import { mountMobileNav } from '../scripts/nav-menu';
+
+  let teardown: (() => void) | null = null;
+
+  const boot = () => {
+    teardown?.();
+    teardown = null;
+    const root = document.querySelector<HTMLElement>('[data-site-header]');
+    if (root) teardown = mountMobileNav(root);
+  };
+
+  boot();
+  document.addEventListener('astro:page-load', boot);
+  document.addEventListener('astro:before-swap', () => {
+    teardown?.();
+    teardown = null;
+  });
+</script>
 
 <style>
   .site-header {
@@ -127,11 +190,104 @@ function isActive(href: string): boolean {
   .site-header__aside {
     display: flex;
     flex-shrink: 0;
+    align-items: center;
+    gap: var(--space-2);
   }
 
-  @media (max-width: 720px) {
+  .site-header__menu-btn {
+    display: none;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: var(--stroke) solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--fg);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .site-header__menu-icon {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: currentColor;
+    box-shadow: 0 -6px 0 currentColor, 0 6px 0 currentColor;
+  }
+
+  .site-header[data-nav-open='true'] .site-header__menu-icon {
+    height: 0;
+    box-shadow: none;
+    background: transparent;
+    position: relative;
+  }
+
+  .site-header[data-nav-open='true'] .site-header__menu-icon::before,
+  .site-header[data-nav-open='true'] .site-header__menu-icon::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 18px;
+    height: 2px;
+    background: currentColor;
+  }
+
+  .site-header[data-nav-open='true'] .site-header__menu-icon::before {
+    transform: rotate(45deg);
+  }
+
+  .site-header[data-nav-open='true'] .site-header__menu-icon::after {
+    transform: rotate(-45deg);
+  }
+
+  .site-header__panel {
+    position: fixed;
+    inset: var(--header-h) 0 0;
+    z-index: 39;
+    background: var(--bg);
+    padding: var(--space-7) var(--page-pad) var(--space-8);
+    overflow: auto;
+  }
+
+  .site-header__panel[hidden] {
+    display: none;
+  }
+
+  .site-header__panel-nav ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .site-header__panel-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    font-size: clamp(1.8rem, 6vw, 2.6rem);
+    font-weight: 650;
+    letter-spacing: var(--tracking-tight);
+    text-decoration: none;
+    color: var(--fg);
+    border-bottom: var(--stroke) solid var(--border);
+  }
+
+  .site-header__panel-nav a.is-active {
+    color: var(--accent-strong);
+  }
+
+  :global(body.nav-lock) {
+    overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
     .site-header__nav {
       display: none;
+    }
+
+    .site-header__menu-btn {
+      display: inline-flex;
     }
   }
 </style>

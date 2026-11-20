@@ -1,10 +1,11 @@
 import type { APIRoute } from 'astro';
 import { getPublishedNotes, noteSlug } from '../lib/notes';
+import { withTrailingSlash } from '../lib/paths';
 import { siteUrl } from '../lib/site';
 import { getCaseEntries } from '../lib/work';
 
 function urlEntry(path: string, lastmod?: Date): string {
-  const loc = new URL(path, siteUrl).href;
+  const loc = new URL(withTrailingSlash(path), siteUrl).href;
   const stamp = lastmod ? `\n    <lastmod>${lastmod.toISOString()}</lastmod>` : '';
   return `  <url>\n    <loc>${loc}</loc>${stamp}\n  </url>`;
 }
@@ -15,12 +16,12 @@ export const GET: APIRoute = async () => {
 
   const urls = [
     urlEntry('/'),
-    urlEntry('/work'),
-    urlEntry('/about'),
-    ...cases.map((entry) => urlEntry(`/work/${entry.data.slug}`)),
-    ...(notes.length ? [urlEntry('/notes')] : []),
+    urlEntry('/work/'),
+    urlEntry('/about/'),
+    ...cases.map((entry) => urlEntry(`/work/${entry.data.slug}/`)),
+    ...(notes.length ? [urlEntry('/notes/')] : []),
     ...notes.map((entry) =>
-      urlEntry(`/notes/${noteSlug(entry)}`, entry.data.updatedDate ?? entry.data.pubDate),
+      urlEntry(`/notes/${noteSlug(entry)}/`, entry.data.updatedDate ?? entry.data.pubDate),
     ),
   ];
 

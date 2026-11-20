@@ -13,6 +13,7 @@ import {
   toProject,
 } from '../../lib/work';
 import { personName, siteUrl } from '../../lib/site';
+import { withTrailingSlash } from '../../lib/paths';
 
 export async function getStaticPaths() {
   const cases = await getCaseEntries();
@@ -48,7 +49,7 @@ const creativeWorkLd = {
     '@type': 'Person',
     name: personName,
   },
-  url: new URL(`/work/${project.slug}`, siteUrl).href,
+  url: new URL(withTrailingSlash(`/work/${project.slug}`), siteUrl).href,
   keywords: project.stackList.join(', '),
 };
 ---
@@ -56,7 +57,7 @@ const creativeWorkLd = {
 <BaseLayout
   title={`${project.title} — портфолио`}
   description={project.summary}
-  canonicalPath={`/work/${project.slug}`}
+  canonicalPath={withTrailingSlash(`/work/${project.slug}`)}
   ogImage={`/og/${project.slug}.png`}
   jsonLd={creativeWorkLd}
   printCase={true}
@@ -118,9 +119,9 @@ const creativeWorkLd = {
 
     {
       next ? (
-        <aside class="case__next page-pad" data-next-case data-next-href={`/work/${next.slug}`}>
+        <aside class="case__next page-pad" data-next-case>
           <p class="eyebrow">Дальше</p>
-          <a class="case__next-link" href={`/work/${next.slug}`} data-cursor="hover">
+          <a class="case__next-link" href={withTrailingSlash(`/work/${next.slug}`)} data-cursor="hover">
             <span class="case__next-label mono">Следующий проект</span>
             <span class="case__next-title">{next.title}</span>
             <span class="case__next-meta mono">
@@ -132,15 +133,15 @@ const creativeWorkLd = {
     }
 
     <div class="case__actions page-pad">
-      <Button href="/work" variant="ghost">Все работы</Button>
-      <Button href="/" variant="primary">На главную</Button>
+      <Button href={withTrailingSlash('/work')} variant="ghost">Все работы</Button>
+      <Button href={withTrailingSlash('/')} variant="primary">На главную</Button>
     </div>
   </article>
 </BaseLayout>
 
 <script>
   import { hydrateCaseDemos } from '../../scripts/demos/hydrate';
-  import { mountCodeCopy, mountNextCase, mountReadingProgress } from '../../scripts/work-case';
+  import { mountCodeCopy, mountReadingProgress } from '../../scripts/work-case';
 
   let cleanups: Array<() => void> = [];
 
@@ -149,13 +150,8 @@ const creativeWorkLd = {
     cleanups = [];
     const bar = document.querySelector<HTMLElement>('[data-reading-progress]');
     const body = document.querySelector<HTMLElement>('[data-case-body]');
-    const next = document.querySelector<HTMLElement>('[data-next-case]');
     if (bar) cleanups.push(mountReadingProgress(bar));
     if (body) cleanups.push(mountCodeCopy(body));
-    if (next) {
-      const href = next.dataset.nextHref || '';
-      cleanups.push(mountNextCase(next, href));
-    }
     cleanups.push(hydrateCaseDemos());
   };
 
@@ -183,6 +179,8 @@ const creativeWorkLd = {
 
   .case__body {
     width: min(100%, 46rem);
+    max-width: 100%;
+    min-width: 0;
     margin-inline: auto;
     padding-block: var(--space-6) var(--space-8);
     display: grid;
@@ -190,6 +188,12 @@ const creativeWorkLd = {
     font-size: var(--text-md);
     line-height: var(--leading-body);
     color: var(--fg);
+    overflow-wrap: anywhere;
+  }
+
+  .case__body > * {
+    min-width: 0;
+    max-width: 100%;
   }
 
   .case__body h2 {
@@ -242,6 +246,12 @@ const creativeWorkLd = {
 </style>
 
 <style>
+  .case {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
   .case__cover {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
@@ -249,6 +259,11 @@ const creativeWorkLd = {
     align-items: center;
     padding-block: var(--space-8);
     border-bottom: var(--stroke) solid var(--border);
+  }
+
+  .case__cover-copy,
+  .case__art {
+    min-width: 0;
   }
 
   .case__art {

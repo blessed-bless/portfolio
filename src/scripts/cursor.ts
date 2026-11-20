@@ -53,7 +53,8 @@ export function mountCustomCursor(root: HTMLElement): () => void {
     rx += (x - rx) * 0.22;
     ry += (y - ry) * 0.22;
     dot.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    ring.style.transform = `translate3d(${rx}px, ${ry}px, 0) scale(${hovering ? 1.65 : 1})`;
+    ring.style.transform = `translate3d(${rx}px, ${ry}px, 0) scale(${hovering ? 0.55 : 1})`;
+    ring.style.mixBlendMode = hovering ? 'difference' : 'normal';
     raf = requestAnimationFrame(render);
   };
 

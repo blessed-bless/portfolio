@@ -1,27 +1,37 @@
 ---
 import ProjectCover from './ProjectCover.astro';
+import Button from './Button.astro';
 import { getCarouselProjects } from '../lib/work';
+import { contactLinks } from '../data/home';
+import { isFilled } from '../lib/fill';
+import { withTrailingSlash } from '../lib/paths';
 
 const projects = await getCarouselProjects();
 const projectsJson = JSON.stringify(projects);
 const firstProject = projects[0];
-const subtitle = 'Делаю продукты от идеи до продакшена';
-const role = 'Fullstack · AI';
+const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
+const headline = 'Сайты с онлайн-записью, Telegram-боты и CRM для бизнеса';
+const subtitle = 'Бэкенд на Python. От заявки до работающего контура.';
 ---
 
 <section class="hero" data-hero aria-label="Первый экран" data-projects={projectsJson}>
   <div class="hero__copy">
-    <h1 class="hero__name" data-hero-name>Богдан</h1>
-    <p class="hero__line" data-hero-line>{subtitle}</p>
-    <div class="hero__foot hero__foot--desktop" data-hero-foot>
-      <p class="hero__role mono">{role}</p>
-      <a class="hero__scroll mono" href="/work" data-cursor="hover">К работам</a>
+    <p class="hero__brand" data-hero-name>Богдан</p>
+    <h1 class="hero__line" data-hero-line>{headline}</h1>
+    <p class="hero__sub" data-hero-sub>{subtitle}</p>
+    <div class="hero__actions" data-hero-foot>
+      {
+        telegram ? (
+          <Button href={telegram} variant="primary">Обсудить задачу</Button>
+        ) : null
+      }
+      <Button href={withTrailingSlash('/work')} variant="ghost">Смотреть работы</Button>
     </div>
   </div>
 
   <div class="hero__stage-wrap">
     <div class="hero__stage">
-      <canvas class="hero__canvas" data-hero-canvas></canvas>
+      <canvas class="hero__canvas" data-hero-canvas data-lenis-prevent></canvas>
       <div class="hero__static" data-hero-static>
         {
           projects.map((project, index) => {
@@ -29,13 +39,13 @@ const role = 'Fullstack · AI';
             return (
               <a
                 class="hero__static-card"
-                href={`/work/${project.slug}`}
+                href={withTrailingSlash(`/work/${project.slug}`)}
                 data-cursor="hover"
                 aria-label={label}
                 data-hero-cover={project.slug}
                 transition:name={`work-cover-${project.slug}`}
               >
-                <ProjectCover src={project.cover} />
+                <ProjectCover src={project.cover} loading={index === 0 ? 'eager' : 'lazy'} />
               </a>
             );
           })
@@ -66,11 +76,6 @@ const role = 'Fullstack · AI';
       </p>
     </div>
   </div>
-
-  <div class="hero__foot hero__foot--mobile" data-hero-foot-mobile>
-    <p class="hero__role mono">{role}</p>
-    <a class="hero__scroll mono" href="/work" data-cursor="hover">К работам</a>
-  </div>
 </section>
 
 <script>
@@ -97,7 +102,7 @@ const role = 'Fullstack · AI';
       new DOMRect(window.innerWidth * 0.35, window.innerHeight * 0.28, 480, 320);
     await expandToWorkPage(project, from);
     const { navigate } = await import('astro:transitions/client');
-    navigate(`/work/${project.slug}`);
+    navigate(`/work/${project.slug}/`);
     window.setTimeout(() => {
       document.querySelectorAll('.work-expand').forEach((node) => node.remove());
     }, 900);
@@ -232,7 +237,7 @@ const role = 'Fullstack · AI';
 
 <style>
   .hero {
-    --hero-copy-w: clamp(15rem, 32vw, 28rem);
+    --hero-copy-w: clamp(16rem, 34vw, 30rem);
     position: relative;
     isolation: isolate;
     height: calc(100svh - var(--header-h));
@@ -250,7 +255,7 @@ const role = 'Fullstack · AI';
     padding: clamp(1rem, 3vh, 2rem) var(--space-4) clamp(1rem, 3vh, 2rem) var(--page-pad);
     display: grid;
     align-content: center;
-    gap: var(--space-4);
+    gap: var(--space-3);
     pointer-events: none;
   }
 
@@ -258,26 +263,41 @@ const role = 'Fullstack · AI';
     pointer-events: auto;
   }
 
-  .hero__name,
-  .hero__line {
+  .hero__brand,
+  .hero__line,
+  .hero__sub {
     margin: 0;
     overflow: hidden;
   }
 
-  .hero__name {
-    font-size: clamp(3rem, 2rem + 4.5vw, 7rem);
+  .hero__brand {
+    font-size: clamp(2.4rem, 1.6rem + 3vw, 4.5rem);
     font-weight: 750;
     letter-spacing: var(--tracking-display);
     line-height: var(--leading-tight);
   }
 
   .hero__line {
-    max-width: 14ch;
-    font-size: clamp(1.25rem, 1rem + 1.4vw, 2rem);
-    font-weight: 560;
+    max-width: 16ch;
+    font-size: clamp(1.35rem, 1rem + 1.5vw, 2.15rem);
+    font-weight: 650;
     letter-spacing: var(--tracking-tight);
     line-height: var(--leading-snug);
     color: color-mix(in srgb, var(--fg) 88%, var(--accent-strong));
+  }
+
+  .hero__sub {
+    max-width: 28ch;
+    font-size: var(--text-sm);
+    color: var(--fg-muted);
+    line-height: var(--leading-body);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
   }
 
   .hero__stage-wrap {
@@ -285,7 +305,7 @@ const role = 'Fullstack · AI';
     top: 0;
     right: 0;
     bottom: 0;
-    width: 65%;
+    width: 62%;
     z-index: 1;
     display: grid;
     grid-template-rows: 1fr auto;
@@ -300,16 +320,14 @@ const role = 'Fullstack · AI';
     overflow: visible;
     background: transparent;
     border: 0;
-    border-radius: 0;
-    box-shadow: none;
     pointer-events: auto;
     -webkit-mask-image:
-      linear-gradient(90deg, transparent 0%, #000 16%, #000 100%),
-      linear-gradient(180deg, transparent 0%, #000 10%, #000 92%, transparent 100%);
+      linear-gradient(90deg, transparent 0%, #000 14%, #000 100%),
+      linear-gradient(180deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
     -webkit-mask-composite: source-in;
     mask-image:
-      linear-gradient(90deg, transparent 0%, #000 16%, #000 100%),
-      linear-gradient(180deg, transparent 0%, #000 10%, #000 92%, transparent 100%);
+      linear-gradient(90deg, transparent 0%, #000 14%, #000 100%),
+      linear-gradient(180deg, transparent 0%, #000 4%, #000 98%, transparent 100%);
     mask-composite: intersect;
   }
 
@@ -334,9 +352,8 @@ const role = 'Fullstack · AI';
     grid-template-columns: auto auto 1fr;
     gap: var(--space-2) var(--space-4);
     align-items: center;
-    padding: var(--space-3) var(--page-pad) clamp(1rem, 3vh, 2rem) var(--space-5);
+    padding: var(--space-2) var(--page-pad) clamp(0.5rem, 1.5vh, 0.9rem) var(--space-5);
     pointer-events: none;
-    opacity: 1;
     isolation: isolate;
   }
 
@@ -370,7 +387,6 @@ const role = 'Fullstack · AI';
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-mono);
     text-transform: uppercase;
-    opacity: 1;
   }
 
   .hero__counter {
@@ -398,10 +414,6 @@ const role = 'Fullstack · AI';
     min-height: 1.2em;
   }
 
-  .hero__caption[hidden] {
-    display: none;
-  }
-
   .hero__caption span:nth-child(3),
   .hero__caption span:nth-child(4) {
     color: var(--fg-muted);
@@ -416,46 +428,9 @@ const role = 'Fullstack · AI';
     color: var(--accent-strong);
   }
 
-  .hero__foot {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-    margin-top: var(--space-5);
-    padding-top: var(--space-4);
-    border-top: var(--stroke) solid var(--border);
-  }
-
-  .hero__foot--mobile {
-    display: none;
-  }
-
-  .hero__role {
-    margin: 0;
-    font-size: var(--text-xs);
-    color: var(--fg-muted);
-    text-transform: uppercase;
-  }
-
-  .hero__scroll {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0.35rem 0.15rem;
-    font-size: var(--text-xs);
-    text-decoration: none;
-    text-transform: uppercase;
-    color: var(--fg);
-  }
-
-  .hero__scroll:hover {
-    color: var(--accent-strong);
-  }
-
   .hero__static {
     position: absolute;
-    inset: 8% 4% 18%;
+    inset: 6% 4% 14%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
@@ -468,9 +443,9 @@ const role = 'Fullstack · AI';
   }
 
   .hero[data-carousel='snap'] .hero__static {
-    inset: auto 0 18%;
-    top: 10%;
-    bottom: 18%;
+    inset: auto 0 14%;
+    top: 8%;
+    bottom: 14%;
     display: flex;
     gap: var(--space-4);
     padding-inline: var(--page-pad);
@@ -480,7 +455,6 @@ const role = 'Fullstack · AI';
     scroll-padding-inline: var(--page-pad);
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
-    align-content: center;
     align-items: center;
   }
 
@@ -516,12 +490,11 @@ const role = 'Fullstack · AI';
   @media (max-width: 900px) {
     .hero {
       display: grid;
-      grid-template-rows: auto minmax(48svh, 1fr) auto;
+      grid-template-rows: auto minmax(48svh, 1fr);
       height: auto;
       max-height: none;
       min-height: calc(100svh - var(--header-h));
       overflow: visible;
-      padding-inline: 0;
     }
 
     .hero__copy {
@@ -532,17 +505,13 @@ const role = 'Fullstack · AI';
       padding: var(--space-3) var(--page-pad) var(--space-2);
     }
 
-    .hero__name {
-      font-size: clamp(2.4rem, 10vw, 3.4rem);
+    .hero__brand {
+      font-size: clamp(2rem, 8vw, 2.8rem);
     }
 
     .hero__line {
-      max-width: 18ch;
-      font-size: clamp(1.05rem, 3.8vw, 1.35rem);
-    }
-
-    .hero__foot--desktop {
-      display: none;
+      max-width: 20ch;
+      font-size: clamp(1.1rem, 4vw, 1.4rem);
     }
 
     .hero__stage-wrap {
@@ -552,7 +521,6 @@ const role = 'Fullstack · AI';
       margin-inline: calc(50% - 50vw);
       height: auto;
       min-height: 55svh;
-      flex: 1 1 auto;
     }
 
     .hero__stage {
@@ -573,43 +541,24 @@ const role = 'Fullstack · AI';
         transparent 100%
       );
       mask-composite: add;
-      overflow: visible;
-    }
-
-    .hero__caption {
-      min-height: 3em;
     }
 
     .hero__chrome {
-      padding: var(--space-2) var(--page-pad) var(--space-2);
-    }
-
-    .hero__foot--mobile {
-      display: flex;
-      margin: 0;
-      margin-top: auto;
-      padding: var(--space-3) var(--page-pad) var(--space-4);
-      border-top: var(--stroke) solid var(--border);
+      padding: var(--space-2) var(--page-pad) var(--space-4);
     }
 
     .hero__static {
-      inset: 4% var(--page-pad) 22%;
-      grid-template-columns: 1fr 1fr;
+      inset: 4% var(--page-pad) 18%;
     }
 
     .hero[data-carousel='snap'] .hero__static {
-      inset: auto 0 20%;
+      inset: auto 0 16%;
       top: 6%;
-      bottom: 20%;
-      padding-inline: var(--page-pad);
+      bottom: 16%;
     }
 
     .hero[data-carousel='snap'] .hero__static-card {
       flex-basis: min(86vw, 22rem);
-    }
-
-    .hero__chrome {
-      grid-template-columns: auto auto 1fr;
     }
   }
 </style>

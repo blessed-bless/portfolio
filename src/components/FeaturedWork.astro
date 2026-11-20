@@ -2,6 +2,7 @@
 import ProjectCover from './ProjectCover.astro';
 import { getFeaturedProjects } from '../lib/work';
 import type { Project } from '../lib/work-types';
+import { withTrailingSlash } from '../lib/paths';
 
 const featured: Project[] = await getFeaturedProjects();
 ---
@@ -18,7 +19,7 @@ const featured: Project[] = await getFeaturedProjects();
         <li>
           <a
             class="featured__row"
-            href={project.hasPage ? `/work/${project.slug}` : '/work'}
+            href={project.hasPage ? withTrailingSlash(`/work/${project.slug}`) : withTrailingSlash('/work')}
             data-featured-row
             data-cursor="hover"
             transition:name={project.hasPage ? `work-cover-${project.slug}` : undefined}

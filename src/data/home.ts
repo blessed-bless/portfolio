@@ -9,6 +9,7 @@ export type ServiceItem = {
   text: string;
 };
 
+/** Kept for StackMarquee / legacy; home uses businessOffers. */
 export const services: ServiceItem[] = [
   {
     title: 'Веб-продукты',
@@ -27,6 +28,53 @@ export const services: ServiceItem[] = [
     text: 'Лендинги и витрины под заявки, запись и понятный следующий шаг.',
   },
 ];
+
+export const businessOffers = [
+  {
+    title: 'Запись и напоминания',
+    text: 'Онлайн-запись, слоты, SMS и Telegram-напоминания — меньше пропусков.',
+    href: '/work/priemnaya/',
+  },
+  {
+    title: 'Бот, принимающий заявки',
+    text: 'Telegram-бот принимает лид, уточняет детали и отдаёт менеджеру.',
+    href: '/work/ai-funnel-ecosystem/',
+  },
+  {
+    title: 'Мини-CRM',
+    text: 'Заявки, статусы, заметки и выгрузки без тяжёлой коробки.',
+    href: '/work/ai-funnel-ecosystem/',
+  },
+] as const;
+
+export const processSteps = [
+  {
+    title: 'Бриф',
+    text: 'Разбираем задачу, каналы и что должно работать в проде.',
+    timing: '{{заполнить}}',
+  },
+  {
+    title: 'Прототип',
+    text: 'Собираю рабочий контур: форма → бэкенд → уведомление.',
+    timing: '{{заполнить}}',
+  },
+  {
+    title: 'Доводка',
+    text: 'Проверяю сценарии, краи и тексты. Подключаю прод-окружение.',
+    timing: '{{заполнить}}',
+  },
+  {
+    title: 'Запуск',
+    text: 'Отдаю инструкцию, доступы и короткий чек-лист поддержки.',
+    timing: '{{заполнить}}',
+  },
+] as const;
+
+export const pricingFrom = [
+  { label: 'Сайт с записью', price: '{{заполнить}}' },
+  { label: 'Telegram-бот под заявки', price: '{{заполнить}}' },
+  { label: 'Мини-CRM / воронка', price: '{{заполнить}}' },
+] as const;
 
 export const stackRowA = [
   'TypeScript',
@@ -103,6 +151,6 @@ export const aboutStackGroups = [
 
 export const aboutHire = [
   'Сайты и боты для бизнеса: запись, заявки, уведомления в Telegram.',
-  'Автоматизация заявок и пропущенных обращений — от хита или звонка до сообщения менеджеру.',
+  'Автоматизация заявок и пропущенных обращений — от заявки на сайте или звонка до сообщения менеджеру.',
   'Небольшой CRM-контур: лиды, заметки, timeline, выгрузки.',
 ] as const;

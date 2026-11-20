@@ -5,7 +5,7 @@ export const siteName = 'Богдан — портфолио';
 export const personName = 'Богдан Щербинин';
 export const personJobTitle = 'Fullstack-разработчик';
 export const defaultDescription =
-  'Портфолио fullstack-разработчика: веб-продукты, бэкенд, автоматизация и AI.';
+  'Сайты с онлайн-записью, Telegram-боты и CRM для бизнеса. Бэкенд на Python.';
 
 /** Resume PDF — hide link until filled. */
 export const resumeHref = '{{заполнить}}';

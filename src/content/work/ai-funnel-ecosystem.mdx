@@ -14,8 +14,8 @@ stack:
 status: готов
 cover: ../../assets/covers/ai-funnel-ecosystem.svg
 summary: >-
-  Воронка лидов, Telegram AI-бот и mini-CRM с outbox-воркером — от хита на
-  лендинге до менеджера в Telegram.
+  Воронка лидов, Telegram AI-бот и mini-CRM с outbox-воркером — от заявки на
+  сайте до менеджера в Telegram.
 links:
   github: https://github.com/blessed-bless/ai-funnel-ecosystem
 order: 4
@@ -32,7 +32,7 @@ import screenshot from "../../assets/screenshots/ai-funnel-ecosystem.png";
 
 ## Задача
 
-Один стек от хита на лендинге до менеджера: диалог `/api/chat`, Telegram-бот с квалификацией, mini-CRM (фильтры, заметки, timeline, soft-delete, CSV) и исходящие webhook / notify без потери при падении процесса.
+Один стек от заявки на сайте до менеджера: диалог `/api/chat`, Telegram-бот с квалификацией, mini-CRM (фильтры, заметки, timeline, soft-delete, CSV) и исходящие webhook / notify без потери при падении процесса.
 
 ## Решение и архитектура
 
@@ -139,7 +139,7 @@ while not _stop.is_set():
 
 ## Стек
 
-Python 3.12, FastAPI, SQLAlchemy async, SQLite, aiogram 3, Alembic, Redis (optional), Docker — из README.
+Python 3.12, FastAPI, SQLAlchemy async, SQLite, aiogram 3, Alembic, Redis (optional), Docker.
 
 ## Что бы улучшил дальше
 
@@ -147,4 +147,4 @@ Python 3.12, FastAPI, SQLAlchemy async, SQLite, aiogram 3, Alembic, Redis (optio
 
 ## Ссылки
 
-Репозиторий: [github.com/blessed-bless/ai-funnel-ecosystem](https://github.com/blessed-bless/ai-funnel-ecosystem). Публичного demo нет — локальный CRM на `127.0.0.1:8080/crm/login`.
+Репозиторий: [github.com/blessed-bless/ai-funnel-ecosystem](https://github.com/blessed-bless/ai-funnel-ecosystem). Локальный CRM: `127.0.0.1:8080/crm/login`.
