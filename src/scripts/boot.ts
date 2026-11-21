@@ -72,11 +72,18 @@ function bindResizeRefresh(): void {
 
 initPerfProfile();
 
+async function bootChromeAndHash(): Promise<void> {
+  await bootChrome();
+  const { scrollToHash } = await import('./hash-scroll');
+  await scrollToHash();
+}
+
 void import('./raf-hub').then(({ bindVisibilityPause }) => bindVisibilityPause());
 void import('./metrika').then(({ mountMetrika }) => mountMetrika());
 void import('./dev-eggs').then(({ mountDevEggs }) => mountDevEggs());
 void import('./page-transitions').then(({ mountPageTransitions }) => mountPageTransitions());
-void bootChrome();
+void import('./hash-scroll').then(({ mountHashScroll }) => mountHashScroll());
+void bootChromeAndHash();
 
 if (!chromeBound) {
   chromeBound = true;
@@ -87,7 +94,7 @@ if (!chromeBound) {
 }
 
 document.addEventListener('astro:page-load', () => {
-  void bootChrome();
+  void bootChromeAndHash();
 });
 document.addEventListener('astro:before-swap', () => {
   stopLenisFn?.();

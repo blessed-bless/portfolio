@@ -14,6 +14,11 @@ html {
   scroll-behavior: auto;
 }
 
+/* Keep hash targets clear of the sticky header (desktop + mobile). */
+:where(section[id], [data-contact], [data-case-demo], [data-featured], [data-offers], [data-faq]) {
+  scroll-margin-top: var(--anchor-scroll-margin);
+}
+
 html.lenis,
 html.lenis body {
   height: auto;

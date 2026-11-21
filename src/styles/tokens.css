@@ -35,6 +35,8 @@
   --page-pad: clamp(1.25rem, 3.5vw, 3.5rem);
   --section-gap: clamp(4rem, 8vw, 9rem);
   --header-h: 4.25rem;
+  /* Fixed header clearance for in-page anchors (#contact, #demo, …). */
+  --anchor-scroll-margin: calc(var(--header-h) + 1rem);
 
   /* Grid */
   --grid-cols: 12;
