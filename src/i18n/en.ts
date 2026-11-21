@@ -41,6 +41,7 @@ export const en: UiDict = {
     heroHeadline: 'Python backends, bots, and automation that ship',
     heroSubtitle: 'Clients book themselves, leads don’t get lost, and you see everything in one place.',
     heroCta: 'Discuss a project',
+    heroDemo: 'Try booking',
     heroWork: 'See work',
     featuredEyebrow: 'Selected',
     featuredTitle: 'Projects',
@@ -49,6 +50,8 @@ export const en: UiDict = {
     processEyebrow: 'Process',
     processTitle: 'How a project runs',
     contactTitle: 'Let’s build it',
+    contactHint:
+      'Tell me what you do, how you take requests today, and what you want to automate.',
     contactWrite: 'Email me',
     contactPending: 'Contact links will show up here soon.',
     copied: 'Email copied',
@@ -98,6 +101,7 @@ export const en: UiDict = {
     next: 'Next case',
     demo: 'Interactive demo',
     github: 'GitHub',
+    tryDemo: 'Try the demo',
   },
   cmdk: {
     label: 'Command palette',
@@ -142,6 +146,32 @@ export const en: UiDict = {
       href: '/en/work/ai-funnel-ecosystem/#demo',
     },
   ],
+  faq: {
+    eyebrow: 'Before you order',
+    title: 'Before you order',
+    items: [
+      {
+        question: 'What sets the price and timeline?',
+        answer:
+          'Scope and integrations. Ballpark: a site from 30,000 ₽ / 2–4 weeks, a bot from 25,000 ₽ / 1–3 weeks, online booking from 50,000 ₽ / 2–4 weeks, automation from 20,000 ₽.',
+      },
+      {
+        question: 'How does the estimate work?',
+        answer:
+          'A 15–20 minute call or chat: we pin down the flow and constraints. Then you get a quote and a timeline.',
+      },
+      {
+        question: 'What access will you need?',
+        answer:
+          'Depends on the job: domain, hosting, CRM or YCLIENTS, a Telegram bot. I ask only what’s required after the estimate.',
+      },
+      {
+        question: 'What do you get after launch?',
+        answer:
+          'Code and access stay with you. After launch — fixes in the agreed scope, no surprise invoices.',
+      },
+    ],
+  },
   process: [
     {
       title: 'Brief',

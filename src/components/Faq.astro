@@ -1,8 +1,9 @@
 ---
-import { faqItems } from '../data/home';
-import { isFilled } from '../lib/fill';
+import { defaultLocale, isLocale, ui, type Locale } from '../i18n';
 
-const items = faqItems.filter((item) => isFilled(item.answer));
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const items = t.faq.items.filter((item) => item.question.trim() && item.answer.trim());
 const faqLd =
   items.length > 0
     ? {
@@ -22,10 +23,10 @@ const faqLd =
 
 {
   items.length > 0 ? (
-    <section class="faq page-pad" id="faq" data-faq aria-label="Частые вопросы">
+    <section class="faq page-pad" id="faq" data-faq aria-label={t.faq.title}>
       <div class="faq__intro">
-        <p class="eyebrow">FAQ</p>
-        <h2 class="faq__title">Частые вопросы</h2>
+        <p class="eyebrow">{t.faq.eyebrow}</p>
+        <h2 class="faq__title">{t.faq.title}</h2>
       </div>
       <div class="faq__list">
         {items.map((item) => (

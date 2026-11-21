@@ -100,6 +100,7 @@ export function priemnayaCopy(locale: Locale = demoLocale()) {
 const smena = {
   ru: {
     title: 'Смена · сегодня',
+    tip: 'Нажмите на свободное окно — запись появится в расписании',
     hint: 'Тап по свободному окну — запись. Статусы и «Поделиться окнами» без сети.',
     status: {
       confirmed: 'ожидает',
@@ -129,6 +130,7 @@ const smena = {
   },
   en: {
     title: 'Smena · today',
+    tip: 'Tap a free slot — the booking shows up in the schedule',
     hint: 'Tap a free window to book. Statuses and “Share free slots” work offline.',
     status: {
       confirmed: 'waiting',

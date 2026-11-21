@@ -6,6 +6,8 @@ interface Props {
   variant?: Variant;
   type?: 'button' | 'submit' | 'reset';
   class?: string;
+  'data-demo-start'?: string;
+  'data-demo-from'?: string;
 }
 
 const {
@@ -13,6 +15,8 @@ const {
   variant = 'primary',
   type = 'button',
   class: className = '',
+  'data-demo-start': demoStart,
+  'data-demo-from': demoFrom,
 } = Astro.props;
 
 const classes = ['btn', `btn--${variant}`, className].filter(Boolean).join(' ');
@@ -20,7 +24,13 @@ const classes = ['btn', `btn--${variant}`, className].filter(Boolean).join(' ');
 
 {
   href ? (
-    <a class={classes} href={href} data-cursor="hover">
+    <a
+      class={classes}
+      href={href}
+      data-cursor="hover"
+      data-demo-start={demoStart}
+      data-demo-from={demoFrom}
+    >
       <slot />
     </a>
   ) : (

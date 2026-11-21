@@ -40,6 +40,7 @@ export type UiDict = {
     heroHeadline: string;
     heroSubtitle: string;
     heroCta: string;
+    heroDemo: string;
     heroWork: string;
     featuredEyebrow: string;
     featuredTitle: string;
@@ -48,6 +49,7 @@ export type UiDict = {
     processEyebrow: string;
     processTitle: string;
     contactTitle: string;
+    contactHint: string;
     contactWrite: string;
     contactPending: string;
     copied: string;
@@ -97,6 +99,7 @@ export type UiDict = {
     next: string;
     demo: string;
     github: string;
+    tryDemo: string;
   };
   cmdk: {
     label: string;
@@ -125,6 +128,11 @@ export type UiDict = {
   };
   offers: Array<{ title: string; text: string; href: string }>;
   process: Array<{ title: string; text: string; timing: string }>;
+  faq: {
+    eyebrow: string;
+    title: string;
+    items: Array<{ question: string; answer: string }>;
+  };
   aboutIntro: string[];
   aboutPrinciples: Array<{ title: string; text: string }>;
   aboutHire: string[];

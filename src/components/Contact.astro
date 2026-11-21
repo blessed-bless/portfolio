@@ -30,43 +30,52 @@ const hasLinks = Boolean(telegram || github || email);
 
   {
     hasLinks ? (
-      <div class="contact__links">
+      <div class="contact__body">
         {telegram ? (
-          <a class="contact__link" href={telegram} data-cursor="hover">
-            Telegram
-          </a>
+          <>
+            <p class="contact__hint">{t.home.contactHint}</p>
+            <div class="contact__cta">
+              <Button href={telegram} variant="primary">
+                Telegram
+              </Button>
+              {email ? (
+                <Button href={`mailto:${email}`} variant="ghost">
+                  {t.home.contactWrite}
+                </Button>
+              ) : null}
+            </div>
+          </>
+        ) : email ? (
+          <div class="contact__cta">
+            <Button href={`mailto:${email}`} variant="primary">
+              {t.home.contactWrite}
+            </Button>
+          </div>
         ) : null}
-        {github ? (
-          <a class="contact__link" href={github} data-cursor="hover">
-            GitHub
-          </a>
-        ) : null}
-        {email ? (
-          <button
-            class="contact__link contact__link--email"
-            type="button"
-            data-copy-email
-            data-email={email}
-            data-copy-label={t.home.copied}
-            data-cursor="hover"
-          >
-            {email}
-          </button>
-        ) : null}
+
+        <div class="contact__links">
+          {github ? (
+            <a class="contact__link" href={github} data-cursor="hover">
+              GitHub
+            </a>
+          ) : null}
+          {email ? (
+            <button
+              class="contact__link contact__link--email"
+              type="button"
+              data-copy-email
+              data-email={email}
+              data-copy-label={t.home.copied}
+              data-cursor="hover"
+            >
+              {email}
+            </button>
+          ) : null}
+        </div>
       </div>
     ) : (
       <p class="contact__pending">{t.home.contactPending}</p>
     )
-  }
-
-  {
-    email ? (
-      <div class="contact__cta">
-        <Button href={`mailto:${email}`} variant="primary">
-          {t.home.contactWrite}
-        </Button>
-      </div>
-    ) : null
   }
 
   <p class="contact__toast mono" data-copy-toast data-open="false" role="status" aria-live="polite"></p>
@@ -99,17 +108,37 @@ const hasLinks = Boolean(telegram || github || email);
     line-height: 1;
   }
 
-  .contact__links {
+  .contact__body {
     margin-top: var(--space-7);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-4) var(--space-6);
+    display: grid;
+    gap: var(--space-5);
+    max-width: 40rem;
+  }
+
+  .contact__hint {
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: var(--text-md);
+    line-height: var(--leading-body);
+    max-width: 36rem;
   }
 
   .contact__pending {
     margin: var(--space-7) 0 0;
     color: var(--fg-muted);
     max-width: 28rem;
+  }
+
+  .contact__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .contact__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-6);
   }
 
   .contact__link {
@@ -133,10 +162,6 @@ const hasLinks = Boolean(telegram || github || email);
 
   .contact__link--email {
     cursor: pointer;
-  }
-
-  .contact__cta {
-    margin-top: var(--space-6);
   }
 
   .contact__toast {

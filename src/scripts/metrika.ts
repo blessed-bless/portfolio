@@ -72,6 +72,18 @@ function onDocumentClick(event: MouseEvent): void {
 }
 
 function maybeDemoStart(target: Element): void {
+  const heroCta = target.closest<HTMLElement>('[data-demo-start]');
+  if (heroCta) {
+    const slug = heroCta.dataset.demoStart || 'unknown';
+    const from = heroCta.dataset.demoFrom || 'hero';
+    const key = `demo_start:${slug}:${from}`;
+    if (!firedGoals.has(key)) {
+      firedGoals.add(key);
+      goal('demo_start', { slug, from });
+    }
+    return;
+  }
+
   const demo = target.closest<HTMLElement>('[data-case-demo]');
   if (!demo) return;
   const slug = demo.dataset.caseDemo || 'unknown';

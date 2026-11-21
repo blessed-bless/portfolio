@@ -61,6 +61,8 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
   const projectLabel = demoProjectLabel[locale].smena;
 
   const ui = el('div', 'demo-ui smena-demo');
+  const tip = el('p', 'smena-demo__tip', t.tip);
+  tip.dataset.demoTip = 'true';
   const phone = el('div', 'smena-demo__phone');
   const chrome = el('div', 'smena-demo__chrome');
   chrome.append(el('span', 'smena-demo__dot'), el('p', 'smena-demo__title', t.title));
@@ -74,6 +76,13 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
 
   let records = t.seed.map((r) => ({ ...r }));
   let selectedId: string | null = records.find((r) => r.status === 'confirmed')?.id ?? null;
+  let tipVisible = true;
+
+  const hideTip = (): void => {
+    if (!tipVisible) return;
+    tipVisible = false;
+    tip.hidden = true;
+  };
 
   const render = (): void => {
     clear(rail);
@@ -89,6 +98,7 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
       slot.style.top = `${((start - 600) / 540) * 100}%`;
       slot.style.height = `${((end - start) / 540) * 100}%`;
       slot.addEventListener('click', async () => {
+        hideTip();
         slot.disabled = true;
         await wait(200);
         const id = `n-${Date.now()}`;
@@ -124,6 +134,7 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
         el('em', '', t.status[r.status]),
       );
       card.addEventListener('click', () => {
+        hideTip();
         selectedId = r.id;
         note.textContent = t.selectedNote(r.name, t.status[r.status]);
         render();
@@ -138,6 +149,7 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
       btn.disabled = !selected || selected.status === 'done';
       btn.addEventListener('click', async () => {
         if (!selected) return;
+        hideTip();
         await wait(120);
         records = records.map((r) => (r.id === selected.id ? { ...r, status } : r));
         note.textContent = t.statusChanged(selected.name, t.status[status]);
@@ -149,6 +161,7 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
 
     const shareBtn = button(t.shareWindows, { primary: true });
     shareBtn.addEventListener('click', () => {
+      hideTip();
       const lines = freeGaps(records, settings)
         .map(([s, e]) => `• ${hhmm(s)}–${hhmm(e)}`)
         .join('\n');
@@ -161,7 +174,7 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
 
   day.append(rail, board);
   phone.append(chrome, day, actions, share, note, wantSameCta(projectLabel));
-  ui.append(phone);
+  ui.append(tip, phone);
   root.append(ui);
   render();
 
