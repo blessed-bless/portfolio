@@ -46,7 +46,7 @@ export const ru: UiDict = {
     title: 'Богдан — сайты, боты и CRM для бизнеса',
     description: 'Сайты с онлайн-записью, Telegram-боты и CRM для бизнеса. Бэкенд на Python.',
     heroHeadline: 'Сайты с онлайн-записью, Telegram-боты и CRM для бизнеса',
-    heroSubtitle: 'Бэкенд на Python. От заявки до работающего контура.',
+    heroSubtitle: 'Клиенты записываются сами, заявки не теряются, вы видите всё в одном месте.',
     heroCta: 'Обсудить задачу',
     heroWork: 'Смотреть работы',
     featuredEyebrow: 'Избранное',

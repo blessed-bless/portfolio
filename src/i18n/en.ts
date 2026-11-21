@@ -39,7 +39,7 @@ export const en: UiDict = {
     description:
       'Python backends, Telegram bots, and automation for product teams. From intake to a running system.',
     heroHeadline: 'Python backends, bots, and automation that ship',
-    heroSubtitle: 'APIs, workers, and dashboards — from the first API call to a system running in production.',
+    heroSubtitle: 'Clients book themselves, leads don’t get lost, and you see everything in one place.',
     heroCta: 'Discuss a project',
     heroWork: 'See work',
     featuredEyebrow: 'Selected',
@@ -137,9 +137,9 @@ export const en: UiDict = {
       href: '/en/work/ai-funnel-ecosystem/#demo',
     },
     {
-      title: 'Job control planes',
-      text: 'Queues, workers, cron, and webhooks behind one API — fewer glue scripts on every server.',
-      href: '/en/work/fleetkit/#demo',
+      title: 'Mini CRM',
+      text: 'Leads and statuses beside the bot chat — walk a sample lead through by hand.',
+      href: '/en/work/ai-funnel-ecosystem/#demo',
     },
   ],
   process: [

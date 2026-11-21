@@ -313,7 +313,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
   }
 
   .hero__sub {
-    max-width: 28ch;
+    max-width: 34ch;
     font-size: var(--text-sm);
     color: var(--fg-muted);
     line-height: var(--leading-body);
@@ -523,29 +523,29 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     white-space: nowrap;
   }
 
-  /* Desktop: shorten stage so cards sit near chrome (~254px gap gone). Mobile untouched. */
+  /* Desktop: fill stage under the header; cards sit low near chrome. Mobile untouched. */
   @media (min-width: 901px) {
     .hero__stage-wrap {
-      top: clamp(0.75rem, 3vh, 2rem);
+      top: 0;
       grid-template-rows: minmax(0, 1fr) auto;
-      align-content: end;
+      align-content: stretch;
     }
 
     .hero__stage {
-      height: min(52svh, calc(100% - 4.5rem));
-      max-height: min(52svh, calc(100% - 4.5rem));
-      align-self: end;
+      height: 100%;
+      max-height: none;
+      align-self: stretch;
     }
 
     .hero__static {
       align-content: end;
-      inset: 2% 2% 4%;
+      inset: 4% 2% 6%;
     }
 
     .hero[data-carousel='snap'] .hero__static {
-      inset: auto 0 4%;
+      inset: auto 0 6%;
       top: auto;
-      bottom: 4%;
+      bottom: 6%;
     }
   }
 

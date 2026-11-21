@@ -42,8 +42,8 @@ export const businessOffers = [
   },
   {
     title: 'Мини-CRM',
-    text: 'Заявки, статусы, заметки и выгрузки без тяжёлой коробки.',
-    href: '/work/fleetkit/#demo',
+    text: 'Заявки и статусы рядом с диалогом бота — тестовый лид можно провести руками.',
+    href: '/work/ai-funnel-ecosystem/#demo',
   },
 ] as const;
 

@@ -164,14 +164,14 @@ export async function mountHeroScene(
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(isMobile ? 46 : 34, 1, 0.1, 40);
-  camera.position.set(0, isMobile ? 0.08 : -0.08, isMobile ? 5.9 : 4.85);
+  camera.position.set(0, isMobile ? 0.08 : -0.28, isMobile ? 5.9 : 4.85);
 
   const clock = new Clock();
   const pointerNdc = new Vector2(0, 0);
   const raycaster = new Raycaster();
 
   const carousel = new Group();
-  carousel.position.set(0, isMobile ? 0.12 : -0.18, 0);
+  carousel.position.set(0, isMobile ? 0.12 : -0.48, 0);
   scene.add(carousel);
 
   const cardWidth = isMobile ? 3.35 : 3.55;
