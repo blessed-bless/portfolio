@@ -11,8 +11,8 @@ stack:
 status: готов
 cover: ../../assets/covers/smena.svg
 summary: >-
-  Telegram Mini App и бот для одного мастера: день, клиенты, свободные окна
-  и read-only синхронизация с YCLIENTS без хранения пароля.
+  Мастер видит записи и свободные окна в Telegram и одним сообщением отправляет
+  клиенту свободные слоты.
 links:
   github: https://github.com/blessed-bless/smena
   demo: https://t.me/SmenaBarber_63c342_bot
@@ -29,6 +29,13 @@ carousel: true
 import dayShot from '../../assets/screenshots/smena-day.png';
 import clientShot from '../../assets/screenshots/smena-client.png';
 import overviewShot from '../../assets/screenshots/smena-overview.png';
+import Button from '../../components/Button.astro';
+
+<Figure src={dayShot} alt="День мастера с визитами в демоверсии на ширине телефона" caption="День с записями — демо на вымышленных данных." />
+
+<p class="case-lead-cta">
+  <Button href="#demo" variant="ghost">{'Попробовать демо'}</Button>
+</p>
 
 ## Задача
 
@@ -44,7 +51,6 @@ import overviewShot from '../../assets/screenshots/smena-overview.png';
 - **Снимки и восстановление.** Ежедневные копии БД; перед restore сохраняется текущее состояние.
 - **Ноль npm-зависимостей.** Node 24 stdlib + SQLite.
 
-<Figure src={dayShot} alt="День мастера с визитами в демоверсии на ширине телефона" caption="День с записями — демо на вымышленных данных." />
 <Figure src={clientShot} alt="Карточка клиента Алексея Морозова с историей визитов" caption="Карточка клиента: история, связь, заметки." />
 <Figure src={overviewShot} alt="Экран обзора с выручкой и загрузкой за 7 дней" caption="Обзор за 7 дней: выручка, загрузка, «пора позвать снова»." />
 

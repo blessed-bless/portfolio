@@ -274,6 +274,19 @@ const t = ui(locale);
     justify-items: center;
   }
 
+  .smena-demo__tip {
+    margin: 0;
+    width: min(100%, 22rem);
+    font-size: var(--text-sm);
+    color: var(--fg-muted);
+    line-height: var(--leading-body);
+    text-align: center;
+  }
+
+  .smena-demo__tip[hidden] {
+    display: none;
+  }
+
   .smena-demo__phone {
     width: min(100%, 22rem);
     display: grid;

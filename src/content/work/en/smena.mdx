@@ -11,8 +11,8 @@ stack:
 status: shipped
 cover: ../../assets/covers/smena.svg
 summary: >-
-  Telegram Mini App and bot for a single barber: the day board, clients, free
-  windows, and read-only YCLIENTS sync without storing a password.
+  The barber sees bookings and free slots in Telegram and shares open windows
+  with a client in one message.
 links:
   github: https://github.com/blessed-bless/smena
   demo: https://t.me/SmenaBarber_63c342_bot
@@ -29,6 +29,13 @@ carousel: true
 import dayShot from '../../../assets/screenshots/smena-day.png';
 import clientShot from '../../../assets/screenshots/smena-client.png';
 import overviewShot from '../../../assets/screenshots/smena-overview.png';
+import Button from '../../../components/Button.astro';
+
+<Figure src={dayShot} alt="Barber day board with visits in the phone-width demo" caption="Day board — fictional demo data." />
+
+<p class="case-lead-cta">
+  <Button href="#demo" variant="ghost">{'Try the demo'}</Button>
+</p>
 
 ## Problem
 
@@ -44,7 +51,6 @@ A solo barber needs the working day inside Telegram: visits, breaks, clients, an
 - **Snapshots and restore.** Daily DB copies; restore keeps a recovery copy first.
 - **Zero npm dependencies.** Node 24 stdlib + SQLite.
 
-<Figure src={dayShot} alt="Barber day board with visits in the phone-width demo" caption="Day board — fictional demo data." />
 <Figure src={clientShot} alt="Client card with visit history" caption="Client card: history, contact actions, notes." />
 <Figure src={overviewShot} alt="Overview screen with revenue and load for 7 days" caption="7-day overview: revenue, load, win-back list." />
 

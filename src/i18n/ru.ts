@@ -48,6 +48,7 @@ export const ru: UiDict = {
     heroHeadline: 'Сайты с онлайн-записью, Telegram-боты и CRM для бизнеса',
     heroSubtitle: 'Клиенты записываются сами, заявки не теряются, вы видите всё в одном месте.',
     heroCta: 'Обсудить задачу',
+    heroDemo: 'Попробовать запись',
     heroWork: 'Смотреть работы',
     featuredEyebrow: 'Избранное',
     featuredTitle: 'Проекты',
@@ -56,7 +57,9 @@ export const ru: UiDict = {
     processEyebrow: 'Процесс',
     processTitle: 'Как идём',
     contactTitle: 'Давайте сделаем',
-    contactWrite: 'Написать',
+    contactHint:
+      'Напишите, чем занимаетесь, как сейчас принимаете заявки и что хотите автоматизировать.',
+    contactWrite: 'Написать на почту',
     contactPending: 'Контакты скоро появятся здесь.',
     copied: 'Почта скопирована',
     stackEyebrow: 'Инструменты',
@@ -105,6 +108,7 @@ export const ru: UiDict = {
     next: 'Следующий кейс',
     demo: 'Интерактивное демо',
     github: 'GitHub',
+    tryDemo: 'Попробовать демо',
   },
   cmdk: {
     label: 'Командная палитра',
@@ -134,6 +138,32 @@ export const ru: UiDict = {
   },
   offers: businessOffers.map((item) => ({ ...item })),
   process: processSteps.map((item) => ({ ...item })),
+  faq: {
+    eyebrow: 'Перед заказом',
+    title: 'Перед заказом',
+    items: [
+      {
+        question: 'От чего зависят цена и сроки?',
+        answer:
+          'От объёма сценариев и интеграций. Ориентиры: сайт от 30 000 ₽ / 2–4 нед., бот от 25 000 ₽ / 1–3 нед., онлайн-запись от 50 000 ₽ / 2–4 нед., автоматизация от 20 000 ₽.',
+      },
+      {
+        question: 'Как проходит оценка?',
+        answer:
+          'Созвон или переписка 15–20 минут: разбираем задачу и ограничения. После этого — смета и сроки.',
+      },
+      {
+        question: 'Какие доступы понадобятся?',
+        answer:
+          'По ситуации: домен, хостинг, CRM или YCLIENTS, Telegram-бот. Список уточняю на оценке — лишнего не прошу.',
+      },
+      {
+        question: 'Что клиент получает после запуска?',
+        answer:
+          'Код и доступы остаются у вас. После запуска — правки по согласованному объёму, без сюрпризов в счёте.',
+      },
+    ],
+  },
   aboutIntro: [...aboutIntro],
   aboutPrinciples: aboutPrinciples.map((item) => ({ ...item })),
   aboutHire: [...aboutHire],

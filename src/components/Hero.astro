@@ -33,8 +33,14 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
           </Button>
         ) : null
       }
-      <Button href={localizedPath(locale, '/work/')} variant="ghost">
-        {t.home.heroWork}
+      <Button
+        href={`${localizedPath(locale, '/work/smena/')}#demo`}
+        variant="ghost"
+        class="hero__demo-cta"
+        data-demo-start="smena"
+        data-demo-from="hero"
+      >
+        {t.home.heroDemo}
       </Button>
     </div>
   </div>
