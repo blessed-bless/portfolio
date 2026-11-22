@@ -1,0 +1,81 @@
+---
+title: Gran
+slug: gran
+year: '2026'
+role: Frontend
+stack:
+  - Astro
+  - TypeScript
+  - GSAP
+  - Lenis
+status: concept
+cover: ../../assets/covers/gran.svg
+summary: >-
+  A barbershop site with booking on the first screen — master, service, slot —
+  wired to the Smena Telegram Mini App.
+links:
+  github: https://github.com/blessed-bless/gran-barbershop
+  live: https://gran.dubstepmolitva.ru
+order: 3
+tags:
+  - TypeScript
+  - Web
+hasPage: true
+featured: true
+carousel: true
+---
+
+import hero390 from '../../../assets/screenshots/gran-hero-390.png';
+import hero1440 from '../../../assets/screenshots/gran-hero-1440.png';
+import masters390 from '../../../assets/screenshots/gran-masters-390.png';
+import masters1440 from '../../../assets/screenshots/gran-masters-1440.png';
+import works390 from '../../../assets/screenshots/gran-works-390.png';
+import works1440 from '../../../assets/screenshots/gran-works-1440.png';
+import owner390 from '../../../assets/screenshots/gran-owner-390.png';
+import owner1440 from '../../../assets/screenshots/gran-owner-1440.png';
+import Button from '../../../components/Button.astro';
+
+<p class="case-lead-cta">
+  <Button href="https://gran.dubstepmolitva.ru" variant="primary">{'Open site'}</Button>
+  <Button href="https://github.com/blessed-bless/gran-barbershop" variant="ghost">{'Code'}</Button>
+</p>
+
+<p class="case-note">Concept: fictional barbershop, demo booking only. Pair with <a href="/en/work/smena/">Smena</a>.</p>
+
+<Figure src={hero390} alt="Gran mobile hero with booking card" caption="390 — hero and first-screen booking." />
+
+## Problem
+
+The shop had no website. Clients booked by phone; prices and barbers lived in chat threads. They needed a storefront where booking starts immediately — and a clear bridge to the barber’s day in Telegram.
+
+## Solution
+
+- **Three-step booking on the first screen.** Master → service → slot. The card sits in the hero, not on a separate page.
+- **Masters, before/after, reviews.** Portraits with work previews on hover/tap, compare sliders, review strip.
+- **Owner screen.** Short pitch: the site is the storefront; bookings go to the Smena Mini App; windows sync with YCLIENTS.
+- **Paired with Smena.** The request reaches the barber in Telegram — this case is the client-facing front for that loop.
+
+## Numbers
+
+| | Lighthouse mobile, Slow 4G |
+| --- | --- |
+| Performance | 100 |
+| LCP | 1.5 s |
+| Transfer | 121 KiB |
+| First-screen JS | ~6 KiB |
+
+LCP is the mobile AVIF hero poster (~30 KiB). Fonts trimmed: Playfair heading subset, Manrope 400/600.
+
+## Screens
+
+<Figure src={hero1440} alt="Gran desktop hero with booking card on the right" caption="1440 — hero and booking." />
+<Figure src={masters390} alt="Masters section on a phone width" caption="390 — masters." />
+<Figure src={masters1440} alt="Four master cards in a grid" caption="1440 — masters." />
+<Figure src={works390} alt="Before/after slider on a phone width" caption="390 — before / after." />
+<Figure src={works1440} alt="Before/after haircut comparisons" caption="1440 — before / after." />
+<Figure src={owner390} alt="Owner section on a phone width" caption="390 — owner block." />
+<Figure src={owner1440} alt="Owner section with Telegram notification mock" caption="1440 — owner block and Smena link." />
+
+## What was verified
+
+Shipped as a static Astro portfolio concept. No analytics. Live YCLIENTS and the production Smena bot are out of scope here — demo booking flow and links to that contour only.

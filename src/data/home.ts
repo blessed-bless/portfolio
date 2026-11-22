@@ -31,6 +31,11 @@ export const services: ServiceItem[] = [
 
 export const businessOffers = [
   {
+    title: 'Сайт для бизнеса',
+    text: 'Витрина с записью на первом экране — как «Грань», со связкой на Telegram Mini App «Смена».',
+    href: '/work/gran/',
+  },
+  {
     title: 'Запись и напоминания',
     text: 'День мастера в Telegram: слоты, статусы визитов и текст свободных окон.',
     href: '/work/smena/#demo',
@@ -38,11 +43,6 @@ export const businessOffers = [
   {
     title: 'Бот, принимающий заявки',
     text: 'Telegram-бот принимает лид, уточняет детали и отдаёт менеджеру.',
-    href: '/work/ai-funnel-ecosystem/#demo',
-  },
-  {
-    title: 'Мини-CRM',
-    text: 'Заявки и статусы рядом с диалогом бота — тестовый лид можно провести руками.',
     href: '/work/ai-funnel-ecosystem/#demo',
   },
 ] as const;

@@ -1,9 +1,16 @@
 export type WorkTag = 'Python' | 'TypeScript' | 'JavaScript' | 'Bots' | 'Infra' | 'Web';
-export type WorkStatus = 'в разработке' | 'готов' | 'концепт';
+export type WorkStatus =
+  | 'в разработке'
+  | 'готов'
+  | 'концепт'
+  | 'in progress'
+  | 'shipped'
+  | 'concept';
 
 export type WorkLinks = {
   github?: string;
   demo?: string;
+  live?: string;
 };
 
 /** Shape used by hero carousel and list previews (client-safe). */

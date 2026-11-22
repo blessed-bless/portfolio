@@ -108,16 +108,23 @@ const creativeWorkLd = {
       </dl>
       <div class="case__links">
         {
+          project.links.live ? (
+            <a href={project.links.live} data-cursor="hover">
+              {t.case.openSite}
+            </a>
+          ) : null
+        }
+        {
           project.links.github ? (
             <a href={project.links.github} data-cursor="hover">
-              {t.case.github}
+              {t.case.code}
             </a>
           ) : null
         }
         {
           project.links.demo ? (
             <a href={project.links.demo} data-cursor="hover">
-              Demo
+              {t.case.tryDemo}
             </a>
           ) : null
         }
@@ -209,6 +216,15 @@ const creativeWorkLd = {
 
   .case__body .case-lead-cta {
     margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .case__body .case-note {
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
   }
 
   .case__body h2 {

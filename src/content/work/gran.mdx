@@ -1,0 +1,81 @@
+---
+title: Грань
+slug: gran
+year: '2026'
+role: Фронтенд
+stack:
+  - Astro
+  - TypeScript
+  - GSAP
+  - Lenis
+status: концепт
+cover: ../../assets/covers/gran.svg
+summary: >-
+  Сайт барбершопа с записью на первом экране: мастер, услуга, окно — и связка
+  с Telegram Mini App «Смена».
+links:
+  github: https://github.com/blessed-bless/gran-barbershop
+  live: https://gran.dubstepmolitva.ru
+order: 3
+tags:
+  - TypeScript
+  - Web
+hasPage: true
+featured: true
+carousel: true
+---
+
+import hero390 from '../../assets/screenshots/gran-hero-390.png';
+import hero1440 from '../../assets/screenshots/gran-hero-1440.png';
+import masters390 from '../../assets/screenshots/gran-masters-390.png';
+import masters1440 from '../../assets/screenshots/gran-masters-1440.png';
+import works390 from '../../assets/screenshots/gran-works-390.png';
+import works1440 from '../../assets/screenshots/gran-works-1440.png';
+import owner390 from '../../assets/screenshots/gran-owner-390.png';
+import owner1440 from '../../assets/screenshots/gran-owner-1440.png';
+import Button from '../../components/Button.astro';
+
+<p class="case-lead-cta">
+  <Button href="https://gran.dubstepmolitva.ru" variant="primary">{'Открыть сайт'}</Button>
+  <Button href="https://github.com/blessed-bless/gran-barbershop" variant="ghost">{'Код'}</Button>
+</p>
+
+<p class="case-note">Концепт: барбершоп вымышленный, запись демонстрационная. Пара к кейсу <a href="/work/smena/">«Смена»</a>.</p>
+
+<Figure src={hero390} alt="Мобильный герой «Грани»: заголовок и карточка записи" caption="390 — герой и запись на первом экране." />
+
+## Задача
+
+У барбершопа нет сайта. Клиенты записываются по звонкам, прайс и мастера размазаны по сообщениям. Нужна витрина, где запись начинается сразу, без лишних экранов — и понятный мост к операционке мастера в Telegram.
+
+## Решение
+
+- **Запись за три шага на первом экране.** Мастер → услуга → окно. Карточка живёт в герое, не уезжает на отдельную страницу.
+- **Мастера, до/после, отзывы.** Портреты с работами по наведению/тапу, сравнение «до/после», блок отзывов.
+- **Экран «для владельца».** Коротко: сайт — витрина, запись уходит в Mini App «Смена», окна синхронизируются с YCLIENTS.
+- **Связка со «Сменой».** Заявка уходит мастеру в Telegram; этот кейс — клиентская витрина к тому же контуру.
+
+## Цифры
+
+| | Lighthouse mobile, Slow 4G |
+| --- | --- |
+| Performance | 100 |
+| LCP | 1,5 с |
+| Transfer | 121 КиБ |
+| JS первого экрана | ~6 КБ |
+
+LCP — мобильный AVIF-постер героя (~30 КБ). Шрифты урезаны: Playfair subset под заголовки, Manrope 400/600.
+
+## Экраны
+
+<Figure src={hero1440} alt="Десктопный герой «Грани» с карточкой записи справа" caption="1440 — герой и запись." />
+<Figure src={masters390} alt="Секция мастеров на мобильной ширине" caption="390 — мастера." />
+<Figure src={masters1440} alt="Сетка из четырёх карточек мастеров" caption="1440 — мастера." />
+<Figure src={works390} alt="Слайдер до и после на мобильной ширине" caption="390 — до / после." />
+<Figure src={works1440} alt="Сравнения до и после стрижек" caption="1440 — до / после." />
+<Figure src={owner390} alt="Блок для владельца на мобильной ширине" caption="390 — для владельца." />
+<Figure src={owner1440} alt="Блок для владельца с макетом уведомления в Telegram" caption="1440 — для владельца и связка со «Сменой»." />
+
+## Результат и честность
+
+Собран статикой на Astro, выложен как портфолио-концепт. Метрику не подключал. Живой YCLIENTS и прод-бот «Смены» в этом репо не крутятся — только демо-сценарий записи и ссылки на контур.

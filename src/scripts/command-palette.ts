@@ -238,6 +238,7 @@ async function runItem(item: PaletteItem): Promise<void> {
     item.action === 'telegram' ||
     item.action === 'telegram-channel' ||
     item.action === 'github' ||
+    item.action === 'open-gran' ||
     item.action === 'resume'
   ) {
     if (item.action === 'telegram-channel') {
