@@ -78,11 +78,17 @@ async function bootChromeAndHash(): Promise<void> {
   await scrollToHash();
 }
 
+function mountPrivacyChrome(): void {
+  void import('./cookie-notice').then(({ mountCookieNotice }) => mountCookieNotice());
+  void import('./lead-form').then(({ mountLeadForms }) => mountLeadForms());
+}
+
 void import('./raf-hub').then(({ bindVisibilityPause }) => bindVisibilityPause());
 void import('./metrika').then(({ mountMetrika }) => mountMetrika());
 void import('./dev-eggs').then(({ mountDevEggs }) => mountDevEggs());
 void import('./page-transitions').then(({ mountPageTransitions }) => mountPageTransitions());
 void import('./hash-scroll').then(({ mountHashScroll }) => mountHashScroll());
+mountPrivacyChrome();
 void bootChromeAndHash();
 
 if (!chromeBound) {
@@ -95,6 +101,7 @@ if (!chromeBound) {
 
 document.addEventListener('astro:page-load', () => {
   void bootChromeAndHash();
+  mountPrivacyChrome();
 });
 document.addEventListener('astro:before-swap', () => {
   stopLenisFn?.();

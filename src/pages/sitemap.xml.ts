@@ -25,6 +25,8 @@ export const GET: APIRoute = async () => {
     urlEntry('/en/about/'),
     urlEntry('/uses/'),
     urlEntry('/en/uses/'),
+    urlEntry('/privacy/'),
+    urlEntry('/en/privacy/'),
     ...casesRu.map((entry) => urlEntry(localizedPath('ru', `/work/${entry.data.slug}/`))),
     ...casesEn.map((entry) => urlEntry(localizedPath('en', `/work/${entry.data.slug}/`))),
     ...(notes.length ? [urlEntry('/notes/')] : []),

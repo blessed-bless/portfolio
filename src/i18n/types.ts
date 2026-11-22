@@ -29,8 +29,27 @@ export type UiDict = {
     top: string;
     uses: string;
     channel: string;
+    privacy: string;
     lessMotion: string;
     lessMotionOn: string;
+  };
+  leadForm: {
+    nameLabel: string;
+    namePlaceholder: string;
+    contactLabel: string;
+    contactPlaceholder: string;
+    messageLabel: string;
+    messagePlaceholder: string;
+    consentPrefix: string;
+    consentLink: string;
+    consentRequired: string;
+    submit: string;
+    sending: string;
+  };
+  cookie: {
+    text: string;
+    more: string;
+    ok: string;
   };
   personName: string;
   personAlt: string;
@@ -100,6 +119,8 @@ export type UiDict = {
     demo: string;
     github: string;
     tryDemo: string;
+    openSite: string;
+    code: string;
   };
   cmdk: {
     label: string;
@@ -113,6 +134,7 @@ export type UiDict = {
     openTelegram: string;
     openChannel: string;
     openGithub: string;
+    openGran: string;
     switchLocale: string;
     resume: string;
     lessMotion: string;
