@@ -34,6 +34,7 @@ export const ru: UiDict = {
     themeDark: 'Тёмная',
   },
   footer: {
+    credit: '© {year} Богдан Кетасонкс',
     top: 'Наверх',
     uses: 'Uses',
     channel: 'Канал',

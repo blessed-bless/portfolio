@@ -5,17 +5,20 @@ import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n
 const year = new Date().getFullYear();
 const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
 const t = ui(locale);
+const credit = t.footer.credit.replace('{year}', String(year));
 ---
 
 <footer class="site-footer page-pad" data-site-footer>
   <div class="site-footer__inner">
-    <div class="site-footer__start">
-      <p class="site-footer__name">{t.brand}</p>
-      <a class="site-footer__link mono" href={localizedPath(locale, '/uses/')} data-cursor="hover">
+    <p class="site-footer__credit">{credit}</p>
+
+    <nav class="site-footer__nav" aria-label={locale === 'en' ? 'Footer' : 'Подвал'}>
+      <a class="site-footer__link" href={localizedPath(locale, '/uses/')} data-cursor="hover">
         {t.footer.uses}
       </a>
+      <span class="site-footer__sep" aria-hidden="true">·</span>
       <a
-        class="site-footer__link mono"
+        class="site-footer__link"
         href={telegramChannel.href}
         target="_blank"
         rel="noopener noreferrer"
@@ -24,21 +27,40 @@ const t = ui(locale);
       >
         {t.footer.channel}
       </a>
-      <a class="site-footer__link mono" href={localizedPath(locale, '/privacy/')} data-cursor="hover">
-        {t.footer.privacy}
-      </a>
-      <button
-        type="button"
-        class="site-footer__motion mono"
-        data-less-motion
-        data-cursor="hover"
-        aria-pressed="false"
-      >
-        {t.footer.lessMotion}
-      </button>
-    </div>
-    <p class="site-footer__year mono">{year}</p>
-    <a class="site-footer__top mono" href="#main" data-cursor="hover">{t.footer.top}</a>
+    </nav>
+
+    <a class="site-footer__top" href="#main" data-cursor="hover">
+      <span class="site-footer__top-label">{t.footer.top}</span>
+      <span class="site-footer__top-icon" aria-hidden="true">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+          <path
+            d="M8 12.25V3.75M8 3.75 4.25 7.5M8 3.75 11.75 7.5"
+            stroke="currentColor"
+            stroke-width="1.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"></path>
+        </svg>
+      </span>
+    </a>
+
+    <a class="site-footer__privacy" href={localizedPath(locale, '/privacy/')} data-cursor="hover">
+      {t.footer.privacy}
+    </a>
+
+    <button
+      type="button"
+      class="site-footer__motion"
+      data-less-motion
+      data-cursor="hover"
+      aria-pressed="false"
+      data-label-off={t.footer.lessMotion}
+      data-label-on={t.footer.lessMotionOn}
+    >
+      <span class="site-footer__motion-track" aria-hidden="true">
+        <span class="site-footer__motion-knob"></span>
+      </span>
+      <span class="site-footer__motion-label" data-less-motion-label>{t.footer.lessMotion}</span>
+    </button>
   </div>
 </footer>
 
@@ -47,12 +69,13 @@ const t = ui(locale);
 
   function syncLessMotionButtons(): void {
     const on = isLessMotionToggleOn();
-    const lang = document.documentElement.lang === 'en' ? 'en' : 'ru';
-    const labelOff = lang === 'en' ? 'Fewer animations' : 'Меньше анимаций';
-    const labelOn = lang === 'en' ? 'Animations reduced' : 'Анимации урезаны';
     document.querySelectorAll<HTMLButtonElement>('[data-less-motion]').forEach((btn) => {
+      const labelOff = btn.dataset.labelOff || 'Меньше анимаций';
+      const labelOn = btn.dataset.labelOn || 'Анимации урезаны';
+      const label = on ? labelOn : labelOff;
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      btn.textContent = on ? labelOn : labelOff;
+      const text = btn.querySelector('[data-less-motion-label]');
+      if (text) text.textContent = label;
     });
   }
 
@@ -84,62 +107,139 @@ const t = ui(locale);
     margin-inline: auto;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
-    gap: var(--space-4);
-    align-items: center;
+    grid-template-areas:
+      'credit nav top'
+      'privacy . motion';
+    column-gap: var(--space-4);
+    row-gap: var(--space-3);
+    align-items: baseline;
     font-size: var(--text-xs);
     color: var(--fg-muted);
-    text-transform: uppercase;
-    letter-spacing: var(--tracking-mono);
   }
 
-  .site-footer__start {
-    display: flex;
-    align-items: center;
-    gap: var(--space-4);
-    min-width: 0;
-    flex-wrap: wrap;
-  }
-
-  .site-footer__name,
-  .site-footer__year {
+  .site-footer__credit {
+    grid-area: credit;
     margin: 0;
+    min-width: 0;
+    white-space: nowrap;
   }
 
-  .site-footer__year {
-    justify-self: center;
-    color: var(--fg);
+  .site-footer__nav {
+    grid-area: nav;
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: var(--space-2);
+    white-space: nowrap;
   }
 
-  .site-footer__link,
-  .site-footer__top,
-  .site-footer__motion {
+  .site-footer__sep {
+    color: var(--fg-faint, var(--fg-muted));
+    user-select: none;
+  }
+
+  .site-footer__top {
+    grid-area: top;
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
     text-decoration: none;
     color: var(--fg-muted);
+    white-space: nowrap;
+  }
+
+  .site-footer__top-icon {
+    width: 1.7rem;
+    height: 1.7rem;
+    border: var(--stroke) solid var(--border-strong);
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+
+  .site-footer__privacy {
+    grid-area: privacy;
     min-height: 44px;
     display: inline-flex;
     align-items: center;
+    text-decoration: none;
+    color: color-mix(in srgb, var(--fg-muted) 82%, transparent);
+    font-size: 0.72rem;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: nowrap;
+  }
+
+  .site-footer__link {
+    text-decoration: none;
+    color: inherit;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   .site-footer__motion {
+    grid-area: motion;
+    justify-self: end;
     appearance: none;
     border: 0;
     background: transparent;
     padding: 0;
+    margin: 0;
     cursor: pointer;
     font: inherit;
-    letter-spacing: inherit;
-    text-transform: inherit;
+    font-size: 0.72rem;
+    color: color-mix(in srgb, var(--fg-muted) 82%, transparent);
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    white-space: nowrap;
+  }
+
+  .site-footer__motion-track {
+    position: relative;
+    width: 2.1rem;
+    height: 1.15rem;
+    border: var(--stroke) solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--bg-soft);
+    flex: none;
+  }
+
+  .site-footer__motion-knob {
+    position: absolute;
+    top: 50%;
+    left: 0.14rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--fg-muted);
+    transform: translateY(-50%);
+    transition:
+      left var(--dur-2) var(--ease-out),
+      background var(--dur-2) var(--ease-out);
   }
 
   .site-footer__motion[aria-pressed='true'] {
     color: var(--accent-strong);
   }
 
-  .site-footer__top {
-    justify-self: end;
+  .site-footer__motion[aria-pressed='true'] .site-footer__motion-knob {
+    left: calc(100% - 0.84rem);
+    background: var(--accent);
   }
 
   .site-footer__link:hover,
+  .site-footer__privacy:hover,
   .site-footer__top:hover,
   .site-footer__motion:hover {
     color: var(--accent-strong);
@@ -148,12 +248,22 @@ const t = ui(locale);
   @media (max-width: 720px) {
     .site-footer__inner {
       grid-template-columns: 1fr;
+      grid-template-areas:
+        'credit'
+        'nav'
+        'privacy'
+        'motion'
+        'top';
       justify-items: start;
-      gap: var(--space-2);
+      row-gap: var(--space-1);
     }
 
-    .site-footer__year,
     .site-footer__top {
+      justify-self: end;
+      margin-top: var(--space-2);
+    }
+
+    .site-footer__motion {
       justify-self: start;
     }
   }
