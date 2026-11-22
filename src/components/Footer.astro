@@ -1,4 +1,5 @@
 ---
+import BrandMark from './BrandMark.astro';
 import { telegramChannel } from '../data/home';
 import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
@@ -10,7 +11,10 @@ const credit = t.footer.credit.replace('{year}', String(year));
 
 <footer class="site-footer page-pad" data-site-footer>
   <div class="site-footer__inner">
-    <p class="site-footer__credit">{credit}</p>
+    <p class="site-footer__credit">
+      <BrandMark class="site-footer__mark" size={16} />
+      <span>{credit}</span>
+    </p>
 
     <nav class="site-footer__nav" aria-label={locale === 'en' ? 'Footer' : 'Подвал'}>
       <a class="site-footer__link" href={localizedPath(locale, '/uses/')} data-cursor="hover">
@@ -122,6 +126,17 @@ const credit = t.footer.credit.replace('{year}', String(year));
     margin: 0;
     min-width: 0;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .site-footer__mark {
+    display: block;
+    width: 16px;
+    height: 16px;
+    flex: none;
+    color: var(--fg-muted);
   }
 
   .site-footer__nav {
