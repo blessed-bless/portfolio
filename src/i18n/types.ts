@@ -26,6 +26,7 @@ export type UiDict = {
     themeDark: string;
   };
   footer: {
+    credit: string;
     top: string;
     uses: string;
     channel: string;

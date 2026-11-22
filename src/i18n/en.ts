@@ -26,6 +26,7 @@ export const en: UiDict = {
     themeDark: 'Dark',
   },
   footer: {
+    credit: '© {year} Bogdan Ketasonx',
     top: 'Top',
     uses: 'Uses',
     channel: 'Channel',
