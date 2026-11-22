@@ -29,8 +29,27 @@ export const en: UiDict = {
     top: 'Top',
     uses: 'Uses',
     channel: 'Channel',
+    privacy: 'Privacy Policy',
     lessMotion: 'Fewer animations',
     lessMotionOn: 'Animations reduced',
+  },
+  leadForm: {
+    nameLabel: 'Name',
+    namePlaceholder: 'How should I address you',
+    contactLabel: 'Contact',
+    contactPlaceholder: 'Telegram, phone, or email',
+    messageLabel: 'Request',
+    messagePlaceholder: 'Briefly: what you do and what you need',
+    consentPrefix: 'I agree to the processing of my personal data under the',
+    consentLink: 'Privacy Policy',
+    consentRequired: 'Please agree to personal data processing before sending.',
+    submit: 'Send request',
+    sending: 'Opening Telegram…',
+  },
+  cookie: {
+    text: 'This site uses cookies and Yandex Metrica.',
+    more: 'Details',
+    ok: 'OK',
   },
   personName: 'Bogdan Shcherbinin',
   personAlt: 'Bogdan Shcherbinin',
@@ -102,6 +121,8 @@ export const en: UiDict = {
     demo: 'Interactive demo',
     github: 'GitHub',
     tryDemo: 'Try the demo',
+    openSite: 'Open site',
+    code: 'Code',
   },
   cmdk: {
     label: 'Command palette',
@@ -115,6 +136,7 @@ export const en: UiDict = {
     openTelegram: 'Open Telegram',
     openChannel: 'Open Telegram channel',
     openGithub: 'Open GitHub',
+    openGran: 'Open Gran',
     switchLocale: 'Switch language RU/EN',
     resume: 'Download resume',
     lessMotion: 'Fewer animations',
@@ -131,6 +153,11 @@ export const en: UiDict = {
   },
   offers: [
     {
+      title: 'Business website',
+      text: 'A storefront with booking on the first screen — like Gran, paired with the Smena Mini App.',
+      href: '/en/work/gran/',
+    },
+    {
       title: 'Booking and schedule in Telegram',
       text: 'A barber’s day view: slots, visit statuses, and shareable free windows — no CRM install.',
       href: '/en/work/smena/#demo',
@@ -138,11 +165,6 @@ export const en: UiDict = {
     {
       title: 'Intake bots',
       text: 'Telegram bots that qualify a lead, ask the right follow-ups, and hand off to a human.',
-      href: '/en/work/ai-funnel-ecosystem/#demo',
-    },
-    {
-      title: 'Mini CRM',
-      text: 'Leads and statuses beside the bot chat — walk a sample lead through by hand.',
       href: '/en/work/ai-funnel-ecosystem/#demo',
     },
   ],

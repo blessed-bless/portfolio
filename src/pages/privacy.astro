@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { privacyRu } from '../data/privacy';
+
+const copy = privacyRu;
+---
+
+<BaseLayout
+  title={copy.title}
+  description={copy.description}
+  canonicalPath="/privacy/"
+  ogImage="/og/home.png"
+>
+  <article class="privacy page-pad">
+    <header class="privacy__hero">
+      <p class="eyebrow">Документы</p>
+      <h1 class="privacy__title" data-page-title>{copy.heading}</h1>
+      <p class="privacy__updated mono">{copy.updated}</p>
+    </header>
+
+    <div class="privacy__body">
+      {
+        copy.sections.map((section) => (
+          <section class="privacy__block">
+            <h2 class="privacy__h2">{section.title}</h2>
+            {section.body.map((paragraph) => (
+              <p>{paragraph}</p>
+            ))}
+          </section>
+        ))
+      }
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .privacy {
+    padding-block: var(--space-8) var(--space-10);
+  }
+
+  .privacy__hero {
+    max-width: 40rem;
+    margin-bottom: var(--space-8);
+  }
+
+  .privacy__title {
+    margin: var(--space-3) 0 0;
+    font-size: clamp(2rem, 1.4rem + 2vw, 3rem);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .privacy__updated {
+    margin: var(--space-4) 0 0;
+    color: var(--fg-muted);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+  }
+
+  .privacy__body {
+    display: grid;
+    gap: var(--space-7);
+    max-width: 40rem;
+  }
+
+  .privacy__h2 {
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-lg);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .privacy__block p {
+    margin: 0 0 var(--space-3);
+    color: color-mix(in srgb, var(--fg) 92%, var(--fg-muted));
+    line-height: var(--leading-body);
+  }
+
+  .privacy__block p:last-child {
+    margin-bottom: 0;
+  }
+</style>

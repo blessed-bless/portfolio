@@ -1,0 +1,95 @@
+---
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
+
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const privacyHref = localizedPath(locale, '/privacy/');
+---
+
+<div class="cookie-banner" data-cookie-banner hidden role="status">
+  <p class="cookie-banner__text">
+    {t.cookie.text}{' '}
+    <a class="cookie-banner__link" href={privacyHref} data-cursor="hover">{t.cookie.more}</a>
+  </p>
+  <button type="button" class="cookie-banner__ok" data-cookie-ok data-cursor="hover">
+    {t.cookie.ok}
+  </button>
+</div>
+
+<style is:global>
+  html[data-show-cookie='1'] {
+    --cookie-notice-space: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  html[data-show-cookie='1'] .site-shell {
+    padding-bottom: var(--cookie-notice-space);
+  }
+</style>
+
+<style>
+  .cookie-banner {
+    position: fixed;
+    z-index: 40;
+    left: var(--page-pad);
+    right: auto;
+    bottom: calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+    top: auto;
+    width: min(calc(100% - (var(--page-pad) * 2)), 28rem);
+    height: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: var(--stroke) solid var(--border-strong);
+    background: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
+    color: var(--fg);
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    pointer-events: auto;
+  }
+
+  .cookie-banner[hidden] {
+    display: none;
+  }
+
+  .cookie-banner__text {
+    margin: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--fg-muted);
+  }
+
+  .cookie-banner__link {
+    color: var(--fg);
+    text-underline-offset: 0.18em;
+  }
+
+  .cookie-banner__link:hover {
+    color: var(--accent-strong);
+  }
+
+  .cookie-banner__ok {
+    flex: 0 0 auto;
+    appearance: none;
+    border: var(--stroke) solid var(--border-strong);
+    background: transparent;
+    color: var(--fg);
+    min-height: 2.5rem;
+    padding: 0.45rem 0.9rem;
+    font: inherit;
+    font-weight: 600;
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+
+  .cookie-banner__ok:hover {
+    border-color: var(--fg);
+  }
+
+  @media (max-width: 520px) {
+    .cookie-banner {
+      right: var(--page-pad);
+      width: auto;
+    }
+  }
+</style>

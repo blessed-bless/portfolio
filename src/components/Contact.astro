@@ -2,7 +2,7 @@
 import Button from './Button.astro';
 import { contactLinks } from '../data/home';
 import { isFilled } from '../lib/fill';
-import { defaultLocale, isLocale, ui, type Locale } from '../i18n';
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
 const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
 const t = ui(locale);
@@ -11,6 +11,7 @@ const letters = [...title];
 const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 const github = isFilled(contactLinks.github) ? contactLinks.github : null;
 const email = isFilled(contactLinks.email) ? contactLinks.email : null;
+const privacyHref = localizedPath(locale, '/privacy/');
 const hasLinks = Boolean(telegram || github || email);
 ---
 
@@ -31,20 +32,93 @@ const hasLinks = Boolean(telegram || github || email);
   {
     hasLinks ? (
       <div class="contact__body">
+        <p class="contact__hint">{t.home.contactHint}</p>
+
         {telegram ? (
-          <>
-            <p class="contact__hint">{t.home.contactHint}</p>
+          <form
+            class="contact__form"
+            data-lead-form
+            data-telegram={telegram}
+            novalidate
+          >
+            <label class="contact__field">
+              <span class="contact__label">{t.leadForm.nameLabel}</span>
+              <input
+                class="contact__input"
+                type="text"
+                name="name"
+                autocomplete="name"
+                required
+                maxlength="120"
+                placeholder={t.leadForm.namePlaceholder}
+              />
+            </label>
+            <label class="contact__field">
+              <span class="contact__label">{t.leadForm.contactLabel}</span>
+              <input
+                class="contact__input"
+                type="text"
+                name="contact"
+                autocomplete="tel"
+                required
+                maxlength="160"
+                placeholder={t.leadForm.contactPlaceholder}
+              />
+            </label>
+            <label class="contact__field">
+              <span class="contact__label">{t.leadForm.messageLabel}</span>
+              <textarea
+                class="contact__input contact__textarea"
+                name="message"
+                required
+                maxlength="2000"
+                rows="4"
+                placeholder={t.leadForm.messagePlaceholder}
+              ></textarea>
+            </label>
+
+            <label class="contact__consent">
+              <input
+                class="contact__check"
+                type="checkbox"
+                name="consent"
+                value="1"
+                required
+                aria-describedby="lead-consent-error"
+              />
+              <span>
+                {t.leadForm.consentPrefix}{' '}
+                <a href={privacyHref} data-cursor="hover">{t.leadForm.consentLink}</a>
+              </span>
+            </label>
+            <p
+              class="contact__consent-error"
+              id="lead-consent-error"
+              data-lead-consent-error
+              hidden
+              role="alert"
+            >
+              {t.leadForm.consentRequired}
+            </p>
+
             <div class="contact__cta">
-              <Button href={telegram} variant="primary">
-                Telegram
-              </Button>
+              <button
+                class="btn btn--primary"
+                type="submit"
+                data-lead-submit
+                data-label-idle={t.leadForm.submit}
+                data-label-busy={t.leadForm.sending}
+                data-cursor="hover"
+              >
+                {t.leadForm.submit}
+              </button>
               {email ? (
                 <Button href={`mailto:${email}`} variant="ghost">
                   {t.home.contactWrite}
                 </Button>
               ) : null}
             </div>
-          </>
+          </form>
         ) : email ? (
           <div class="contact__cta">
             <Button href={`mailto:${email}`} variant="primary">
@@ -123,6 +197,93 @@ const hasLinks = Boolean(telegram || github || email);
     max-width: 36rem;
   }
 
+  .contact__form {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .contact__field {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .contact__label {
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-mono);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .contact__input {
+    width: 100%;
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    border: var(--stroke) solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--fg);
+    font: inherit;
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  .contact__input::placeholder {
+    color: var(--fg-faint);
+  }
+
+  .contact__input:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .contact__textarea {
+    resize: vertical;
+    min-height: 7rem;
+  }
+
+  .contact__consent {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+    align-items: start;
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+    color: var(--fg-muted);
+    cursor: pointer;
+  }
+
+  .contact__consent a {
+    color: var(--fg);
+    text-underline-offset: 0.18em;
+  }
+
+  .contact__consent a:hover {
+    color: var(--accent-strong);
+  }
+
+  .contact__check {
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: 0.2rem;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .contact__check[aria-invalid='true'] {
+    outline: 2px solid var(--danger);
+    outline-offset: 2px;
+  }
+
+  .contact__consent-error {
+    margin: calc(var(--space-2) * -1) 0 0;
+    color: var(--danger);
+    font-size: var(--text-sm);
+  }
+
+  .contact__consent-error[hidden] {
+    display: none;
+  }
+
   .contact__pending {
     margin: var(--space-7) 0 0;
     color: var(--fg-muted);
@@ -133,6 +294,39 @@ const hasLinks = Boolean(telegram || github || email);
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3);
+  }
+
+  .contact__cta :global(.btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    padding: 0.7rem 1.25rem;
+    border: var(--stroke) solid transparent;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .contact__cta :global(.btn--primary) {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: transparent;
+  }
+
+  .contact__cta :global(.btn--primary:hover) {
+    background: color-mix(in srgb, var(--accent) 82%, white);
+  }
+
+  .contact__cta :global(.btn--primary:disabled) {
+    opacity: 0.7;
+    cursor: wait;
   }
 
   .contact__links {
@@ -167,7 +361,7 @@ const hasLinks = Boolean(telegram || github || email);
   .contact__toast {
     position: fixed;
     left: 50%;
-    bottom: var(--space-5);
+    bottom: calc(var(--space-5) + var(--cookie-notice-space, 0px));
     z-index: 50;
     margin: 0;
     padding: var(--space-2) var(--space-4);
