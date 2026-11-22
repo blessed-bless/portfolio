@@ -1,0 +1,67 @@
+---
+title: Pingo
+slug: pingo
+year: '2026'
+role: Продукт и бэкенд
+stack:
+  - Node.js 24
+  - SQLite
+  - Telegram Bot API
+  - Mini App
+  - Docker
+status: готов
+cover: ../../assets/covers/pingo.svg
+summary: >-
+  Telegram Mini App для мониторинга сайтов: uptime, инциденты, алерты по
+  падению, медленному ответу и SSL — раньше, чем напишет клиент.
+links:
+  bot: https://t.me/PingoUptimeBot
+order: 5
+tags:
+  - JavaScript
+  - Bots
+  - Infra
+hasPage: true
+featured: true
+carousel: true
+---
+
+import dashboard from '../../assets/screenshots/pingo-dashboard.png';
+import mobile from '../../assets/screenshots/pingo-mobile.png';
+import status from '../../assets/screenshots/pingo-status.png';
+import Button from '../../components/Button.astro';
+import { PINGO_BOT_URL } from '../../data/work-links';
+
+<p class="case-lead-cta">
+  <Button href={PINGO_BOT_URL} variant="primary">{'Бот'}</Button>
+</p>
+
+<p class="case-note">Живая версия — скоро.</p>
+
+<Figure src={mobile} alt="Мобильный Mini App Pingo со списком сайтов и uptime" caption="Mini App — список мониторов." />
+
+## Задача
+
+Узнавать о падении сайта клиента раньше, чем клиент сам напишет. Без отдельной панели в браузере на каждый чих: открыл Telegram — видишь статус, график и инциденты.
+
+## Решение
+
+- **Бот + Mini App.** До 10 сайтов на пользователя, интервалы 1 / 5 / 15 минут.
+- **Uptime 24ч / 7д / 30д**, SVG-график времени ответа, лента инцидентов.
+- **Алерты** о падении, медленном ответе и истечении SSL.
+- **Публичная статус-страница** `/s/<slug>` — домен, статус, доступность и типы инцидентов без входа.
+- **Недельный отчёт** с p95 по каждому сайту.
+- **Проверка подписи `initData`**, защита от SSRF на цепочке редиректов и резолве адресов.
+
+## Стек
+
+Node.js 24, SQLite (WAL), Telegram Bot API / Mini App, Docker. Пакетных зависимостей у сервиса нет — один процесс поднимает HTTP, планировщик и бота.
+
+## Экраны
+
+<Figure src={dashboard} alt="Десктопный дашборд Pingo с графиком и uptime" caption="Дашборд на широком экране." />
+<Figure src={status} alt="Публичная статус-страница Pingo" caption="Публичная страница /s/&lt;slug&gt;." />
+
+## Результат и честность
+
+Бот `@PingoUptimeBot` уже отвечает. Публичный деплой статус-страниц и постоянный хостинг — в очереди, поэтому «живая версия — скоро». Репозиторий приватный: кнопки «Демо» и «Код» здесь нет.

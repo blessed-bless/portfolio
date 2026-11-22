@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="project-cover" width="1600" height="1000" viewBox="0 0 1600 1000" color="var(--cover-line, #A78BFA)" focusable="false" aria-hidden="true">
+  <rect width="1600" height="1000" fill="var(--cover-bg, #16131F)"/>
+  <path d="M72 206V72H222 M1378 928h150V794 M72 856H1528" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".5"/>
+  <g data-cover-art="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="272" y="244" width="1056" height="556" rx="10" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke"/>
+    <path d="M272 326H1328 M1002 326V800" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".38"/>
+    <rect x="310" y="276" width="164" height="17" rx="4" fill="currentColor" opacity=".58"/>
+    <rect x="1150" y="271" width="136" height="28" rx="5" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".62"/>
+    <circle cx="1170" cy="285" r="5" fill="#8B5CF6"/>
+    <path d="M1186 285H1266" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".55"/>
+    <rect x="316" y="373" width="150" height="53" rx="6" fill="#8B5CF6"/>
+    <rect x="484" y="373" width="150" height="53" rx="6" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".64"/>
+    <rect x="652" y="373" width="150" height="53" rx="6" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".44"/>
+    <path d="M339 399H433" fill="none" stroke="#E9E3FF" vector-effect="non-scaling-stroke"/>
+    <path d="M508 399H590 M676 399H746" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".65"/>
+    <path d="M316 488H958 M316 557H958 M316 626H958 M316 695H958" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".27"/>
+    <path d="M316 640L398 618L460 635L535 588L594 603L663 503L730 592L781 605L850 553L901 566L958 526V695H316Z" fill="#8B5CF6" opacity=".14"/>
+    <path d="M316 640L398 618L460 635L535 588L594 603L663 503L730 592L781 605L850 553L901 566L958 526" fill="none" stroke="#8B5CF6" stroke-width="2" vector-effect="non-scaling-stroke"/>
+    <path d="M663 488V695" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" stroke-dasharray="7 10" opacity=".58"/>
+    <circle cx="663" cy="503" r="10" fill="#8B5CF6" stroke="#E9E3FF" vector-effect="non-scaling-stroke"/>
+    <path d="M316 731H366 M470 731H520 M618 731H668 M770 731H820 M908 731H958" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".5"/>
+    <rect x="1036" y="376" width="120" height="14" rx="3" fill="currentColor" opacity=".58"/>
+    <rect x="1036" y="422" width="252" height="74" rx="7" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".7"/>
+    <rect x="1036" y="512" width="252" height="74" rx="7" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".42"/>
+    <rect x="1036" y="602" width="252" height="74" rx="7" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".42"/>
+    <path d="M1100 450H1228 M1100 540H1218 M1100 630H1238" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".75"/>
+    <path d="M1100 470H1188 M1100 560H1206 M1100 650H1196" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".38"/>
+    <circle cx="1068" cy="459" r="9" fill="#8B5CF6"/>
+    <circle cx="1068" cy="549" r="9" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke"/>
+    <circle cx="1068" cy="639" r="9" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke"/>
+  </g>
+</svg>

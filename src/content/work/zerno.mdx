@@ -1,0 +1,69 @@
+---
+title: Зерно
+slug: zerno
+year: '2026'
+role: Дизайн и вёрстка
+stack:
+  - Tilda
+status: концепт
+cover: ../../assets/covers/zerno.svg
+summary: >-
+  Сайт кофейни на Tilda: меню карточками, сезонное предложение, предзаказ
+  и карта — чтобы заказчик сам правил контент.
+links:
+  live: https://take-accented-panther.tilda.ws
+order: 4
+tags:
+  - Web
+hasPage: true
+featured: true
+carousel: true
+---
+
+import hero390 from '../../assets/screenshots/zerno-hero-390.png';
+import hero1440 from '../../assets/screenshots/zerno-hero-1440.png';
+import menu390 from '../../assets/screenshots/zerno-menu-390.png';
+import menu1440 from '../../assets/screenshots/zerno-menu-1440.png';
+import Button from '../../components/Button.astro';
+import { ZERNO_LIVE_URL } from '../../data/work-links';
+
+<p class="case-lead-cta">
+  <Button href={ZERNO_LIVE_URL} variant="primary">{'Открыть сайт'}</Button>
+</p>
+
+<p class="case-note">Концепт: кофейня вымышленная.</p>
+
+<Figure src={hero390} alt="Мобильный герой «Зерна»: логотип, слоган и кнопки меню" caption="390 — первый экран." />
+
+## Задача
+
+Показать, что делаю сайты и на Tilda — для заказчиков, которым нужно самим править тексты, фото и меню без разработчика. Не «ещё один конструктор ради конструктора», а живая витрина с фирменным стилем и рабочими сценариями: меню, сезон, предзаказ, карта.
+
+## Решение
+
+- **Tilda + Zero / HTML-блоки.** Кастомная вёрстка там, где шаблона мало; контент остаётся правимым в редакторе.
+- **Фирменный стиль.** Облепиховый акцент `#E8892A`, шрифты Oswald / Caveat / Manrope.
+- **Меню карточками с фильтрами.** Классика, альтернатива, не кофе, еда — без простыни прайса.
+- **Сезонное предложение** на отдельном экране, предзаказ с согласием на обработку ПД, карта и адаптив 320–1440.
+
+## Цифры
+
+| | Lighthouse |
+| --- | --- |
+| Performance mobile | 80 |
+| Performance desktop | 79 |
+| CLS | 0 |
+| Accessibility | 94 |
+| SEO | 100 |
+
+На Tilda это хороший результат: без ухода в чистый статический хостинг метрики выше редко держатся стабильно.
+
+## Экраны
+
+<Figure src={hero1440} alt="Десктопный герой «Зерна» с фото бариста и навигацией" caption="1440 — первый экран." />
+<Figure src={menu390} alt="Мобильное меню с фильтрами и карточками напитков" caption="390 — меню карточками." />
+<Figure src={menu1440} alt="Десктопное меню с фильтром «Классика» и сеткой карточек" caption="1440 — меню и фильтры." />
+
+## Результат и честность
+
+Собран на Tilda как портфолио-концепт. Кофейня вымышленная, домен временный — заменю на `zerno.dubstepmolitva.ru`, когда будет готов. Живой Lighthouse на проде не разгонял сверх того, что даёт платформа без тяжёлого кастома.

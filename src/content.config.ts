@@ -32,6 +32,7 @@ const work = defineCollection({
         github: z.string().optional(),
         demo: z.string().optional(),
         live: z.string().optional(),
+        bot: z.string().optional(),
       })
       .default({}),
     order: z.number(),

@@ -112,6 +112,64 @@ export async function rasterizeCover(
   return rasterizeCoverSvg(cover, layer, options);
 }
 
+async function rasterizePhotoUrl(
+  url: string,
+  layer: 'art' | 'base',
+  options: CoverRasterOptions,
+): Promise<CanvasTexture> {
+  const width = Math.max(1, Math.round(options.width));
+  const height = Math.max(1, Math.round(options.height ?? (width * 10) / 16));
+  const image = new Image();
+  image.decoding = 'async';
+  image.crossOrigin = 'anonymous';
+  image.src = url;
+  await image.decode();
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Canvas 2D is unavailable');
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+
+  if (layer === 'base') {
+    context.fillStyle = themeCoverVars()['--cover-bg'] || '#16131F';
+    context.fillRect(0, 0, width, height);
+  } else {
+    const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+    const drawW = image.naturalWidth * scale;
+    const drawH = image.naturalHeight * scale;
+    context.drawImage(image, (width - drawW) / 2, (height - drawH) / 2, drawW, drawH);
+  }
+
+  if (options.label && layer === 'base') {
+    const vars = themeCoverVars();
+    const scale = width / 1600;
+    const fontPx = Math.max(12, Math.round(42 * scale));
+    context.font = `650 ${fontPx}px Unbounded, Onest, system-ui, sans-serif`;
+    context.textBaseline = 'alphabetic';
+    context.fillStyle = vars['--cover-line'] || '#A78BFA';
+    context.fillText(options.label.number, 100 * scale, 144 * scale);
+    const numWidth = context.measureText(options.label.number).width;
+    context.fillStyle = vars['--cover-ink'] || '#E9E3FF';
+    context.fillText(
+      options.label.title,
+      Math.max(206 * scale, 100 * scale + numWidth + 12 * scale),
+      144 * scale,
+    );
+  }
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.minFilter = LinearMipmapLinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.anisotropy = options.anisotropy ?? 1;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 export async function rasterizeCoverUrl(
   url: string,
   layer: 'art' | 'base',
@@ -122,6 +180,11 @@ export async function rasterizeCoverUrl(
     theme === 'light' && url.includes('/covers/') && !url.includes('/covers/light/')
       ? url.replace('/covers/', '/covers/light/')
       : url;
+
+  if (/\.(png|jpe?g|webp)(\?|$)/i.test(themedUrl)) {
+    return rasterizePhotoUrl(themedUrl, layer, options);
+  }
+
   const svg = await svgFromUrl(themedUrl);
   return rasterizeCoverSvg(svg, layer, options);
 }

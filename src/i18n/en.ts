@@ -123,6 +123,7 @@ export const en: UiDict = {
     github: 'GitHub',
     tryDemo: 'Try the demo',
     openSite: 'Open site',
+    openBot: 'Bot',
     code: 'Code',
   },
   cmdk: {
@@ -138,6 +139,8 @@ export const en: UiDict = {
     openChannel: 'Open Telegram channel',
     openGithub: 'Open GitHub',
     openGran: 'Open Gran',
+    openZerno: 'Open Zerno',
+    openPingo: 'Open Pingo',
     switchLocale: 'Switch language RU/EN',
     resume: 'Download resume',
     lessMotion: 'Fewer animations',
@@ -155,8 +158,10 @@ export const en: UiDict = {
   offers: [
     {
       title: 'Business website',
-      text: 'A storefront with booking on the first screen — like Gran, paired with the Smena Mini App.',
+      text: 'A storefront with booking on the first screen — like Gran, paired with the Smena Mini App. On Tilda — when the client edits content themselves.',
       href: '/en/work/gran/',
+      secondaryHref: '/en/work/zerno/',
+      secondaryLabel: 'on Tilda',
     },
     {
       title: 'Booking and schedule in Telegram',
@@ -165,8 +170,10 @@ export const en: UiDict = {
     },
     {
       title: 'Intake bots',
-      text: 'Telegram bots that qualify a lead, ask the right follow-ups, and hand off to a human.',
+      text: 'Telegram bots that qualify a lead, ask the right follow-ups, and hand off to a human. Site monitoring — like Pingo.',
       href: '/en/work/ai-funnel-ecosystem/#demo',
+      secondaryHref: '/en/work/pingo/',
+      secondaryLabel: 'Pingo',
     },
   ],
   faq: {

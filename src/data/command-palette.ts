@@ -1,4 +1,5 @@
 import { contactLinks, telegramChannel } from './home';
+import { PINGO_BOT_URL, ZERNO_LIVE_URL } from './work-links';
 import { isFilled } from '../lib/fill';
 import { resumeHref } from '../lib/site';
 import { localizedPath, type Locale, type UiDict } from '../i18n';
@@ -20,6 +21,8 @@ export type PaletteItem = {
     | 'telegram-channel'
     | 'github'
     | 'open-gran'
+    | 'open-zerno'
+    | 'open-pingo'
     | 'locale'
     | 'resume'
     | 'less-motion';
@@ -142,6 +145,26 @@ export function buildPaletteItems(projects: Project[], t: UiDict): PaletteItem[]
     keywords: 'gran грань barbershop барбершоп сайт запись booking',
     action: 'open-gran',
     href: 'https://gran.dubstepmolitva.ru',
+  });
+
+  actions.push({
+    id: 'action-open-zerno',
+    type: 'action',
+    title: t.cmdk.openZerno,
+    hint: 'zerno',
+    keywords: 'zerno зерно coffee кофейня tilda сайт меню',
+    action: 'open-zerno',
+    href: ZERNO_LIVE_URL,
+  });
+
+  actions.push({
+    id: 'action-open-pingo',
+    type: 'action',
+    title: t.cmdk.openPingo,
+    hint: 't.me/PingoUptimeBot',
+    keywords: 'pingo пинго uptime мониторинг bot бот telegram ssl',
+    action: 'open-pingo',
+    href: PINGO_BOT_URL,
   });
 
   actions.push({

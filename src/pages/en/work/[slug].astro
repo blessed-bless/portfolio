@@ -128,6 +128,13 @@ const creativeWorkLd = {
             </a>
           ) : null
         }
+        {
+          project.links.bot ? (
+            <a href={project.links.bot} data-cursor="hover">
+              {t.case.openBot}
+            </a>
+          ) : null
+        }
       </div>
     </div>
 

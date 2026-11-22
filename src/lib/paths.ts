@@ -9,7 +9,9 @@ export function withTrailingSlash(path: string): string {
 }
 
 export function coverPublicUrl(assetPath: string, theme: 'dark' | 'light' = 'dark'): string {
-  const match = assetPath.match(/covers\/([^/]+)\.svg$/);
+  const match = assetPath.match(/covers\/([^/]+)\.(svg|png|jpe?g|webp)$/i);
   if (!match) throw new Error(`Unexpected cover path: ${assetPath}`);
-  return theme === 'light' ? `/covers/light/${match[1]}.svg` : `/covers/${match[1]}.svg`;
+  const [, name, ext] = match;
+  const file = `${name}.${ext.toLowerCase()}`;
+  return theme === 'light' ? `/covers/light/${file}` : `/covers/${file}`;
 }

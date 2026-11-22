@@ -11,6 +11,7 @@ export type WorkLinks = {
   github?: string;
   demo?: string;
   live?: string;
+  bot?: string;
 };
 
 /** Shape used by hero carousel and list previews (client-safe). */
