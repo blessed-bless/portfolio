@@ -1,0 +1,44 @@
+---
+title: IP Check
+slug: ipcheck
+year: '2026'
+role: Design & development
+stack:
+  - Astro
+  - TypeScript
+  - Node.js
+  - Docker
+status: shipped
+cover: ../../assets/covers/ipcheck.webp
+summary: >-
+  A network privacy tool for public IPs, Cloudflare routes, DNS, WebRTC,
+  and browser information.
+links:
+  github: https://github.com/blessed-bless/ipcheck
+order: 10
+tags:
+  - Web
+  - TypeScript
+  - Infra
+hasPage: true
+featured: true
+carousel: true
+---
+
+## Problem
+
+A browser, websites and WebRTC can report different exit addresses when a VPN or proxy is active. I built a diagnostic tool that shows where each result comes from and what it tells you about the connection.
+
+## Implementation
+
+- **Browser.** IPv4 and IPv6 are probed independently. The browser measures requests to website resources and reads Cloudflare Trace responses from hosts that allow cross-origin access.
+- **Node.js.** A single endpoint combines IP data sources, applies a per-client rate limit, caches results in memory for ten minutes and checks the trusted proxy chain.
+- **Interface.** The dashboard displays the median of three attempts and available reputation signals. Unknown fields are marked as unavailable. IP addresses can be masked across tabs or copied in one click.
+
+## Measurement limits
+
+The DNS test shows the egress of the selected public resolver. WebRTC can be compared with HTTP only when the browser returns public candidates. The reputation score uses a documented heuristic. It cannot predict service access, payment decisions or identity checks.
+
+## Results
+
+The VPN and direct routes produced different public IPv4 addresses, countries, ASNs and Cloudflare Trace addresses. I checked both themes at 1440 and 390 pixels. The cover uses example addresses.
