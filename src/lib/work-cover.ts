@@ -46,7 +46,7 @@ export function workCover(path: string): string {
   return cover;
 }
 
-/** Inject number + title into a cover SVG (for OG) at the former glyph seats. */
+/** Match the case label drawn over the cover in ProjectCover. */
 export function workCoverLabeled(
   path: string,
   options: { number: string; title: string },
@@ -55,7 +55,6 @@ export function workCoverLabeled(
   const number = escapeXml(options.number);
   const title = escapeXml(options.title);
   const label = `
-  <text x="100" y="144" fill="currentColor" font-family="Unbounded, Onest, sans-serif" font-size="42" font-weight="650" letter-spacing="-0.02em">${number}</text>
-  <text x="206" y="144" fill="var(--cover-ink, #E9E3FF)" font-family="Unbounded, Onest, sans-serif" font-size="42" font-weight="650" letter-spacing="-0.02em">${title}</text>`;
+  <text x="100" y="144" font-family="Unbounded, Onest, sans-serif" font-size="42" font-weight="700" letter-spacing="-0.84" xml:space="preserve"><tspan fill="currentColor">${number} · </tspan><tspan fill="var(--cover-ink, #E9E3FF)">${title}</tspan></text>`;
   return withOgFonts(base.replace(/<\/svg>\s*$/i, `${label}\n</svg>`));
 }
