@@ -130,6 +130,7 @@ export const ru: UiDict = {
     github: 'GitHub',
     tryDemo: 'Попробовать демо',
     openSite: 'Открыть сайт',
+    openBot: 'Бот',
     code: 'Код',
   },
   cmdk: {
@@ -145,6 +146,8 @@ export const ru: UiDict = {
     openChannel: 'Открыть Telegram-канал',
     openGithub: 'Открыть GitHub',
     openGran: 'Открыть Грань',
+    openZerno: 'Открыть Зерно',
+    openPingo: 'Открыть Pingo',
     switchLocale: 'Переключить язык RU/EN',
     resume: 'Скачать резюме',
     lessMotion: 'Меньше анимаций',

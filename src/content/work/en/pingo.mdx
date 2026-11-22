@@ -1,0 +1,67 @@
+---
+title: Pingo
+slug: pingo
+year: '2026'
+role: Product & backend
+stack:
+  - Node.js 24
+  - SQLite
+  - Telegram Bot API
+  - Mini App
+  - Docker
+status: shipped
+cover: ../../assets/covers/pingo.svg
+summary: >-
+  A Telegram Mini App for site monitoring: uptime, incidents, and alerts for
+  downtime, slow responses, and SSL expiry — before the client messages you.
+links:
+  bot: https://t.me/PingoUptimeBot
+order: 5
+tags:
+  - JavaScript
+  - Bots
+  - Infra
+hasPage: true
+featured: true
+carousel: true
+---
+
+import dashboard from '../../../assets/screenshots/pingo-dashboard.png';
+import mobile from '../../../assets/screenshots/pingo-mobile.png';
+import status from '../../../assets/screenshots/pingo-status.png';
+import Button from '../../../components/Button.astro';
+import { PINGO_BOT_URL } from '../../../data/work-links';
+
+<p class="case-lead-cta">
+  <Button href={PINGO_BOT_URL} variant="primary">{'Bot'}</Button>
+</p>
+
+<p class="case-note">Live version — coming soon.</p>
+
+<Figure src={mobile} alt="Pingo mobile Mini App with site list and uptime" caption="Mini App — monitor list." />
+
+## Problem
+
+Learn that a client’s site is down before the client messages you. No separate browser dashboard for every check: open Telegram — see status, chart, and incidents.
+
+## Solution
+
+- **Bot + Mini App.** Up to 10 sites per user, intervals 1 / 5 / 15 minutes.
+- **Uptime 24h / 7d / 30d**, SVG response-time chart, incident feed.
+- **Alerts** for downtime, slow responses, and SSL expiry.
+- **Public status page** `/s/<slug>` — domain, status, availability, and incident types without login.
+- **Weekly report** with p95 per site.
+- **`initData` signature checks**, SSRF protection on redirect chains and resolved addresses.
+
+## Stack
+
+Node.js 24, SQLite (WAL), Telegram Bot API / Mini App, Docker. No npm dependencies in the service — one process runs HTTP, the scheduler, and the bot.
+
+## Screens
+
+<Figure src={dashboard} alt="Pingo desktop dashboard with chart and uptime" caption="Wide-screen dashboard." />
+<Figure src={status} alt="Pingo public status page" caption="Public page /s/&lt;slug&gt;." />
+
+## What was verified
+
+`@PingoUptimeBot` already answers. Public status-page hosting is still in the queue — hence “live version — coming soon”. The repo is private: no Demo or Code buttons here.

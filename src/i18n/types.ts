@@ -121,6 +121,7 @@ export type UiDict = {
     github: string;
     tryDemo: string;
     openSite: string;
+    openBot: string;
     code: string;
   };
   cmdk: {
@@ -136,6 +137,8 @@ export type UiDict = {
     openChannel: string;
     openGithub: string;
     openGran: string;
+    openZerno: string;
+    openPingo: string;
     switchLocale: string;
     resume: string;
     lessMotion: string;
@@ -149,7 +152,13 @@ export type UiDict = {
     wantSame: string;
     wantSameText: (project: string) => string;
   };
-  offers: Array<{ title: string; text: string; href: string }>;
+  offers: Array<{
+    title: string;
+    text: string;
+    href: string;
+    secondaryHref?: string;
+    secondaryLabel?: string;
+  }>;
   process: Array<{ title: string; text: string; timing: string }>;
   faq: {
     eyebrow: string;

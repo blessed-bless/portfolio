@@ -32,8 +32,10 @@ export const services: ServiceItem[] = [
 export const businessOffers = [
   {
     title: 'Сайт для бизнеса',
-    text: 'Витрина с записью на первом экране — как «Грань», со связкой на Telegram Mini App «Смена».',
+    text: 'Витрина с записью на первом экране — как «Грань», со связкой на Telegram Mini App «Смена». На Tilda — если контент правите сами.',
     href: '/work/gran/',
+    secondaryHref: '/work/zerno/',
+    secondaryLabel: 'на Tilda',
   },
   {
     title: 'Запись и напоминания',
@@ -42,8 +44,10 @@ export const businessOffers = [
   },
   {
     title: 'Бот, принимающий заявки',
-    text: 'Telegram-бот принимает лид, уточняет детали и отдаёт менеджеру.',
+    text: 'Telegram-бот принимает лид, уточняет детали и отдаёт менеджеру. Мониторинг сайтов — как Pingo.',
     href: '/work/ai-funnel-ecosystem/#demo',
+    secondaryHref: '/work/pingo/',
+    secondaryLabel: 'Pingo',
   },
 ] as const;
 

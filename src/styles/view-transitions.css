@@ -21,6 +21,8 @@
 
 /* Shared cover morph — group name matches Astro transition:name */
 ::view-transition-group(work-cover-priemnaya),
+::view-transition-group(work-cover-zerno),
+::view-transition-group(work-cover-pingo),
 ::view-transition-group(work-cover-fleetkit),
 ::view-transition-group(work-cover-crawlnet),
 ::view-transition-group(work-cover-ai-funnel-ecosystem),
@@ -30,11 +32,15 @@
 }
 
 ::view-transition-old(work-cover-priemnaya),
+::view-transition-old(work-cover-zerno),
+::view-transition-old(work-cover-pingo),
 ::view-transition-old(work-cover-fleetkit),
 ::view-transition-old(work-cover-crawlnet),
 ::view-transition-old(work-cover-ai-funnel-ecosystem),
 ::view-transition-old(work-cover-shipcrew),
 ::view-transition-new(work-cover-priemnaya),
+::view-transition-new(work-cover-zerno),
+::view-transition-new(work-cover-pingo),
 ::view-transition-new(work-cover-fleetkit),
 ::view-transition-new(work-cover-crawlnet),
 ::view-transition-new(work-cover-ai-funnel-ecosystem),
@@ -80,6 +86,8 @@
   }
 
   ::view-transition-group(work-cover-priemnaya),
+  ::view-transition-group(work-cover-zerno),
+  ::view-transition-group(work-cover-pingo),
   ::view-transition-group(work-cover-fleetkit),
   ::view-transition-group(work-cover-crawlnet),
   ::view-transition-group(work-cover-ai-funnel-ecosystem),
@@ -97,6 +105,8 @@ html[data-perf='low'] ::view-transition-new(root) {
 }
 
 html[data-perf='low'] ::view-transition-group(work-cover-priemnaya),
+html[data-perf='low'] ::view-transition-group(work-cover-zerno),
+html[data-perf='low'] ::view-transition-group(work-cover-pingo),
 html[data-perf='low'] ::view-transition-group(work-cover-fleetkit),
 html[data-perf='low'] ::view-transition-group(work-cover-crawlnet),
 html[data-perf='low'] ::view-transition-group(work-cover-ai-funnel-ecosystem),

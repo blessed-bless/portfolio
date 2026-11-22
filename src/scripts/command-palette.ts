@@ -239,6 +239,8 @@ async function runItem(item: PaletteItem): Promise<void> {
     item.action === 'telegram-channel' ||
     item.action === 'github' ||
     item.action === 'open-gran' ||
+    item.action === 'open-zerno' ||
+    item.action === 'open-pingo' ||
     item.action === 'resume'
   ) {
     if (item.action === 'telegram-channel') {

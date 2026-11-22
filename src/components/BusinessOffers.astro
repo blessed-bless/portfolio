@@ -22,12 +22,21 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
   <div class="offers__grid">
     {
       offers.map((offer, index) => (
-        <a class="offers__card" href={offer.href} data-cursor="hover">
+        <article class="offers__card">
           <p class="offers__num mono">{String(index + 1).padStart(2, '0')}</p>
           <h3 class="offers__card-title">{offer.title}</h3>
           <p class="offers__card-text">{offer.text}</p>
-          <span class="offers__card-link mono">{index === 0 ? caseLabel : demoLabel}</span>
-        </a>
+          <p class="offers__card-links">
+            <a class="offers__card-link mono" href={offer.href} data-cursor="hover">
+              {index === 0 ? caseLabel : demoLabel}
+            </a>
+            {offer.secondaryHref && offer.secondaryLabel ? (
+              <a class="offers__card-link mono" href={offer.secondaryHref} data-cursor="hover">
+                {offer.secondaryLabel} →
+              </a>
+            ) : null}
+          </p>
+        </article>
       ))
     }
   </div>
@@ -116,14 +125,12 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
     padding: var(--space-5);
     border: var(--stroke) solid var(--border);
     background: var(--bg-elevated);
-    text-decoration: none;
     color: inherit;
     transition: border-color var(--dur-2) var(--ease-out);
   }
 
   .offers__card:hover {
     border-color: var(--border-strong);
-    color: inherit;
   }
 
   .offers__num {
@@ -146,11 +153,22 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
     font-size: var(--text-sm);
   }
 
+  .offers__card-links {
+    margin: var(--space-2) 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
   .offers__card-link {
-    margin-top: var(--space-2);
     color: var(--accent-strong);
     font-size: var(--text-xs);
     text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .offers__card-link:hover {
+    color: var(--fg);
   }
 
   .process__list {

@@ -1,0 +1,69 @@
+---
+title: Zerno
+slug: zerno
+year: '2026'
+role: Design & layout
+stack:
+  - Tilda
+status: concept
+cover: ../../assets/covers/zerno.svg
+summary: >-
+  A coffee-shop site on Tilda: card menu, seasonal offer, pre-order, and a map —
+  so the client can edit content themselves.
+links:
+  live: https://take-accented-panther.tilda.ws
+order: 4
+tags:
+  - Web
+hasPage: true
+featured: true
+carousel: true
+---
+
+import hero390 from '../../../assets/screenshots/zerno-hero-390.png';
+import hero1440 from '../../../assets/screenshots/zerno-hero-1440.png';
+import menu390 from '../../../assets/screenshots/zerno-menu-390.png';
+import menu1440 from '../../../assets/screenshots/zerno-menu-1440.png';
+import Button from '../../../components/Button.astro';
+import { ZERNO_LIVE_URL } from '../../../data/work-links';
+
+<p class="case-lead-cta">
+  <Button href={ZERNO_LIVE_URL} variant="primary">{'Open site'}</Button>
+</p>
+
+<p class="case-note">Concept: fictional coffee shop.</p>
+
+<Figure src={hero390} alt="Zerno mobile hero with logo, tagline, and menu CTAs" caption="390 — first screen." />
+
+## Problem
+
+Show that I also ship sites on Tilda — for clients who need to edit copy, photos, and the menu without a developer. Not “constructor for its own sake”, but a working storefront with brand style and real flows: menu, seasonal offer, pre-order, map.
+
+## Solution
+
+- **Tilda + Zero / HTML blocks.** Custom layout where templates fall short; content stays editable in the editor.
+- **Brand system.** Sea-buckthorn accent `#E8892A`, fonts Oswald / Caveat / Manrope.
+- **Card menu with filters.** Classics, alternative, non-coffee, food — no endless price list.
+- **Seasonal offer** on its own screen, pre-order with personal-data consent, map, and 320–1440 responsive layout.
+
+## Numbers
+
+| | Lighthouse |
+| --- | --- |
+| Performance mobile | 80 |
+| Performance desktop | 79 |
+| CLS | 0 |
+| Accessibility | 94 |
+| SEO | 100 |
+
+On Tilda that’s a solid score — without moving to a pure static host, higher numbers rarely stay stable.
+
+## Screens
+
+<Figure src={hero1440} alt="Zerno desktop hero with barista photo and navigation" caption="1440 — first screen." />
+<Figure src={menu390} alt="Mobile menu with filters and drink cards" caption="390 — card menu." />
+<Figure src={menu1440} alt="Desktop menu with Classics filter and card grid" caption="1440 — menu and filters." />
+
+## What was verified
+
+Built on Tilda as a portfolio concept. The shop is fictional; the domain is temporary and will move to `zerno.dubstepmolitva.ru`. Live Lighthouse wasn’t pushed beyond what the platform holds without heavy custom hosting.
