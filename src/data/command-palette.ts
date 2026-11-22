@@ -151,7 +151,7 @@ export function buildPaletteItems(projects: Project[], t: UiDict): PaletteItem[]
     id: 'action-open-zerno',
     type: 'action',
     title: t.cmdk.openZerno,
-    hint: 'zerno',
+    hint: 'zerno.dubstepmolitva.ru',
     keywords: 'zerno зерно coffee кофейня tilda сайт меню',
     action: 'open-zerno',
     href: ZERNO_LIVE_URL,
