@@ -1,6 +1,7 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
 import Button from './Button.astro';
+import BrandMark from './BrandMark.astro';
 import { contactLinks, telegramChannel } from '../data/home';
 import { isFilled } from '../lib/fill';
 import { hasPublishedNotes } from '../lib/notes';
@@ -49,7 +50,7 @@ function isActive(href: string): boolean {
 <header class="site-header page-pad" data-site-header>
   <div class="site-header__inner">
     <a class="site-header__brand" href={localizedPath(locale, '/')} data-cursor="hover">
-      <span class="site-header__mark" aria-hidden="true"></span>
+      <BrandMark class="site-header__mark" size={24} />
       <span class="site-header__name">{t.brand}</span>
     </a>
 
@@ -248,9 +249,31 @@ function isActive(href: string): boolean {
   }
 
   .site-header__mark {
-    width: 0.7rem;
-    height: 0.7rem;
-    background: var(--accent);
+    display: block;
+    width: 24px;
+    height: 24px;
+    flex: none;
+    color: var(--fg);
+  }
+
+  .site-header__brand:hover :global(.brand-mark__caret) {
+    animation: site-header-caret-blink 1s steps(1, end) infinite;
+  }
+
+  @keyframes site-header-caret-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-header__brand:hover :global(.brand-mark__caret) {
+      animation: none;
+    }
+  }
+
+  :global(html[data-perf='low'] .site-header__brand:hover .brand-mark__caret) {
+    animation: none;
   }
 
   .site-header__name {

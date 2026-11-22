@@ -31,5 +31,9 @@ export function buildOgSvg(options: {
       : ''
   }
   <rect x="72" y="520" width="160" height="6" fill="#B79CFF"/>
+  <g transform="translate(1088 526) scale(0.078125)">
+    <path d="M156 112 L156 372 L222 314 L362 314 Z" fill="#F3F1EA" stroke="#F3F1EA" stroke-width="28" stroke-linejoin="round"/>
+    <rect x="292" y="358" width="92" height="42" rx="8" fill="#8B5CF6"/>
+  </g>
 </svg>`);
 }
