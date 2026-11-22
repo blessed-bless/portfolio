@@ -19,6 +19,7 @@ export type PaletteItem = {
     | 'telegram'
     | 'telegram-channel'
     | 'github'
+    | 'open-gran'
     | 'locale'
     | 'resume'
     | 'less-motion';
@@ -132,6 +133,16 @@ export function buildPaletteItems(projects: Project[], t: UiDict): PaletteItem[]
       href: contactLinks.github,
     });
   }
+
+  actions.push({
+    id: 'action-open-gran',
+    type: 'action',
+    title: t.cmdk.openGran,
+    hint: 'gran.dubstepmolitva.ru',
+    keywords: 'gran грань barbershop барбершоп сайт запись booking',
+    action: 'open-gran',
+    href: 'https://gran.dubstepmolitva.ru',
+  });
 
   actions.push({
     id: 'action-locale',
