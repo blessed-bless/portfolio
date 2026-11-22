@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import sharp from 'sharp';
+import { renderOgPng } from '../../../lib/og-render';
 import { getCaseEntries } from '../../../lib/work';
 import { workCoverLabeled } from '../../../lib/work-cover';
 
@@ -20,13 +20,7 @@ export const GET: APIRoute = async ({ props }) => {
     number: props.number,
     title: props.title,
   }).replace(/var\(--cover-[a-z]+, (#[A-Fa-f0-9]{6})\)/g, '$1');
-  const png = await sharp(new TextEncoder().encode(svg))
-    .resize(1200, 630, {
-      fit: 'contain',
-      background: { r: 13, g: 11, b: 18, alpha: 1 },
-    })
-    .png()
-    .toBuffer();
+  const png = renderOgPng(svg);
   return new Response(new Uint8Array(png), {
     headers: {
       'Content-Type': 'image/png',

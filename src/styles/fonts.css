@@ -8,3 +8,22 @@
 @import '@fontsource/ibm-plex-mono/latin-400.css';
 @import '@fontsource/ibm-plex-mono/cyrillic-500.css';
 @import '@fontsource/ibm-plex-mono/latin-500.css';
+
+/* Metric-matched fallbacks cut hero CLS while webfonts load. */
+@font-face {
+  font-family: 'Onest Fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Helvetica');
+  size-adjust: 103%;
+  ascent-override: 92%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Unbounded Fallback';
+  src: local('Arial Black'), local('Arial'), local('Helvetica Neue');
+  size-adjust: 98%;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}

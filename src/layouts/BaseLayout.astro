@@ -12,6 +12,7 @@ import { hasPublishedNotes } from '../lib/notes';
 import { withTrailingSlash } from '../lib/paths';
 import { defaultLocale, isLocale, localizedPath, stripLocalePrefix, ui, type Locale } from '../i18n';
 import onestWoff2 from '@fontsource-variable/onest/files/onest-cyrillic-wght-normal.woff2?url';
+import unboundedWoff2 from '@fontsource/unbounded/files/unbounded-cyrillic-700-normal.woff2?url';
 import '../styles/global.css';
 
 interface Props {
@@ -87,6 +88,7 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
       <link rel="alternate" type="application/rss+xml" title="Заметки" href="/rss.xml" />
     ) : null}
     <link rel="preload" href={onestWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={unboundedWoff2} as="font" type="font/woff2" crossorigin />
     <script is:inline>
       (() => {
         try {

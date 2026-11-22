@@ -311,6 +311,8 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 
   .hero__line {
     max-width: 16ch;
+    /* Seat for ~3 lines before SplitText paints — avoids CLS from char wraps. */
+    min-height: calc(3 * 1em * var(--leading-snug));
     font-size: clamp(1.35rem, 1rem + 1.5vw, 2.15rem);
     font-weight: 650;
     letter-spacing: var(--tracking-tight);
@@ -344,12 +346,15 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     align-content: stretch;
     pointer-events: none;
     background: transparent;
+    /* Reserved seat matches final desktop stage — cuts CLS when cards/canvas paint. */
+    min-height: min(70vh, 42rem);
   }
 
   .hero__stage {
     position: relative;
-    min-height: 0;
+    min-height: min(58vh, 34rem);
     height: 100%;
+    aspect-ratio: 16 / 11;
     margin-block: 0;
     overflow: visible;
     background: transparent;
@@ -472,6 +477,8 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     gap: var(--space-3);
     align-content: center;
     pointer-events: auto;
+    min-height: 100%;
+    width: 100%;
   }
 
   .hero__static[hidden] {
@@ -540,6 +547,8 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     .hero__stage {
       height: 100%;
       max-height: none;
+      min-height: 0;
+      aspect-ratio: auto;
       align-self: stretch;
     }
 
@@ -575,11 +584,13 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 
     .hero__brand {
       font-size: clamp(2rem, 8vw, 2.8rem);
+      min-height: 1.15em;
     }
 
     .hero__line {
       max-width: 20ch;
       font-size: clamp(1.1rem, 4vw, 1.4rem);
+      min-height: calc(2.5 * 1em * var(--leading-snug));
     }
 
     .hero__stage-wrap {
@@ -617,18 +628,32 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
       padding: var(--space-1) var(--page-pad) var(--space-2);
     }
 
-    .hero__static {
-      inset: 1% var(--page-pad) 4%;
-    }
-
+    /* Snap carousel is the mobile default — paint final layout before JS sets data-carousel. */
+    .hero__static,
     .hero[data-carousel='snap'] .hero__static {
       inset: auto 0 4%;
       top: 1%;
       bottom: 4%;
+      display: flex;
+      gap: var(--space-4);
+      padding-inline: var(--page-pad);
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--page-pad);
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      align-items: center;
+      cursor: grab;
+      touch-action: pan-x;
+      min-height: 0;
+      width: auto;
     }
 
+    .hero__static-card,
     .hero[data-carousel='snap'] .hero__static-card {
-      flex-basis: min(86vw, 22rem);
+      flex: 0 0 min(86vw, 22rem);
+      scroll-snap-align: center;
     }
   }
 </style>
