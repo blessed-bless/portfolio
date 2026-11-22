@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import sharp from 'sharp';
 import { buildOgSvg } from '../../lib/og-svg';
+import { renderOgPng } from '../../lib/og-render';
 
 export const GET: APIRoute = async () => {
   const svg = buildOgSvg({
@@ -8,10 +8,7 @@ export const GET: APIRoute = async () => {
     subtitle: 'Кейсы и проекты',
     eyebrow: 'Портфолио',
   });
-  const png = await sharp(new TextEncoder().encode(svg))
-    .resize(1200, 630, { fit: 'cover' })
-    .png()
-    .toBuffer();
+  const png = renderOgPng(svg);
   return new Response(new Uint8Array(png), {
     headers: {
       'Content-Type': 'image/png',

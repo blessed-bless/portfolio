@@ -52,10 +52,10 @@ export const privacyRu: PrivacyCopy = {
     {
       title: 'Кому передаю',
       body: [
-        'Telegram — чтобы доставить заявку ботом.',
+        'Telegram — заявка открывает чат со мной в Telegram; переписка хранится на серверах Telegram.',
+        'Обработка через Telegram — трансграничная передача. Отправляя заявку, вы на это соглашаетесь.',
         'ООО «Яндекс» — сервис Яндекс Метрика.',
         'Хостинг Timeweb — размещение сайта.',
-        'Данные хранятся на серверах в Российской Федерации.',
       ],
     },
     {
@@ -109,10 +109,10 @@ export const privacyEn: PrivacyCopy = {
     {
       title: 'Who else gets it',
       body: [
-        'Telegram — to deliver the request via a bot.',
+        'Telegram — the form opens a chat with me; the conversation is stored on Telegram’s servers.',
+        'Processing via Telegram is a cross-border transfer. By sending a request, you agree to that.',
         'Yandex LLC — Yandex Metrica.',
         'Timeweb hosting — where the site runs.',
-        'Data is stored on servers in the Russian Federation.',
       ],
     },
     {

@@ -17,12 +17,9 @@ const privacyHref = localizedPath(locale, '/privacy/');
 </div>
 
 <style is:global>
+  /* Space token for FABs only — banner is position:fixed, so no shell padding (CLS). */
   html[data-show-cookie='1'] {
     --cookie-notice-space: calc(4.75rem + env(safe-area-inset-bottom, 0px));
-  }
-
-  html[data-show-cookie='1'] .site-shell {
-    padding-bottom: var(--cookie-notice-space);
   }
 </style>
 

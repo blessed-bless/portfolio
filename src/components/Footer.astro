@@ -163,9 +163,12 @@ const credit = t.footer.credit.replace('{year}', String(year));
 
   .site-footer__privacy {
     grid-area: privacy;
+    width: auto;
+    max-width: max-content;
+    justify-self: start;
     min-height: 44px;
     display: inline-flex;
-    align-items: center;
+    align-items: baseline;
     text-decoration: none;
     color: color-mix(in srgb, var(--fg-muted) 82%, transparent);
     font-size: 0.72rem;
@@ -199,7 +202,7 @@ const credit = t.footer.credit.replace('{year}', String(year));
     letter-spacing: normal;
     text-transform: none;
     display: inline-flex;
-    align-items: center;
+    align-items: baseline;
     gap: var(--space-2);
     min-height: 44px;
     white-space: nowrap;

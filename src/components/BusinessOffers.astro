@@ -9,6 +9,7 @@ const offers = t.offers;
 const processSteps = t.process;
 const showPricing = locale === 'ru' && pricingFrom.some((item) => isFilled(item.price));
 const showTiming = processSteps.some((step) => isFilled(step.timing));
+const caseLabel = locale === 'en' ? 'View case →' : 'Смотреть кейс →';
 const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо →';
 ---
 
@@ -25,7 +26,7 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
           <p class="offers__num mono">{String(index + 1).padStart(2, '0')}</p>
           <h3 class="offers__card-title">{offer.title}</h3>
           <p class="offers__card-text">{offer.text}</p>
-          <span class="offers__card-link mono">{demoLabel}</span>
+          <span class="offers__card-link mono">{index === 0 ? caseLabel : demoLabel}</span>
         </a>
       ))
     }

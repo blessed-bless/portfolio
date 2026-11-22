@@ -24,7 +24,8 @@ export async function animateHeroIntro(
   );
   if (!name || !line) return;
 
-  if (prefersReducedMotion()) {
+  // Skip SplitText on narrow/reduced — char wraps were a CLS source on mobile.
+  if (prefersReducedMotion() || window.matchMedia('(max-width: 900px)').matches) {
     await options.onCarouselEnter?.();
     return;
   }
@@ -50,10 +51,11 @@ export async function animateHeroIntro(
     });
 
     // Keep name opaque for LCP; clip via overflow on the parent.
-    gsap.set(nameSplit.chars, { yPercent: 115 });
-    gsap.set(lineSplit.chars, { yPercent: 115, opacity: 0 });
-    if (feet.length) gsap.set(feet, { opacity: 0, y: 12 });
-    if (chrome.length) gsap.set(chrome, { opacity: 0, y: 8 });
+    // Headline: transform + opacity only — never width/height/font-size.
+    gsap.set(nameSplit.chars, { yPercent: 115, force3D: true });
+    gsap.set(lineSplit.chars, { yPercent: 115, opacity: 0, force3D: true });
+    if (feet.length) gsap.set(feet, { opacity: 0, y: 12, force3D: true });
+    if (chrome.length) gsap.set(chrome, { opacity: 0, y: 8, force3D: true });
 
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
