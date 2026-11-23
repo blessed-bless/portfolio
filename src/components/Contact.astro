@@ -21,9 +21,9 @@ const hasLinks = Boolean(telegram || github || email);
     {
       letters.map((ch) =>
         ch === ' ' ? (
-          <span class="contact__space">&nbsp;</span>
+          <span class="contact__space" aria-hidden="true">&nbsp;</span>
         ) : (
-          <span class="contact__letter">{ch}</span>
+          <span class="contact__letter" aria-hidden="true">{ch}</span>
         ),
       )
     }
