@@ -5,6 +5,17 @@ let cursorTeardown: (() => void) | null = null;
 let resizeTimer = 0;
 let chromeBound = false;
 let stopLenisFn: (() => void) | null = null;
+let stopMagnetic: (() => void) | null = null;
+let magneticGen = 0;
+
+function bootMagnetic(): void {
+  const gen = ++magneticGen;
+  void import('./magnetic').then(({ mountMagneticMotion }) => {
+    if (gen !== magneticGen) return;
+    stopMagnetic?.();
+    stopMagnetic = mountMagneticMotion();
+  });
+}
 
 async function ensureCursor(): Promise<void> {
   if (!perfAllows('cursor')) {
@@ -89,6 +100,7 @@ void import('./dev-eggs').then(({ mountDevEggs }) => mountDevEggs());
 void import('./page-transitions').then(({ mountPageTransitions }) => mountPageTransitions());
 void import('./cover-lens').then(({ mountCoverLens }) => mountCoverLens());
 void import('./heading-motion').then(({ mountHeadingMotion }) => mountHeadingMotion());
+bootMagnetic();
 void import('./hash-scroll').then(({ mountHashScroll }) => mountHashScroll());
 mountPrivacyChrome();
 void bootChromeAndHash();
@@ -98,13 +110,18 @@ if (!chromeBound) {
   bindResizeRefresh();
   onPerfChange(() => {
     void bootChrome();
+    bootMagnetic();
   });
 }
 
 document.addEventListener('astro:page-load', () => {
   void bootChromeAndHash();
   mountPrivacyChrome();
+  bootMagnetic();
 });
 document.addEventListener('astro:before-swap', () => {
   stopLenisFn?.();
+  magneticGen += 1;
+  stopMagnetic?.();
+  stopMagnetic = null;
 });

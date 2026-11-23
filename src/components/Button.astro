@@ -67,6 +67,10 @@ const classes = ['btn', `btn--${variant}`, className].filter(Boolean).join(' ');
     transform: translateY(1px);
   }
 
+  :global(html[data-magnetic='1']) .btn--primary:active {
+    transform: none;
+  }
+
   .btn--primary {
     background: var(--accent);
     color: var(--accent-ink);
