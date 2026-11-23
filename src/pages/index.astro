@@ -3,34 +3,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import FeaturedWork from '../components/FeaturedWork.astro';
 import BusinessOffers from '../components/BusinessOffers.astro';
+import WhoAmI from '../components/WhoAmI.astro';
 import Faq from '../components/Faq.astro';
 import StackMarquee from '../components/StackMarquee.astro';
 import ChannelFeed from '../components/ChannelFeed.astro';
 import Contact from '../components/Contact.astro';
-import { personJobTitle, personName, siteUrl } from '../lib/site';
-import { isFilled } from '../lib/fill';
-import { contactLinks } from '../data/home';
+import {
+  homeServiceOffersRu,
+  personJsonLd,
+  serviceOfferJsonLd,
+  webSiteJsonLd,
+} from '../lib/jsonld';
 import { ui } from '../i18n';
 
 const t = ui('ru');
-const sameAs = [contactLinks.github, contactLinks.telegram].filter(isFilled);
 
-const professionalServiceLd = {
-  '@context': 'https://schema.org',
-  '@type': 'ProfessionalService',
-  name: siteUrl.includes('dubstepmolitva') ? 'Богдан — разработка для бизнеса' : personName,
-  description: t.home.description,
-  url: siteUrl,
-  provider: {
-    '@type': 'Person',
-    name: personName,
-    jobTitle: personJobTitle,
-    url: siteUrl,
-    ...(sameAs.length ? { sameAs } : {}),
+const jsonLd = [
+  webSiteJsonLd('ru'),
+  {
+    '@context': 'https://schema.org',
+    ...personJsonLd('ru'),
   },
-  areaServed: 'RU',
-  availableLanguage: ['ru', 'en'],
-};
+  ...homeServiceOffersRu.map((offer) => serviceOfferJsonLd('ru', offer)),
+];
 ---
 
 <BaseLayout
@@ -38,10 +33,11 @@ const professionalServiceLd = {
   description={t.home.description}
   canonicalPath="/"
   ogImage="/og/home.png"
-  jsonLd={professionalServiceLd}
+  jsonLd={jsonLd}
 >
   <Hero />
   <BusinessOffers />
+  <WhoAmI />
   <FeaturedWork />
   <StackMarquee />
   <ChannelFeed />

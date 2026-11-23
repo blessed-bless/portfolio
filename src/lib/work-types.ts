@@ -6,6 +6,7 @@ export type WorkStatus =
   | 'in progress'
   | 'shipped'
   | 'concept';
+export type WorkOrigin = 'client' | 'demo' | 'personal';
 
 export type WorkLinks = {
   github?: string;
@@ -23,6 +24,7 @@ export type Project = {
   stack: string;
   stackList: string[];
   status: WorkStatus;
+  origin?: WorkOrigin;
   cover: string;
   summary: string;
   links: WorkLinks;

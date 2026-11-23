@@ -3,12 +3,14 @@ export const siteUrl = 'https://dubstepmolitva.ru';
 
 export const siteName = 'Богдан — портфолио';
 export const siteNameEn = 'Bogdan — portfolio';
-export const personName = 'Богдан Щербинин';
-export const personNameEn = 'Bogdan Shcherbinin';
+export const personName = 'Богдан Кетасонкс';
+export const personNameEn = 'Bogdan Ketasonx';
+export const personAlternateName = 'Богдан Щербинин';
+export const personAlternateNameEn = 'Bogdan Shcherbinin';
 export const personJobTitle = 'Fullstack-разработчик';
 export const personJobTitleEn = 'Fullstack developer';
 export const defaultDescription =
-  'Сайты с онлайн-записью, Telegram-боты и CRM для бизнеса. Бэкенд на Python.';
+  'Сайты с онлайн-записью, Telegram-боты и CRM для бизнеса. Бэкенд на Python. Ориентиры: сайт от 30 000 ₽, бот от 25 000 ₽, запись от 50 000 ₽.';
 
 /** Resume PDF — hide link until filled. */
 export const resumeHref = '{{заполнить}}';

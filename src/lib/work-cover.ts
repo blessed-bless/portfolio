@@ -58,3 +58,17 @@ export function workCoverLabeled(
   <text x="100" y="144" font-family="Unbounded, Onest, sans-serif" font-size="42" font-weight="700" letter-spacing="-0.84" xml:space="preserve"><tspan fill="currentColor">${number} · </tspan><tspan fill="var(--cover-ink, #E9E3FF)">${title}</tspan></text>`;
   return withOgFonts(base.replace(/<\/svg>\s*$/i, `${label}\n</svg>`));
 }
+
+/** Frame a 1600×1000 cover into the standard OG 1200×630 canvas (center slice). */
+export function workCoverAsOg(labeledSvg: string): string {
+  const inner = labeledSvg
+    .replace(/^<\?xml[^>]*>\s*/i, '')
+    .replace(/<svg\b[^>]*>/i, '')
+    .replace(/<\/svg>\s*$/i, '');
+  return withOgFonts(`<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <svg width="1200" height="630" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+    ${inner}
+  </svg>
+</svg>`);
+}

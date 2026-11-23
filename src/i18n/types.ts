@@ -46,6 +46,8 @@ export type UiDict = {
     consentRequired: string;
     submit: string;
     sending: string;
+    success: string;
+    error: string;
   };
   cookie: {
     text: string;
@@ -54,6 +56,11 @@ export type UiDict = {
   };
   personName: string;
   personAlt: string;
+  workOrigin: {
+    client: string;
+    demo: string;
+    personal: string;
+  };
   home: {
     title: string;
     description: string;
@@ -66,10 +73,14 @@ export type UiDict = {
     featuredTitle: string;
     offersEyebrow: string;
     offersTitle: string;
+    whoamiEyebrow: string;
+    whoamiTitle: string;
+    whoami: string[];
     processEyebrow: string;
     processTitle: string;
     contactTitle: string;
     contactHint: string;
+    contactRemote: string;
     contactWrite: string;
     contactPending: string;
     copied: string;

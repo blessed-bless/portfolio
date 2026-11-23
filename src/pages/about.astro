@@ -10,7 +10,7 @@ import {
   contactLinks,
   telegramChannel,
 } from '../data/home';
-import { resumeHref, siteName } from '../lib/site';
+import { resumeHref } from '../lib/site';
 import { isFilled } from '../lib/fill';
 import { ui } from '../i18n';
 import portrait from '../assets/portrait.png';
@@ -26,8 +26,8 @@ const photoSizes = '(max-width: 900px) min(22rem, 100vw), min(28vw, 22rem)';
 ---
 
 <BaseLayout
-  title={`Обо мне — ${siteName}`}
-  description="Бэкенд на Python, боты и автоматизация, веб-интерфейсы. Как работаю и чем пользуюсь."
+  title={t.about.title}
+  description={t.about.description}
   canonicalPath="/about/"
   ogImage="/og/home.png"
 >

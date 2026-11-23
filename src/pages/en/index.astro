@@ -3,33 +3,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Hero from '../../components/Hero.astro';
 import FeaturedWork from '../../components/FeaturedWork.astro';
 import BusinessOffers from '../../components/BusinessOffers.astro';
+import WhoAmI from '../../components/WhoAmI.astro';
 import Faq from '../../components/Faq.astro';
 import StackMarquee from '../../components/StackMarquee.astro';
 import Contact from '../../components/Contact.astro';
-import { personJobTitle, siteUrl } from '../../lib/site';
-import { isFilled } from '../../lib/fill';
-import { contactLinks } from '../../data/home';
+import {
+  homeServiceOffersEn,
+  personJsonLd,
+  serviceOfferJsonLd,
+  webSiteJsonLd,
+} from '../../lib/jsonld';
 import { ui } from '../../i18n';
 
 const t = ui('en');
-const personName = t.personName;
-const sameAs = [contactLinks.github, contactLinks.telegram].filter(isFilled);
 
-const professionalServiceLd = {
-  '@context': 'https://schema.org',
-  '@type': 'ProfessionalService',
-  name: `${personName} — backends & automation`,
-  description: t.home.description,
-  url: `${siteUrl}/en/`,
-  provider: {
-    '@type': 'Person',
-    name: personName,
-    jobTitle: personJobTitle,
-    url: siteUrl,
-    ...(sameAs.length ? { sameAs } : {}),
+const jsonLd = [
+  webSiteJsonLd('en'),
+  {
+    '@context': 'https://schema.org',
+    ...personJsonLd('en'),
   },
-  availableLanguage: ['en', 'ru'],
-};
+  ...homeServiceOffersEn.map((offer) => serviceOfferJsonLd('en', offer)),
+];
 ---
 
 <BaseLayout
@@ -37,10 +32,11 @@ const professionalServiceLd = {
   description={t.home.description}
   canonicalPath="/en/"
   ogImage="/og/en/home.png"
-  jsonLd={professionalServiceLd}
+  jsonLd={jsonLd}
 >
   <Hero />
   <BusinessOffers />
+  <WhoAmI />
   <FeaturedWork />
   <StackMarquee />
   <Faq />

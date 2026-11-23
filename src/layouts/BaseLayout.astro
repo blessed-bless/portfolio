@@ -21,6 +21,8 @@ interface Props {
   canonicalPath?: string;
   ogImage?: string;
   noindex?: boolean;
+  /** Skip canonical, hreflang, og:url — for shared error HTML served on any bad path. */
+  omitCanonical?: boolean;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   printCase?: boolean;
   /** When the EN page has no twin, omit hreflang en. */
@@ -33,6 +35,7 @@ const {
   canonicalPath = Astro.url.pathname,
   ogImage = '/og/home.png',
   noindex = false,
+  omitCanonical = false,
   jsonLd,
   printCase = false,
   hasEnAlternate = true,
@@ -59,11 +62,14 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={resolvedDescription} />
     <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0d0b12" data-theme-color />
     {noindex ? <meta name="robots" content="noindex, nofollow" /> : null}
-    <link rel="canonical" href={canonical} />
-    <link rel="alternate" hreflang="ru" href={ruHref} />
-    {hasEnAlternate ? <link rel="alternate" hreflang="en" href={enHref} /> : null}
-    <link rel="alternate" hreflang="x-default" href={ruHref} />
+    {!omitCanonical ? <link rel="canonical" href={canonical} /> : null}
+    {!omitCanonical ? <link rel="alternate" hreflang="ru" href={ruHref} /> : null}
+    {!omitCanonical && hasEnAlternate ? (
+      <link rel="alternate" hreflang="en" href={enHref} />
+    ) : null}
+    {!omitCanonical ? <link rel="alternate" hreflang="x-default" href={ruHref} /> : null}
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={resolvedSiteName} />
     <meta property="og:locale" content={ogLocale} />
@@ -72,7 +78,7 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
     ) : null}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={resolvedDescription} />
-    <meta property="og:url" content={canonical} />
+    {!omitCanonical ? <meta property="og:url" content={canonical} /> : null}
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -92,6 +98,11 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
     <link rel="preload" href={unboundedWoff2} as="font" type="font/woff2" crossorigin />
     <script is:inline>
       (() => {
+        const themeColors = { dark: '#0d0b12', light: '#f4f0fa' };
+        const paintThemeColor = (mode) => {
+          const el = document.querySelector('[data-theme-color]');
+          if (el) el.setAttribute('content', themeColors[mode] || themeColors.dark);
+        };
         try {
           const key = 'portfolio-theme';
           const stored = localStorage.getItem(key);
@@ -103,8 +114,10 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
                 : 'dark';
           document.documentElement.dataset.theme = mode;
           document.documentElement.style.colorScheme = mode;
+          paintThemeColor(mode);
         } catch (_) {
           document.documentElement.dataset.theme = 'dark';
+          paintThemeColor('dark');
         }
 
         try {

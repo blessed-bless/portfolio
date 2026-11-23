@@ -35,9 +35,15 @@ curl -sI https://ВАШ_ДОМЕН/нет-такой-страницы/
 
 Хешированные ассеты Astro лежат под `/_astro/` — им нужен длинный immutable-кэш.
 
-## 4. HTTPS и HSTS
+## 4. HTTPS, www и HSTS
 
-- Редирект **HTTP → HTTPS** (301).
+Проверено на проде (Caddy, `dubstepmolitva.ru`):
+
+- `http://dubstepmolitva.ru/` → **308** → `https://dubstepmolitva.ru/`
+- `https://www.dubstepmolitva.ru/` → **308** → `https://dubstepmolitva.ru/`
+
+308 вместо 301 нормален для Caddy (метод запроса сохраняется). В панели достаточно постоянного редиректа HTTP→HTTPS и www→apex на основной домен без `www`.
+
 - HSTS: `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload` (только после того, как HTTPS точно стабилен на основном домене).
 
 ## 5. Security / privacy headers (все ответы)
@@ -93,7 +99,9 @@ location = /404.html {
 
 ## 8. Чеклист после деплоя
 
-1. `curl -sI https://домен/нет-такой/` → **404** + HTML 404-страницы.
-2. `curl -sI https://домен/_astro/....js` → `immutable` / длинный max-age.
-3. `curl -sI http://домен/` → редирект на https.
-4. На `*.twc1.net` в ответе есть `X-Robots-Tag: noindex`.
+1. `curl.exe -sI https://домен/нет-такой/` → **404** + HTML 404-страницы («Здесь пусто»), в `<head>` — `noindex, nofollow`.
+2. `curl.exe -sI https://домен/_astro/....js` → `immutable` / длинный max-age.
+3. `curl.exe -sI http://домен/` → **308** (или 301) на https.
+4. `curl.exe -sI https://www.домен/` → **308** (или 301) на apex без www.
+5. `curl.exe -s https://домен/robots.txt` → `Allow: /`, `Sitemap: https://домен/sitemap.xml` (без Disallow для `/system` — страница сама с `noindex`).
+6. На `*.twc1.net` в ответе есть `X-Robots-Tag: noindex`.

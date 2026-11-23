@@ -14,7 +14,9 @@ export function mountMobileNav(root: HTMLElement): () => void {
     if (next === open) return;
     open = next;
     toggle.setAttribute('aria-expanded', String(open));
-    toggle.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+    const openLabel = toggle.dataset.labelOpen || 'Open menu';
+    const closeLabel = toggle.dataset.labelClose || 'Close menu';
+    toggle.setAttribute('aria-label', open ? closeLabel : openLabel);
     root.dataset.navOpen = open ? 'true' : 'false';
     document.body.classList.toggle('nav-lock', open);
 
