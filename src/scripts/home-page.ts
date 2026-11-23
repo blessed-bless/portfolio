@@ -57,12 +57,11 @@ function mountManifest(): void {
   });
 }
 
-type FeaturedMode = 'pin' | 'sticky' | 'static';
+type FeaturedMode = 'sticky' | 'static';
 
 function featuredMode(): FeaturedMode {
   if (prefersReducedMotion() || getPerfTier() === 'low' || !isDesktopLayout()) return 'static';
-  if (getPerfTier() !== 'high' || window.matchMedia('(pointer: coarse)').matches) return 'sticky';
-  return 'pin';
+  return 'sticky';
 }
 
 function mountFeaturedPreview(): void {
@@ -75,7 +74,6 @@ function mountFeaturedPreview(): void {
   const rows = [...list.querySelectorAll<HTMLAnchorElement>('[data-featured-row]')];
   const media = section.querySelector<HTMLElement>('[data-featured-media]');
   const preview = section.querySelector<HTMLAnchorElement>('[data-featured-preview]');
-  const scroll = section.querySelector<HTMLElement>('[data-featured-scroll]');
   if (!rows.length) return;
 
   const prepareVt = (row: HTMLAnchorElement): void => {
@@ -119,14 +117,6 @@ function mountFeaturedPreview(): void {
     row.dataset.active = index === 0 ? 'true' : 'false';
   });
 
-  const shiftList = (progress: number): void => {
-    if (mode !== 'pin') return;
-    const frame = list.parentElement;
-    if (!frame) return;
-    const max = Math.max(0, list.scrollHeight - frame.clientHeight);
-    list.style.transform = `translate3d(0, ${-progress * max}px, 0)`;
-  };
-
   const showCover = (index: number): void => {
     const nextIndex = Math.min(rows.length - 1, Math.max(0, index));
     const row = rows[nextIndex];
@@ -149,7 +139,7 @@ function mountFeaturedPreview(): void {
     const state = Flip.getState(previous);
     media.replaceChildren(incoming);
     Flip.from(state, {
-      duration: mode === 'pin' ? 0.45 : 0.32,
+      duration: 0.32,
       ease: 'power3.out',
       absolute: true,
       prune: true,
@@ -162,53 +152,29 @@ function mountFeaturedPreview(): void {
     if (index >= 0) showCover(index);
   };
 
-  const onEnter = (event: Event): void => {
-    if (mode === 'pin') return;
-    onFocus(event);
-  };
-
   rows.forEach((row) => {
     row.addEventListener('focus', onFocus);
-    row.addEventListener('pointerenter', onEnter);
+    row.addEventListener('pointerenter', onFocus);
   });
 
-  if (mode === 'pin' && scroll) {
-    const header =
-      getComputedStyle(document.documentElement).getPropertyValue('--header-h').trim() || '4.25rem';
+  rows.forEach((row, index) => {
     triggers.push(
       ScrollTrigger.create({
-        trigger: scroll,
-        start: `top ${header}`,
-        end: 'bottom bottom',
-        scrub: true,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          shiftList(self.progress);
-          const index = Math.round(self.progress * (rows.length - 1));
-          showCover(index);
+        trigger: row,
+        start: 'top center',
+        end: 'bottom center',
+        onToggle: (self) => {
+          if (self.isActive) showCover(index);
         },
       }),
     );
-  } else {
-    rows.forEach((row, index) => {
-      triggers.push(
-        ScrollTrigger.create({
-          trigger: row,
-          start: 'top center',
-          end: 'bottom center',
-          onToggle: (self) => {
-            if (self.isActive) showCover(index);
-          },
-        }),
-      );
-    });
-  }
+  });
 
   teardowns.push(() => {
     rows.forEach((row) => {
       row.removeEventListener('pointerdown', onPointerDown);
       row.removeEventListener('focus', onFocus);
-      row.removeEventListener('pointerenter', onEnter);
+      row.removeEventListener('pointerenter', onFocus);
       row.dataset.active = 'false';
     });
     preview?.removeEventListener('pointerdown', onPreviewDown);
