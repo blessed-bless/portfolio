@@ -1,4 +1,5 @@
 import gsap from 'gsap';
+import { Flip } from 'gsap/Flip';
 import {
   bindLenisToScrollTrigger,
   ensureScrollTrigger,
@@ -6,8 +7,8 @@ import {
   prefersReducedMotion,
 } from './scroll-sync';
 import { assignCoverVtName, cloneCoverWithoutVt } from './cover-vt';
-import { getPerfTier } from './perf';
-import { promoteToGsapTicker, subscribeTicker } from './raf-hub';
+import { getPerfTier, onPerfChange } from './perf';
+import { promoteToGsapTicker } from './raf-hub';
 
 type Teardown = () => void;
 
@@ -56,128 +57,164 @@ function mountManifest(): void {
   });
 }
 
+type FeaturedMode = 'pin' | 'sticky' | 'static';
+
+function featuredMode(): FeaturedMode {
+  if (prefersReducedMotion() || getPerfTier() === 'low' || !isDesktopLayout()) return 'static';
+  if (getPerfTier() !== 'high' || window.matchMedia('(pointer: coarse)').matches) return 'sticky';
+  return 'pin';
+}
+
 function mountFeaturedPreview(): void {
-  const list = document.querySelector<HTMLElement>('[data-featured]');
-  const follower = document.querySelector<HTMLElement>('[data-featured-follower]');
-  if (!list || !follower) return;
+  const section = document.querySelector<HTMLElement>('[data-featured]');
+  const list = section?.querySelector<HTMLElement>('[data-featured-list]');
+  if (!section || !list) return;
 
-  const reduce = prefersReducedMotion();
-  const mobile = !isDesktopLayout() || window.matchMedia('(pointer: coarse)').matches;
-  const rows = list.querySelectorAll<HTMLAnchorElement>('[data-featured-row]');
-  const media = follower.querySelector<HTMLElement>('[data-featured-media]');
-
-  let activeRow: HTMLAnchorElement | null = null;
-  let visible = false;
-  const mouse = { x: 0, y: 0 };
-  const pos = { x: 0, y: 0 };
-  const prev = { x: 0, y: 0 };
-  let skew = 0;
-  const hide = (): void => {
-    visible = false;
-    follower.dataset.visible = 'false';
-    activeRow = null;
-  };
-  const smoothFollow = getPerfTier() === 'high';
-
-  const showFor = (row: HTMLAnchorElement, event?: Event): void => {
-    activeRow = row;
-    const cover = row.querySelector('.project-cover-wrap') ?? row.querySelector('.project-cover');
-    if (media && cover) {
-      media.replaceChildren(cloneCoverWithoutVt(cover));
-    }
-    if (mobile || reduce) {
-      follower.dataset.mode = 'static';
-      follower.dataset.visible = 'true';
-      return;
-    }
-    if (event && 'clientX' in event) {
-      const pointer = event as PointerEvent;
-      mouse.x = pointer.clientX;
-      mouse.y = pointer.clientY;
-      pos.x = pointer.clientX;
-      pos.y = pointer.clientY;
-      prev.x = pointer.clientX;
-      prev.y = pointer.clientY;
-      follower.style.transform = `translate3d(${pos.x + 28}px, ${pos.y - 40}px, 0)`;
-    }
-    follower.dataset.mode = 'follow';
-    follower.dataset.visible = 'true';
-    visible = true;
-  };
+  const mode = featuredMode();
+  section.dataset.featuredMode = mode;
+  const rows = [...list.querySelectorAll<HTMLAnchorElement>('[data-featured-row]')];
+  const media = section.querySelector<HTMLElement>('[data-featured-media]');
+  const preview = section.querySelector<HTMLAnchorElement>('[data-featured-preview]');
+  const scroll = section.querySelector<HTMLElement>('[data-featured-scroll]');
+  if (!rows.length) return;
 
   const prepareVt = (row: HTMLAnchorElement): void => {
     const slug = row.dataset.slug;
     if (!slug) return;
-    const followerCover = media?.querySelector<HTMLElement>('.project-cover-wrap');
+    const previewCover = media?.querySelector<HTMLElement>('.project-cover-wrap');
     const rowCover = row.querySelector<HTMLElement>('.project-cover-wrap');
-    const source =
-      follower.dataset.visible === 'true' && followerCover ? followerCover : rowCover;
+    const previewVisible = Boolean(preview && preview.getClientRects().length > 0 && previewCover);
+    const source = previewVisible ? previewCover : rowCover;
     if (source) assignCoverVtName(source, slug);
-  };
-
-  const onEnter = (event: Event): void => {
-    const row = event.currentTarget as HTMLAnchorElement;
-    showFor(row, event);
-  };
-
-  const onLeave = (): void => {
-    if (mobile || reduce) {
-      if (!list.matches(':hover')) hide();
-      return;
-    }
-    hide();
-  };
-
-  const onMove = (event: PointerEvent): void => {
-    mouse.x = event.clientX;
-    mouse.y = event.clientY;
-  };
-
-  const tick = (): void => {
-    if (!visible || mobile || reduce) return;
-    if (!smoothFollow) {
-      follower.style.transform = `translate3d(${mouse.x + 28}px, ${mouse.y - 40}px, 0)`;
-      return;
-    }
-    pos.x += (mouse.x - pos.x) * 0.16;
-    pos.y += (mouse.y - pos.y) * 0.16;
-    const vx = pos.x - prev.x;
-    prev.x = pos.x;
-    prev.y = pos.y;
-    skew += (vx * 0.35 - skew) * 0.18;
-    follower.style.transform = `translate3d(${pos.x + 28}px, ${pos.y - 40}px, 0) skewX(${skew}deg)`;
   };
 
   const onPointerDown = (event: Event): void => {
     prepareVt(event.currentTarget as HTMLAnchorElement);
   };
 
-  rows.forEach((row) => {
-    row.addEventListener('pointerenter', onEnter);
-    row.addEventListener('focus', onEnter);
-    row.addEventListener('pointerleave', onLeave);
-    row.addEventListener('blur', onLeave);
-    row.addEventListener('pointerdown', onPointerDown);
+  const onPreviewDown = (): void => {
+    const active = rows.find((row) => row.dataset.active === 'true') ?? rows[0];
+    if (active) prepareVt(active);
+  };
+
+  rows.forEach((row) => row.addEventListener('pointerdown', onPointerDown));
+  preview?.addEventListener('pointerdown', onPreviewDown);
+
+  if (mode === 'static' || !media) {
+    teardowns.push(() => {
+      rows.forEach((row) => row.removeEventListener('pointerdown', onPointerDown));
+      preview?.removeEventListener('pointerdown', onPreviewDown);
+    });
+    return;
+  }
+
+  gsap.registerPlugin(Flip);
+  const ScrollTrigger = ensureScrollTrigger();
+  let activeIndex = 0;
+  const triggers: Array<{ kill: () => void }> = [];
+
+  const existing = media.querySelector<HTMLElement>('.project-cover-wrap');
+  if (existing) existing.dataset.flipId = 'featured-shot';
+  rows.forEach((row, index) => {
+    row.dataset.active = index === 0 ? 'true' : 'false';
   });
-  list.addEventListener('pointerleave', hide);
-  let unsubTicker: (() => void) | null = null;
-  if (!mobile && !reduce) {
-    window.addEventListener('pointermove', onMove, { passive: true });
-    unsubTicker = subscribeTicker(tick);
+
+  const shiftList = (progress: number): void => {
+    if (mode !== 'pin') return;
+    const frame = list.parentElement;
+    if (!frame) return;
+    const max = Math.max(0, list.scrollHeight - frame.clientHeight);
+    list.style.transform = `translate3d(0, ${-progress * max}px, 0)`;
+  };
+
+  const showCover = (index: number): void => {
+    const nextIndex = Math.min(rows.length - 1, Math.max(0, index));
+    const row = rows[nextIndex];
+    if (!row) return;
+    if (preview) preview.href = row.href;
+    if (nextIndex === activeIndex && media.querySelector('[data-flip-id]')) return;
+    activeIndex = nextIndex;
+    rows.forEach((item, i) => {
+      item.dataset.active = i === nextIndex ? 'true' : 'false';
+    });
+    const cover = row.querySelector('.project-cover-wrap');
+    if (!cover) return;
+    const incoming = cloneCoverWithoutVt(cover);
+    incoming.dataset.flipId = 'featured-shot';
+    const previous = media.querySelector<HTMLElement>('[data-flip-id]');
+    if (!previous) {
+      media.replaceChildren(incoming);
+      return;
+    }
+    const state = Flip.getState(previous);
+    media.replaceChildren(incoming);
+    Flip.from(state, {
+      duration: mode === 'pin' ? 0.45 : 0.32,
+      ease: 'power3.out',
+      absolute: true,
+      prune: true,
+    });
+  };
+
+  const onFocus = (event: Event): void => {
+    const row = event.currentTarget as HTMLAnchorElement;
+    const index = rows.indexOf(row);
+    if (index >= 0) showCover(index);
+  };
+
+  const onEnter = (event: Event): void => {
+    if (mode === 'pin') return;
+    onFocus(event);
+  };
+
+  rows.forEach((row) => {
+    row.addEventListener('focus', onFocus);
+    row.addEventListener('pointerenter', onEnter);
+  });
+
+  if (mode === 'pin' && scroll) {
+    const header =
+      getComputedStyle(document.documentElement).getPropertyValue('--header-h').trim() || '4.25rem';
+    triggers.push(
+      ScrollTrigger.create({
+        trigger: scroll,
+        start: `top ${header}`,
+        end: 'bottom bottom',
+        scrub: true,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          shiftList(self.progress);
+          const index = Math.round(self.progress * (rows.length - 1));
+          showCover(index);
+        },
+      }),
+    );
+  } else {
+    rows.forEach((row, index) => {
+      triggers.push(
+        ScrollTrigger.create({
+          trigger: row,
+          start: 'top center',
+          end: 'bottom center',
+          onToggle: (self) => {
+            if (self.isActive) showCover(index);
+          },
+        }),
+      );
+    });
   }
 
   teardowns.push(() => {
     rows.forEach((row) => {
-      row.removeEventListener('pointerenter', onEnter);
-      row.removeEventListener('focus', onEnter);
-      row.removeEventListener('pointerleave', onLeave);
-      row.removeEventListener('blur', onLeave);
       row.removeEventListener('pointerdown', onPointerDown);
+      row.removeEventListener('focus', onFocus);
+      row.removeEventListener('pointerenter', onEnter);
+      row.dataset.active = 'false';
     });
-    list.removeEventListener('pointerleave', hide);
-    window.removeEventListener('pointermove', onMove);
-    unsubTicker?.();
-    hide();
+    preview?.removeEventListener('pointerdown', onPreviewDown);
+    triggers.forEach((trigger) => trigger.kill());
+    list.style.transform = '';
+    gsap.killTweensOf(media.querySelectorAll('[data-flip-id]'));
   });
 }
 
@@ -342,6 +379,12 @@ export function mountHomePage(): void {
   mountStackMarquee();
   mountMagneticTitle();
   mountCopyEmail();
+
+  teardowns.push(
+    onPerfChange(() => {
+      mountHomePage();
+    }),
+  );
 
   ScrollTrigger.refresh();
 }
