@@ -107,7 +107,7 @@ function ensureMount(slot: HTMLElement, img: HTMLImageElement): ShaderMount | nu
     mount = new ShaderMount(
       slot,
       lensDistortionFragmentShader,
-      uniforms(img, 0.12, 70),
+      uniforms(img, 0.06, 70),
       { alpha: false, antialias: false, powerPreference: 'low-power' },
       0,
       0,
@@ -126,11 +126,12 @@ function ensureMount(slot: HTMLElement, img: HTMLImageElement): ShaderMount | nu
 function place(target: HTMLElement): void {
   const el = ensureHost();
   const rect = target.getBoundingClientRect();
+  const inset = 1;
   el.hidden = false;
   el.dataset.on = 'true';
-  el.style.width = `${rect.width}px`;
-  el.style.height = `${rect.height}px`;
-  el.style.transform = `translate3d(${rect.left}px, ${rect.top}px, 0)`;
+  el.style.width = `${Math.max(0, rect.width - inset * 2)}px`;
+  el.style.height = `${Math.max(0, rect.height - inset * 2)}px`;
+  el.style.transform = `translate3d(${rect.left + inset}px, ${rect.top + inset}px, 0)`;
 }
 
 function syncMeta(target: HTMLElement): void {
@@ -163,7 +164,7 @@ function paintLens(): void {
   const dx = (pointerX - (rect.left + rect.width / 2)) / Math.max(rect.width, 1);
   const dy = (pointerY - (rect.top + rect.height / 2)) / Math.max(rect.height, 1);
   const dist = Math.min(1, Math.hypot(dx, dy));
-  const bulge = 0.08 + dist * 0.22;
+  const bulge = 0.04 + dist * 0.1;
   const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
   mount.setUniforms({
     u_lensBulge: bulge,

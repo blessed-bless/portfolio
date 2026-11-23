@@ -130,6 +130,12 @@ const credit = t.footer.credit.replace('{year}', String(year));
     transform: translate3d(0, 110%, 0);
   }
 
+  :global(html[data-perf='high']) .site-footer__wordmark.is-in .site-footer__wordmark-inner,
+  :global(html[data-perf='mid']) .site-footer__wordmark.is-in .site-footer__wordmark-inner {
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.9s var(--ease-out);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .site-footer__wordmark-inner {
       transform: none !important;

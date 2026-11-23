@@ -231,7 +231,6 @@ html[data-theme='light'] .astro-code span[style*='--shiki-light: #E36209'] {
   z-index: 6;
   pointer-events: none;
   overflow: hidden;
-  border: var(--stroke) solid var(--border);
   background: var(--bg-elevated);
   container-type: inline-size;
 }

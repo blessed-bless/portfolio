@@ -65,25 +65,9 @@ async function playHeading(el: HTMLElement): Promise<void> {
 
 function playWordmark(el: HTMLElement): void {
   if (el.dataset.played === 'true') return;
-  const inner = el.querySelector<HTMLElement>('[data-wordmark-inner]');
-  if (!inner) return;
   el.dataset.played = 'true';
-  const mode = headingMode();
-  if (mode === 'off') {
-    inner.style.transform = 'none';
-    return;
-  }
-  void import('gsap')
-    .then(({ default: gsap }) => {
-      gsap.fromTo(
-        inner,
-        { yPercent: 110 },
-        { yPercent: 0, duration: mode === 'lines' ? 0.7 : 0.95, ease: 'power3.out' },
-      );
-    })
-    .catch(() => {
-      inner.style.transform = 'none';
-    });
+  if (headingMode() === 'off') return;
+  el.classList.add('is-in');
 }
 
 function watch(el: HTMLElement): void {
