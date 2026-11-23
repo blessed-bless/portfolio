@@ -10,6 +10,9 @@ const credit = t.footer.credit.replace('{year}', String(year));
 ---
 
 <footer class="site-footer page-pad" data-site-footer>
+  <p class="site-footer__wordmark" data-wordmark aria-hidden="true">
+    <span class="site-footer__wordmark-inner" data-wordmark-inner>{t.brand}</span>
+  </p>
   <div class="site-footer__inner">
     <p class="site-footer__credit">
       <BrandMark class="site-footer__mark" size={16} />
@@ -104,6 +107,33 @@ const credit = t.footer.credit.replace('{year}', String(year));
   .site-footer {
     border-top: var(--stroke) solid var(--border);
     padding-block: var(--space-5) var(--space-7);
+  }
+
+  .site-footer__wordmark {
+    width: min(100%, var(--grid-max));
+    margin: 0 auto var(--space-5);
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(3.4rem, 1.2rem + 9vw, 8.5rem);
+    line-height: 0.86;
+    letter-spacing: var(--tracking-display);
+    color: var(--fg);
+  }
+
+  .site-footer__wordmark-inner {
+    display: block;
+  }
+
+  :global(html[data-perf='high']) .site-footer__wordmark-inner,
+  :global(html[data-perf='mid']) .site-footer__wordmark-inner {
+    transform: translate3d(0, 110%, 0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-footer__wordmark-inner {
+      transform: none !important;
+    }
   }
 
   .site-footer__inner {

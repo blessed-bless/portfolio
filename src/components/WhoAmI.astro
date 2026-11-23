@@ -8,7 +8,7 @@ const t = ui(locale);
 <section class="whoami page-pad" id="whoami" aria-label={t.home.whoamiTitle}>
   <div class="whoami__intro">
     <p class="eyebrow">{t.home.whoamiEyebrow}</p>
-    <h2 class="whoami__title">{t.home.whoamiTitle}</h2>
+    <h2 class="whoami__title" data-scramble>{t.home.whoamiTitle}</h2>
   </div>
   <div class="whoami__copy">
     {t.home.whoami.map((paragraph) => <p>{paragraph}</p>)}
