@@ -1,7 +1,8 @@
-import { getPerfTier, perfAllows } from './perf';
+import { getPerfTier, isLessMotionPreferred, perfAllows } from './perf';
 import { observeActivity, subscribeTicker } from './raf-hub';
 
 const HOVER_SELECTOR = 'a, button, [data-cursor="hover"], .project-card, .btn';
+const OPEN_SELECTOR = '[data-cursor-open]';
 const READY_ATTR = 'data-cursor-ready';
 
 type CursorHandle = {
@@ -13,7 +14,7 @@ let active: CursorHandle | null = null;
 
 export function canUseCustomCursor(): boolean {
   if (!perfAllows('cursor')) return false;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+  if (isLessMotionPreferred()) return false;
   if (window.matchMedia('(pointer: coarse)').matches) return false;
   if (window.matchMedia('(hover: none)').matches) return false;
   if (navigator.maxTouchPoints > 0 && !window.matchMedia('(pointer: fine)').matches) return false;
@@ -45,9 +46,14 @@ export function mountCustomCursor(root: HTMLElement): () => void {
   document.body.classList.add('has-custom-cursor');
   root.hidden = false;
   root.setAttribute(READY_ATTR, 'true');
+  const label = root.querySelector<HTMLElement>('[data-cursor-label]');
   root.dataset.visible = 'false';
   root.dataset.hover = 'false';
   root.dataset.onControl = 'false';
+  root.dataset.open = 'false';
+  if (label) {
+    label.textContent = document.documentElement.lang.startsWith('en') ? 'Open' : 'Открыть';
+  }
 
   let x = window.innerWidth / 2;
   let y = window.innerHeight / 2;
@@ -55,6 +61,8 @@ export function mountCustomCursor(root: HTMLElement): () => void {
   let ry = y;
   let hovering = false;
   let onControl = false;
+  let openLabel = false;
+  let openMix = 0;
   let visible = false;
   let running = false;
   let disposed = false;
@@ -63,12 +71,19 @@ export function mountCustomCursor(root: HTMLElement): () => void {
   const setHoverState = (): void => {
     root.dataset.hover = hovering ? 'true' : 'false';
     root.dataset.onControl = onControl ? 'true' : 'false';
+    root.dataset.open = openLabel ? 'true' : 'false';
   };
 
   const paint = (): void => {
     const hoverScale = hovering ? 0.55 : 1;
+    const ringScale = hoverScale * (1 - openMix);
     dot.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    ring.style.transform = `translate3d(${rx}px, ${ry}px, 0) scale(${hoverScale})`;
+    ring.style.transform = `translate3d(${rx}px, ${ry}px, 0) scale(${ringScale})`;
+    if (label) {
+      const labelScale = 0.55 + openMix * 0.45;
+      label.style.opacity = String(openMix);
+      label.style.transform = `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%) scale(${labelScale})`;
+    }
   };
 
   const onTick = (): void => {
@@ -80,6 +95,8 @@ export function mountCustomCursor(root: HTMLElement): () => void {
       rx = x;
       ry = y;
     }
+    const aim = openLabel ? 1 : 0;
+    openMix += (aim - openMix) * 0.28;
     paint();
   };
 
@@ -106,9 +123,11 @@ export function mountCustomCursor(root: HTMLElement): () => void {
     if (!(target instanceof Element)) return;
     const nextHover = Boolean(target.closest(HOVER_SELECTOR));
     const nextControl = Boolean(target.closest('a, button, .btn, [role="button"]'));
-    if (nextHover === hovering && nextControl === onControl) return;
+    const nextOpen = Boolean(target.closest(OPEN_SELECTOR));
+    if (nextHover === hovering && nextControl === onControl && nextOpen === openLabel) return;
     hovering = nextHover;
     onControl = nextControl;
+    openLabel = nextOpen;
     setHoverState();
   };
 

@@ -69,6 +69,7 @@ const tagLabels: Record<string, string> = {
               data-work-item
               data-tags={project.tags.join(',')}
               data-cursor={project.hasPage ? 'hover' : undefined}
+              data-cursor-open={project.hasPage ? '' : undefined}
             >
               <span class="work-index__cover-wrap" data-cover-lens aria-hidden="true">
                 <ProjectCover

@@ -8,11 +8,13 @@
   data-visible="false"
   data-hover="false"
   data-on-control="false"
+  data-open="false"
   aria-hidden="true"
   transition:persist="site-cursor"
 >
   <span class="site-cursor__dot" data-cursor-dot></span>
   <span class="site-cursor__ring" data-cursor-ring></span>
+  <span class="site-cursor__label mono" data-cursor-label></span>
 </div>
 
 <style>
@@ -75,6 +77,32 @@
 
   .site-cursor[data-on-control='true'] .site-cursor__dot {
     opacity: 0;
+  }
+
+  .site-cursor__label {
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 0.42rem 0.72rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate3d(-100px, -100px, 0) scale(0.55);
+  }
+
+  .site-cursor[data-open='true'] .site-cursor__ring,
+  .site-cursor[data-open='true'] .site-cursor__dot {
+    opacity: 0;
+  }
+
+  .site-cursor[data-open='true'] .site-cursor__label {
+    opacity: 1;
   }
 
   @media (pointer: coarse), (hover: none), (prefers-reduced-motion: reduce) {

@@ -48,7 +48,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 
   <div class="hero__stage-wrap">
     <div class="hero__stage">
-      <canvas class="hero__canvas" data-hero-canvas data-lenis-prevent></canvas>
+      <canvas class="hero__canvas" data-hero-canvas data-cursor-open data-lenis-prevent></canvas>
       <div class="hero__static" data-hero-static>
         {
           projects.map((project, index) => {
@@ -59,6 +59,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
                 class="hero__static-card"
                 href={localizedPath(locale, `/work/${project.slug}/`)}
                 data-cursor="hover"
+                data-cursor-open
                 aria-label={label}
                 data-hero-cover={project.slug}
               >
