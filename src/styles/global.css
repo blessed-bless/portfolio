@@ -69,7 +69,8 @@ h3,
   font-family: var(--font-display);
 }
 
-.page-title-line {
+.page-title-line,
+.scramble-line {
   display: block;
   overflow: hidden;
 }
