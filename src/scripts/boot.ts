@@ -87,6 +87,7 @@ void import('./raf-hub').then(({ bindVisibilityPause }) => bindVisibilityPause()
 void import('./metrika').then(({ mountMetrika }) => mountMetrika());
 void import('./dev-eggs').then(({ mountDevEggs }) => mountDevEggs());
 void import('./page-transitions').then(({ mountPageTransitions }) => mountPageTransitions());
+void import('./cover-lens').then(({ mountCoverLens }) => mountCoverLens());
 void import('./hash-scroll').then(({ mountHashScroll }) => mountHashScroll());
 mountPrivacyChrome();
 void bootChromeAndHash();
