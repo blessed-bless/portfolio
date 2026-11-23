@@ -10,13 +10,7 @@ const featured: Project[] = await getFeaturedProjects(locale);
 const first = featured[0];
 ---
 
-<section
-  class="featured page-pad"
-  id="work"
-  data-featured
-  style={`--featured-count: ${featured.length}`}
-  aria-label={t.home.featuredTitle}
->
+<section class="featured page-pad" id="work" data-featured aria-label={t.home.featuredTitle}>
   <div class="featured__head">
     <p class="eyebrow">{t.home.featuredEyebrow}</p>
     <h2 class="featured__title" data-scramble>{t.home.featuredTitle}</h2>
@@ -176,35 +170,19 @@ const first = featured[0];
       align-items: start;
     }
 
-    html[data-perf='high'] .featured__preview,
     html[data-perf='mid'] .featured__preview {
       display: block;
       position: sticky;
       top: calc(var(--header-h) + 1rem);
       align-self: start;
     }
-  }
-
-  @media (min-width: 901px) and (pointer: fine) {
-    html[data-perf='high'] .featured__scroll {
-      height: calc(100svh + (var(--featured-count, 1) - 1) * 38svh);
-    }
-
-    html[data-perf='high'] .featured__sticky {
-      position: sticky;
-      top: var(--header-h);
-      height: calc(100svh - var(--header-h));
-      align-items: center;
-      overflow: hidden;
-    }
 
     html[data-perf='high'] .featured__preview {
-      position: relative;
-      top: auto;
-    }
-
-    html[data-perf='high'] .featured__list {
-      border-top: 0;
+      display: block;
+      position: sticky;
+      top: 15vh;
+      align-self: start;
+      height: auto;
     }
   }
 
