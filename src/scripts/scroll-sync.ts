@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { getLenis } from './lenis-scroll';
+import { isLessMotionPreferred } from './perf';
 
 let registered = false;
 
@@ -32,7 +33,7 @@ export function bindLenisToScrollTrigger(): () => void {
 }
 
 export function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return isLessMotionPreferred();
 }
 
 export function isDesktopLayout(): boolean {

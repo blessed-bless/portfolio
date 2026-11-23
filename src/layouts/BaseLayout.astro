@@ -178,6 +178,7 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
     <title>{title}</title>
   </head>
   <body class:list={[{ 'print-case': printCase }]}>
+    <div id="vt-wipe" data-vt-wipe aria-hidden="true"></div>
     <Metrika />
     <a class="skip-link" href="#main">{t.skipToContent}</a>
     <SiteCursor />

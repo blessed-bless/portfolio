@@ -1,9 +1,39 @@
 /* One shared curve for page chrome + shared-element covers */
 :root {
   --ease-vt: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-vt-wipe: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-vt-out: 240ms;
   --dur-vt-in: 280ms;
   --dur-vt-cover: 420ms;
+  --dur-vt-wipe: 500ms;
+}
+
+html[data-vt-mode='high'] {
+  --dur-vt-wipe: 500ms;
+}
+
+html[data-vt-mode='mid'] {
+  --dur-vt-wipe: 280ms;
+}
+
+html[data-vt-mode='fade'] {
+  --dur-vt-wipe: 160ms;
+}
+
+/* Accent blade. Name is applied only while a clip wipe is armed so idle navigations stay a crossfade. */
+#vt-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  background: var(--accent);
+  opacity: 0;
+  visibility: hidden;
+}
+
+html[data-vt-mode='high'] #vt-wipe,
+html[data-vt-mode='mid'] #vt-wipe {
+  view-transition-name: vt-wipe;
 }
 
 ::view-transition-old(root) {
@@ -19,6 +49,41 @@
   animation-timing-function: var(--ease-vt);
 }
 
+/* Brand chevron from BrandMark (tip at 78% of the mark, notch at 32% of its width). */
+::view-transition-group(vt-wipe) {
+  z-index: 2;
+}
+
+html[data-vt-mode='high']::view-transition-group(root),
+html[data-vt-mode='mid']::view-transition-group(root) {
+  animation: none;
+}
+
+html[data-vt-mode='high']::view-transition-old(root),
+html[data-vt-mode='mid']::view-transition-old(root) {
+  animation: none;
+  opacity: 1;
+}
+
+html[data-vt-mode='high']::view-transition-new(root),
+html[data-vt-mode='mid']::view-transition-new(root) {
+  animation: vt-reveal var(--dur-vt-wipe) var(--ease-vt-wipe) both;
+}
+
+html[data-vt-mode='high']::view-transition-old(vt-wipe),
+html[data-vt-mode='mid']::view-transition-old(vt-wipe) {
+  height: 100%;
+  width: 100%;
+  object-fit: fill;
+  animation: vt-blade var(--dur-vt-wipe) var(--ease-vt-wipe) both;
+}
+
+html[data-vt-mode='high']::view-transition-new(vt-wipe),
+html[data-vt-mode='mid']::view-transition-new(vt-wipe) {
+  animation: none;
+  opacity: 0;
+}
+
 /* Shared cover morph — group name matches Astro transition:name */
 ::view-transition-group(work-cover-priemnaya),
 ::view-transition-group(work-cover-zerno),
@@ -26,9 +91,13 @@
 ::view-transition-group(work-cover-fleetkit),
 ::view-transition-group(work-cover-crawlnet),
 ::view-transition-group(work-cover-ai-funnel-ecosystem),
-::view-transition-group(work-cover-shipcrew) {
+::view-transition-group(work-cover-shipcrew),
+::view-transition-group(work-cover-smena),
+::view-transition-group(work-cover-gran),
+::view-transition-group(work-cover-ipcheck) {
   animation-duration: var(--dur-vt-cover);
   animation-timing-function: var(--ease-vt);
+  z-index: 4;
 }
 
 ::view-transition-old(work-cover-priemnaya),
@@ -38,13 +107,19 @@
 ::view-transition-old(work-cover-crawlnet),
 ::view-transition-old(work-cover-ai-funnel-ecosystem),
 ::view-transition-old(work-cover-shipcrew),
+::view-transition-old(work-cover-smena),
+::view-transition-old(work-cover-gran),
+::view-transition-old(work-cover-ipcheck),
 ::view-transition-new(work-cover-priemnaya),
 ::view-transition-new(work-cover-zerno),
 ::view-transition-new(work-cover-pingo),
 ::view-transition-new(work-cover-fleetkit),
 ::view-transition-new(work-cover-crawlnet),
 ::view-transition-new(work-cover-ai-funnel-ecosystem),
-::view-transition-new(work-cover-shipcrew) {
+::view-transition-new(work-cover-shipcrew),
+::view-transition-new(work-cover-smena),
+::view-transition-new(work-cover-gran),
+::view-transition-new(work-cover-ipcheck) {
   animation: none;
   height: 100%;
   overflow: clip;
@@ -76,6 +151,49 @@
   }
 }
 
+/* Nose width 22vw, tip at 78% — same silhouette as the mark path. */
+@keyframes vt-blade {
+  0% {
+    clip-path: polygon(-40% 0%, -18% 78%, -32.96% 78%, -40% 100%);
+  }
+  20% {
+    clip-path: polygon(-4% 0%, 18% 78%, 3.04% 78%, -4% 100%);
+  }
+  40% {
+    clip-path: polygon(32% 0%, 54% 78%, 39.04% 78%, 32% 100%);
+  }
+  60% {
+    clip-path: polygon(68% 0%, 90% 78%, 75.04% 78%, 68% 100%);
+  }
+  80% {
+    clip-path: polygon(104% 0%, 126% 78%, 111.04% 78%, 104% 100%);
+  }
+  100% {
+    clip-path: polygon(140% 0%, 162% 78%, 147.04% 78%, 140% 100%);
+  }
+}
+
+@keyframes vt-reveal {
+  0% {
+    clip-path: polygon(0% 0%, -40% 0%, -18% 78%, -32.96% 78%, -40% 100%, 0% 100%);
+  }
+  20% {
+    clip-path: polygon(0% 0%, -4% 0%, 18% 78%, 3.04% 78%, -4% 100%, 0% 100%);
+  }
+  40% {
+    clip-path: polygon(0% 0%, 32% 0%, 54% 78%, 39.04% 78%, 32% 100%, 0% 100%);
+  }
+  60% {
+    clip-path: polygon(0% 0%, 68% 0%, 90% 78%, 75.04% 78%, 68% 100%, 0% 100%);
+  }
+  80% {
+    clip-path: polygon(0% 0%, 104% 0%, 126% 78%, 111.04% 78%, 104% 100%, 0% 100%);
+  }
+  100% {
+    clip-path: polygon(0% 0%, 140% 0%, 162% 78%, 147.04% 78%, 140% 100%, 0% 100%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root) {
     animation: vt-crossfade-out 160ms linear both;
@@ -91,16 +209,27 @@
   ::view-transition-group(work-cover-fleetkit),
   ::view-transition-group(work-cover-crawlnet),
   ::view-transition-group(work-cover-ai-funnel-ecosystem),
-  ::view-transition-group(work-cover-shipcrew) {
+  ::view-transition-group(work-cover-shipcrew),
+  ::view-transition-group(work-cover-smena),
+  ::view-transition-group(work-cover-gran),
+  ::view-transition-group(work-cover-ipcheck) {
     animation: none;
+  }
+
+  ::view-transition-old(vt-wipe),
+  ::view-transition-new(vt-wipe) {
+    animation: none;
+    opacity: 0;
   }
 }
 
-html[data-perf='low'] ::view-transition-old(root) {
+html[data-perf='low'] ::view-transition-old(root),
+html[data-vt-mode='fade']::view-transition-old(root) {
   animation: vt-crossfade-out 160ms linear both;
 }
 
-html[data-perf='low'] ::view-transition-new(root) {
+html[data-perf='low'] ::view-transition-new(root),
+html[data-vt-mode='fade']::view-transition-new(root) {
   animation: vt-crossfade-in 160ms linear both;
 }
 
@@ -111,8 +240,26 @@ html[data-perf='low'] ::view-transition-group(work-cover-fleetkit),
 html[data-perf='low'] ::view-transition-group(work-cover-crawlnet),
 html[data-perf='low'] ::view-transition-group(work-cover-ai-funnel-ecosystem),
 html[data-perf='low'] ::view-transition-group(work-cover-shipcrew),
-html[data-perf='low'] ::view-transition-group(work-cover-smena) {
+html[data-perf='low'] ::view-transition-group(work-cover-smena),
+html[data-perf='low'] ::view-transition-group(work-cover-gran),
+html[data-perf='low'] ::view-transition-group(work-cover-ipcheck),
+html[data-vt-mode='fade']::view-transition-group(work-cover-priemnaya),
+html[data-vt-mode='fade']::view-transition-group(work-cover-zerno),
+html[data-vt-mode='fade']::view-transition-group(work-cover-pingo),
+html[data-vt-mode='fade']::view-transition-group(work-cover-fleetkit),
+html[data-vt-mode='fade']::view-transition-group(work-cover-crawlnet),
+html[data-vt-mode='fade']::view-transition-group(work-cover-ai-funnel-ecosystem),
+html[data-vt-mode='fade']::view-transition-group(work-cover-shipcrew),
+html[data-vt-mode='fade']::view-transition-group(work-cover-smena),
+html[data-vt-mode='fade']::view-transition-group(work-cover-gran),
+html[data-vt-mode='fade']::view-transition-group(work-cover-ipcheck) {
   animation: none;
+}
+
+html[data-vt-mode='fade']::view-transition-old(vt-wipe),
+html[data-vt-mode='fade']::view-transition-new(vt-wipe) {
+  animation: none;
+  opacity: 0;
 }
 
 /* Fallback when View Transitions API is missing — no CSS VT rules apply */
