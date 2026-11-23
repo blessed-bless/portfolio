@@ -73,7 +73,8 @@ const classes = ['btn', `btn--${variant}`, className].filter(Boolean).join(' ');
   }
 
   .btn--primary:hover {
-    background: color-mix(in srgb, var(--accent) 82%, white);
+    /* Keep white label ≥ AA: mix less white than 82% (that was ~4.13:1). */
+    background: color-mix(in srgb, var(--accent) 92%, white);
     color: var(--accent-ink);
   }
 
@@ -104,6 +105,7 @@ const classes = ['btn', `btn--${variant}`, className].filter(Boolean).join(' ');
   }
 
   .btn--link:hover {
-    color: var(--accent);
+    /* --accent on dark bg is ~3.4:1; strong stays AA for body-size links */
+    color: var(--accent-strong);
   }
 </style>

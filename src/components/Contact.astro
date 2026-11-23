@@ -33,14 +33,28 @@ const hasLinks = Boolean(telegram || github || email);
     hasLinks ? (
       <div class="contact__body">
         <p class="contact__hint">{t.home.contactHint}</p>
+        <p class="contact__remote mono">{t.home.contactRemote}</p>
 
         {telegram ? (
           <form
             class="contact__form"
             data-lead-form
             data-telegram={telegram}
+            data-status-success={t.leadForm.success}
+            data-status-error={t.leadForm.error}
             novalidate
           >
+            <div class="contact__hp" aria-hidden="true">
+              <label>
+                Company
+                <input
+                  type="text"
+                  name="company"
+                  tabindex="-1"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
             <label class="contact__field">
               <span class="contact__label">{t.leadForm.nameLabel}</span>
               <input
@@ -118,6 +132,13 @@ const hasLinks = Boolean(telegram || github || email);
                 </Button>
               ) : null}
             </div>
+            <p
+              class="contact__status"
+              data-lead-status
+              role="status"
+              aria-live="polite"
+              hidden
+            ></p>
           </form>
         ) : email ? (
           <div class="contact__cta">
@@ -197,9 +218,27 @@ const hasLinks = Boolean(telegram || github || email);
     max-width: 36rem;
   }
 
+  .contact__remote {
+    margin: calc(var(--space-2) * -1) 0 0;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
   .contact__form {
     display: grid;
     gap: var(--space-4);
+  }
+
+  .contact__hp {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .contact__field {
@@ -321,7 +360,26 @@ const hasLinks = Boolean(telegram || github || email);
   }
 
   .contact__cta :global(.btn--primary:hover) {
-    background: color-mix(in srgb, var(--accent) 82%, white);
+    background: color-mix(in srgb, var(--accent) 92%, white);
+  }
+
+  .contact__status {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+    color: var(--fg-muted);
+  }
+
+  .contact__status[data-kind='success'] {
+    color: var(--ok);
+  }
+
+  .contact__status[data-kind='error'] {
+    color: var(--danger);
+  }
+
+  .contact__status[hidden] {
+    display: none;
   }
 
   .contact__cta :global(.btn--primary:disabled) {

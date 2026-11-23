@@ -33,6 +33,8 @@ type MountOptions = {
   hint: HTMLElement | null;
   onSelect: (project: Project) => void;
   reducedMotion: boolean;
+  /** Localized name for the WebGL carousel canvas. */
+  ariaLabel?: string;
 };
 
 const cardVertex = /* glsl */ `
@@ -75,7 +77,7 @@ export async function mountHeroScene(
   canvas: HTMLCanvasElement,
   options: MountOptions,
 ): Promise<SceneHandle | null> {
-  const { projects, caption, counter, hint, onSelect, reducedMotion } = options;
+  const { projects, caption, counter, hint, onSelect, reducedMotion, ariaLabel } = options;
   if (reducedMotion || projects.length === 0) return null;
 
   const isMobile = window.matchMedia('(max-width: 720px)').matches;
@@ -548,8 +550,8 @@ export async function mountHeroScene(
 
   canvas.dataset.ready = 'true';
   canvas.tabIndex = 0;
-  canvas.setAttribute('role', 'listbox');
-  canvas.setAttribute('aria-label', 'Project carousel');
+  canvas.setAttribute('role', 'img');
+  canvas.setAttribute('aria-label', ariaLabel || 'Carousel');
   requestFrame();
 
   return {

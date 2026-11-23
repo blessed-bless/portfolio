@@ -3,11 +3,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Button from '../components/Button.astro';
 ---
 
-<BaseLayout title="Страница не найдена — Богдан" description="Такой страницы нет" hasEnAlternate={false}>
+<BaseLayout
+  title="Страница не найдена — Богдан"
+  description="Такой страницы нет"
+  noindex={true}
+  omitCanonical={true}
+  hasEnAlternate={false}
+>
   <section class="not-found page-pad">
     <p class="eyebrow mono">404</p>
     <h1 class="not-found__title">Здесь пусто</h1>
     <p class="not-found__text">Адрес не совпал ни с одной страницей. Вернись на главную или в работы.</p>
+    <p class="not-found__text not-found__text--en" lang="en">No page here. Head home or browse the work.</p>
     <div class="not-found__actions">
       <Button href="/" variant="primary">На главную</Button>
       <Button href="/work/" variant="ghost">Работы</Button>
@@ -37,6 +44,11 @@ import Button from '../components/Button.astro';
     max-width: 34ch;
     color: var(--fg-muted);
     font-size: var(--text-md);
+  }
+
+  .not-found__text--en {
+    font-size: var(--text-sm);
+    color: var(--fg-faint);
   }
 
   .not-found__actions {

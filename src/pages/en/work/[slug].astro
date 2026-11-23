@@ -6,20 +6,21 @@ import Demo from '../../../components/mdx/Demo.astro';
 import Diagram from '../../../components/mdx/Diagram.astro';
 import Figure from '../../../components/mdx/Figure.astro';
 import {
+  caseCoverAlt,
+  caseDocumentTitle,
   getCaseEntries,
   getWorkEntry,
   nextCaseSlug,
   renderWork,
   toProject,
+  workStatusLabel,
 } from '../../../lib/work';
+import { breadcrumbJsonLd, personId } from '../../../lib/jsonld';
 import { siteUrl } from '../../../lib/site';
-import { withTrailingSlash } from '../../../lib/paths';
-
 import { localizedPath, ui } from '../../../i18n';
 
 const locale = 'en' as const;
 const t = ui(locale);
-const personName = t.personName;
 
 export async function getStaticPaths() {
   const cases = await getCaseEntries('en');
@@ -39,11 +40,15 @@ if (!entry || !entry.data.hasPage) {
 }
 
 const project = toProject(entry);
+const statusLine = workStatusLabel(project.status, project.origin, t.workOrigin);
 const { Content } = await renderWork(entry);
 const cases = await getCaseEntries('en');
 const nextSlug = nextCaseSlug(cases, project.slug);
 const nextEntry = nextSlug ? await getWorkEntry(nextSlug, 'en') : undefined;
 const next = nextEntry ? toProject(nextEntry) : null;
+
+const casePath = localizedPath('en', `/work/${project.slug}/`);
+const caseUrl = new URL(casePath, siteUrl).href;
 
 const creativeWorkLd = {
   '@context': 'https://schema.org',
@@ -51,21 +56,24 @@ const creativeWorkLd = {
   name: project.title,
   description: project.summary,
   dateCreated: project.year,
-  author: {
-    '@type': 'Person',
-    name: personName,
-  },
-  url: new URL(localizedPath('en', `/work/${project.slug}/`), siteUrl).href,
+  inLanguage: 'en',
+  author: { '@id': personId },
+  url: caseUrl,
   keywords: project.stackList.join(', '),
 };
+
+const jsonLd = [creativeWorkLd, breadcrumbJsonLd('en', project.title, casePath)];
 ---
 
 <BaseLayout
-  title={`${project.title} — portfolio`}
+  title={caseDocumentTitle(project.title, project.summary, 'Bogdan', {
+    slug: project.slug,
+    locale: 'en',
+  })}
   description={project.summary}
-  canonicalPath={localizedPath('en', `/work/${project.slug}/`)}
+  canonicalPath={casePath}
   ogImage={`/og/en/${project.slug}.png`}
-  jsonLd={creativeWorkLd}
+  jsonLd={jsonLd}
   printCase={true}
 >
   <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
@@ -73,16 +81,18 @@ const creativeWorkLd = {
   <article class="case" data-case>
     <header class="case__cover page-pad">
       <div class="case__cover-copy">
-        <p class="eyebrow mono">{project.status}</p>
+        <p class="eyebrow mono">{statusLine}</p>
         <h1 class="case__title" data-page-title>{project.title}</h1>
         <p class="case__summary">{project.summary}</p>
       </div>
       <div class="case__art">
         <ProjectCover
           src={project.cover}
+          alt={caseCoverAlt(project.title, 'en')}
           transitionName={`work-cover-${project.slug}`}
           index={cases.findIndex((entry) => entry.data.slug === project.slug) + 1 || 1}
           title={project.title}
+          loading="eager"
         />
       </div>
     </header>
@@ -103,7 +113,7 @@ const creativeWorkLd = {
         </div>
         <div>
           <dt class="mono">{t.case.status}</dt>
-          <dd>{project.status}</dd>
+          <dd>{statusLine}</dd>
         </div>
       </dl>
       <div class="case__links">

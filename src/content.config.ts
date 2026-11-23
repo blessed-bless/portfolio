@@ -11,6 +11,7 @@ const workStatus = z.enum([
   'shipped',
   'concept',
 ]);
+const workOrigin = z.enum(['client', 'demo', 'personal']);
 
 const work = defineCollection({
   loader: glob({
@@ -25,6 +26,7 @@ const work = defineCollection({
     role: z.string(),
     stack: z.array(z.string()).min(1),
     status: workStatus,
+    origin: workOrigin.optional(),
     cover: z.string(),
     summary: z.string(),
     links: z

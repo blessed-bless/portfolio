@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 
 const body = `/* TEAM */
-Developer: Bogdan Shcherbinin
+Developer: Bogdan Ketasonx
 Site: https://dubstepmolitva.ru
 GitHub: https://github.com/blessed-bless
 Contact: bogdan@dubstepmolitva.ru

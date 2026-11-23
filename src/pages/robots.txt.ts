@@ -5,7 +5,6 @@ export const GET: APIRoute = () => {
   const sitemap = new URL('/sitemap.xml', siteUrl).href;
   const body = `User-agent: *
 Allow: /
-Disallow: /system
 
 # humans.txt — https://dubstepmolitva.ru/humans.txt
 Sitemap: ${sitemap}

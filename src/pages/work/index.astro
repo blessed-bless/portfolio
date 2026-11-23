@@ -2,13 +2,15 @@
 import ProjectCover from '../../components/ProjectCover.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { withTrailingSlash } from '../../lib/paths';
-import { getProjects } from '../../lib/work';
+import { getProjects, workStatusLabel } from '../../lib/work';
 import type { WorkTag } from '../../lib/work-types';
+import { ui } from '../../i18n';
 
+const t = ui('ru');
 const listed = await getProjects();
 const tags: Array<WorkTag | 'all'> = ['all', 'Python', 'TypeScript', 'JavaScript', 'Bots', 'Infra', 'Web'];
 const tagLabels: Record<string, string> = {
-  all: 'Все',
+  all: t.work.tagsAll,
   Python: 'Python',
   TypeScript: 'TypeScript',
   JavaScript: 'JavaScript',
@@ -19,15 +21,15 @@ const tagLabels: Record<string, string> = {
 ---
 
 <BaseLayout
-  title="Работы — Богдан"
-  description="Кейсы и проекты: Python, TypeScript, боты, infra, веб."
+  title={t.work.title}
+  description={t.work.description}
   canonicalPath="/work/"
   ogImage="/og/work.png"
 >
   <section class="work-index page-pad" data-work-index data-view="grid">
     <header class="work-index__head">
       <p class="eyebrow">Портфолио</p>
-      <h1 class="work-index__title" data-page-title>Работы</h1>
+      <h1 class="work-index__title" data-page-title>{t.work.heading}</h1>
       <div class="work-index__controls">
         <div class="work-index__modes" role="group" aria-label="Режим списка">
           <button type="button" class="work-index__chip mono" data-work-view="list" aria-pressed="false" data-cursor="hover">
@@ -83,7 +85,9 @@ const tagLabels: Record<string, string> = {
               </span>
               <span class="work-index__year mono">{project.year}</span>
               <span class="work-index__stack mono">{project.stack}</span>
-              <span class="work-index__status mono">{project.status}</span>
+              <span class="work-index__status mono">
+                {workStatusLabel(project.status, project.origin, t.workOrigin)}
+              </span>
             </Tag>
           );
         })

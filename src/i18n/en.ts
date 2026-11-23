@@ -46,18 +46,25 @@ export const en: UiDict = {
     consentRequired: 'Please agree to personal data processing before sending.',
     submit: 'Send request',
     sending: 'Opening Telegram…',
+    success: 'Request ready — continue in the Telegram window that opened.',
+    error: 'Check the fields and try again.',
   },
   cookie: {
     text: 'This site uses cookies and Yandex Metrica.',
     more: 'Details',
     ok: 'OK',
   },
-  personName: 'Bogdan Shcherbinin',
-  personAlt: 'Bogdan Shcherbinin',
+  personName: 'Bogdan Ketasonx',
+  personAlt: 'Bogdan Ketasonx',
+  workOrigin: {
+    client: 'client',
+    demo: 'demo',
+    personal: 'personal',
+  },
   home: {
-    title: 'Bogdan — backends, bots, and automation',
+    title: 'Bogdan — Python backends, bots, and automation',
     description:
-      'Python backends, Telegram bots, and automation for product teams. From intake to a running system.',
+      'Sites with online booking, Telegram bots, and CRM for businesses. Python backend. Ballpark: a site from 30,000 ₽, a bot from 25,000 ₽, booking from 50,000 ₽.',
     heroHeadline: 'Python backends, bots, and automation that ship',
     heroSubtitle: 'Clients book themselves, leads don’t get lost, and you see everything in one place.',
     heroCta: 'Discuss a project',
@@ -67,11 +74,20 @@ export const en: UiDict = {
     featuredTitle: 'Projects',
     offersEyebrow: 'Services',
     offersTitle: 'What I build',
+    whoamiEyebrow: 'About',
+    whoamiTitle: 'Who I am',
+    whoami: [
+      'I write Python backends, bots, and automation, plus the web interfaces on top — from APIs and queues to a dashboard or booking form.',
+      'I take a task to a working result: something you can run, check, and hand off — not just describe in code.',
+      'First I assemble the end-to-end flow, then polish; I only touch what the task needs.',
+      'Ballpark on timing and money — in “Before you order”: a site from 30,000 ₽, a bot from 25,000 ₽, booking from 50,000 ₽.',
+    ],
     processEyebrow: 'Process',
     processTitle: 'How a project runs',
     contactTitle: 'Let’s build it',
     contactHint:
       'Tell me what you do, how you take requests today, and what you want to automate.',
+    contactRemote: 'Remote, Russia and CIS',
     contactWrite: 'Email me',
     contactPending: 'Contact links will show up here soon.',
     copied: 'Email copied',
@@ -86,8 +102,9 @@ export const en: UiDict = {
     channelMore: 'All posts',
   },
   work: {
-    title: 'Work — Bogdan',
-    description: 'Case studies: Python, TypeScript, bots, infra, web.',
+    title: 'Work — Bogdan: bots, booking, infra cases',
+    description:
+      'Case studies: client booking, Telegram bots, uptime monitoring, crawlers, and a control plane. Python, TypeScript, infra, and web.',
     eyebrow: 'Portfolio',
     heading: 'Work',
     list: 'List',
@@ -96,8 +113,9 @@ export const en: UiDict = {
     soon: 'soon',
   },
   about: {
-    title: 'About — Bogdan',
-    description: 'Python backends, bots, automation, and the UIs that sit on top.',
+    title: 'About — Bogdan: Python, bots, automation',
+    description:
+      'Python backends, bots, automation, and the UIs on top. How I take work, what stack I use, and the tools I rely on day to day.',
     eyebrow: 'About',
     how: 'How I work',
     stack: 'Stack',
@@ -106,8 +124,9 @@ export const en: UiDict = {
     resume: 'Download resume',
   },
   uses: {
-    title: 'Uses — Bogdan',
-    description: 'Editor, terminal, hardware, and services I use day to day.',
+    title: 'Uses — Bogdan’s day-to-day tools',
+    description:
+      'Editor, terminal, hardware, and services I use every day. A short list — only what actually stays in the workflow.',
     eyebrow: 'Uses',
     heading: 'What I use every day',
     lead: 'A short tool list. Empty rows stay hidden until I fill them in.',

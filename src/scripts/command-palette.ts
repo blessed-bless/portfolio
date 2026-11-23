@@ -223,6 +223,8 @@ async function runItem(item: PaletteItem): Promise<void> {
     if (!email) return;
     try {
       await navigator.clipboard.writeText(email);
+      const { goal } = await import('./metrika');
+      goal('email_click', { from: 'cmdk' });
     } catch {
       window.prompt('Скопируй почту:', email);
     }
@@ -243,9 +245,15 @@ async function runItem(item: PaletteItem): Promise<void> {
     item.action === 'open-pingo' ||
     item.action === 'resume'
   ) {
-    if (item.action === 'telegram-channel') {
+    if (
+      item.action === 'telegram' ||
+      item.action === 'telegram-channel' ||
+      item.action === 'github'
+    ) {
       const { goal } = await import('./metrika');
-      goal('tg_channel_click', { from: 'cmdk' });
+      if (item.action === 'telegram-channel') goal('tg_channel_click', { from: 'cmdk' });
+      else if (item.action === 'telegram') goal('tg_click', { from: 'cmdk' });
+      else goal('github_click', { from: 'cmdk' });
     }
     window.open(item.href, '_blank', 'noopener,noreferrer');
     return;

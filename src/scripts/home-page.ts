@@ -312,7 +312,10 @@ function mountCopyEmail(): void {
       return;
     }
     void navigator.clipboard.writeText(email).then(
-      () => showToast('Почта скопирована'),
+      () => {
+        showToast('Почта скопирована');
+        void import('./metrika').then(({ goal }) => goal('email_click', { from: 'copy' }));
+      },
       () => showToast('Не удалось скопировать'),
     );
   };

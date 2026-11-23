@@ -5,6 +5,8 @@ declare global {
   interface Window {
     ym?: (id: number, method: string, ...args: unknown[]) => void;
     __metrikaBooted?: boolean;
+    /** Set by deferred Metrika init — URL already counted; skip one matching hit. */
+    __ymInitUrl?: string;
   }
 }
 
@@ -12,7 +14,6 @@ type GoalParams = Record<string, string | number | boolean | undefined>;
 
 const firedGoals = new Set<string>();
 let mounted = false;
-let isFirstPageLoad = true;
 let caseReadObserver: IntersectionObserver | null = null;
 let caseReadCleanup: (() => void) | null = null;
 
@@ -154,15 +155,18 @@ function mountCaseRead(): void {
 
 function onPageLoad(): void {
   if (!canTrack()) return;
+  mountCaseRead();
 
-  if (isFirstPageLoad) {
-    // ym('init') already recorded the landing hit — do not duplicate.
-    isFirstPageLoad = false;
-  } else if (typeof window.ym === 'function') {
-    window.ym(METRIKA_ID, 'hit', location.href, { title: document.title });
+  if (typeof window.ym !== 'function') return;
+
+  // Deferred init already counted this URL — skip once so VT hits still fire later.
+  if (window.__ymInitUrl) {
+    const counted = window.__ymInitUrl;
+    window.__ymInitUrl = undefined;
+    if (location.href === counted) return;
   }
 
-  mountCaseRead();
+  window.ym(METRIKA_ID, 'hit', location.href, { title: document.title });
 }
 
 /** Bind once for the whole SPA session (View Transitions safe). */
