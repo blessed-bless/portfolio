@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import BrandMark from '../components/BrandMark.astro';
 import Button from '../components/Button.astro';
 ---
 
@@ -11,6 +12,12 @@ import Button from '../components/Button.astro';
   hasEnAlternate={false}
 >
   <section class="not-found page-pad">
+    <div class="not-found__mark" data-liquid-metal-404 aria-hidden="true">
+      <div class="not-found__mark-host" data-liquid-metal-host></div>
+      <span class="not-found__mark-fallback" data-liquid-metal-fallback>
+        <BrandMark size={160} />
+      </span>
+    </div>
     <p class="eyebrow mono">404</p>
     <h1 class="not-found__title">Здесь пусто</h1>
     <p class="not-found__text">Адрес не совпал ни с одной страницей. Вернись на главную или в работы.</p>
@@ -22,6 +29,39 @@ import Button from '../components/Button.astro';
   </section>
 </BaseLayout>
 
+<script>
+  let disposeMark: (() => void) | null = null;
+  let bootToken = 0;
+
+  async function bootLiquidMetal(): Promise<void> {
+    const token = ++bootToken;
+    disposeMark?.();
+    disposeMark = null;
+
+    const root = document.querySelector<HTMLElement>('[data-liquid-metal-404]');
+    if (!root) return;
+
+    const { mountLiquidMetal404 } = await import('../scripts/liquid-metal-404');
+    if (token !== bootToken) return;
+
+    const handle = await mountLiquidMetal404(root);
+    if (token !== bootToken) {
+      handle?.dispose();
+      return;
+    }
+    disposeMark = handle ? () => handle.dispose() : null;
+  }
+
+  document.addEventListener('astro:page-load', () => {
+    void bootLiquidMetal();
+  });
+  document.addEventListener('astro:before-swap', () => {
+    bootToken += 1;
+    disposeMark?.();
+    disposeMark = null;
+  });
+</script>
+
 <style>
   .not-found {
     min-height: calc(100svh - var(--header-h));
@@ -29,6 +69,33 @@ import Button from '../components/Button.astro';
     align-content: center;
     gap: var(--space-4);
     padding-block: var(--space-8);
+  }
+
+  .not-found__mark {
+    position: relative;
+    width: 160px;
+    height: 160px;
+  }
+
+  .not-found__mark-host {
+    position: absolute;
+    inset: 0;
+    width: 160px;
+    height: 160px;
+    pointer-events: none;
+  }
+
+  .not-found__mark-fallback {
+    display: block;
+    width: 160px;
+    height: 160px;
+    color: var(--fg);
+  }
+
+  .not-found__mark-fallback :global(.brand-mark) {
+    display: block;
+    width: 160px;
+    height: 160px;
   }
 
   .not-found__title {
