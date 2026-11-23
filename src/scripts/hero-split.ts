@@ -1,10 +1,11 @@
 import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
+import { isLessMotionPreferred, perfAllows } from './perf';
 
 gsap.registerPlugin(SplitText);
 
 function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return isLessMotionPreferred();
 }
 
 type IntroOptions = {
@@ -24,8 +25,12 @@ export async function animateHeroIntro(
   );
   if (!name || !line) return;
 
-  // Skip SplitText on narrow/reduced — char wraps were a CLS source on mobile.
-  if (prefersReducedMotion() || window.matchMedia('(max-width: 900px)').matches) {
+  // Skip SplitText on narrow/reduced/mid — char wraps were a CLS source on mobile.
+  if (
+    prefersReducedMotion() ||
+    !perfAllows('splitChars') ||
+    window.matchMedia('(max-width: 900px)').matches
+  ) {
     await options.onCarouselEnter?.();
     return;
   }
