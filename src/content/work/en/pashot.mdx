@@ -1,0 +1,74 @@
+---
+title: Pashot
+slug: pashot
+year: '2026'
+role: Frontend
+stack:
+  - Astro
+  - TypeScript
+status: concept
+origin: demo
+cover: ../../assets/covers/pashot.png
+summary: >-
+  A one-page site for the Pashot cafe in Anapa: a menu with category tabs and a
+  price filter, a photo gallery, a map, and contacts.
+links:
+  demo: /demo/pashot/
+order: 11
+tags:
+  - TypeScript
+  - Web
+hasPage: true
+featured: true
+carousel: true
+---
+
+import hero390 from '../../../assets/screenshots/pashot-hero-390.png';
+import hero1440 from '../../../assets/screenshots/pashot-hero-1440.png';
+import menu390 from '../../../assets/screenshots/pashot-menu-390.png';
+import lightbox390 from '../../../assets/screenshots/pashot-lightbox-390.png';
+import Button from '../../../components/Button.astro';
+import DeviceShot from '../../../components/mdx/DeviceShot.astro';
+
+<p class="case-lead-cta">
+  <Button href="/demo/pashot/" variant="primary">{'Open demo'}</Button>
+</p>
+
+<p class="case-note">Unofficial site. A portfolio concept; the cafe allowed the materials to be used.</p>
+
+<DeviceShot src={hero1440} device="browser" alt="Pashot desktop hero with the name, a pasta photo, and a menu button" caption="1440 — first screen." />
+
+## Problem
+
+The cafe had a basic site. It needed one page with the menu, photos, and how to get there. I rebuilt it by hand, with my own components. This is not the cafe's official site.
+
+## What I built
+
+- **Menu.** Tabs for the main menu and drinks. Inside each, a price filter: 200, 400, and other prices.
+- **Gallery.** A photo grid. A tap opens a lightbox with the picture, a caption, and back, next, and close.
+- **Map and contacts.** Anapa, Gorky Street 6. Open daily 9:00–23:00. The phone number is on the page.
+- **Phone bar.** Below 800px a bar stays at the bottom: call and directions. It is hidden on a wide screen.
+- **Scroll.** The browser's own scroll, no scroll-jacking.
+- **Logo.** Sofia Sans Condensed, the font file hosted with the page.
+- **Images.** AVIF and WebP.
+
+## Numbers
+
+| | Lighthouse mobile |
+| --- | --- |
+| Performance | 96 |
+| Accessibility | 100 |
+| LCP | 2.6 s |
+| CLS | 0.03 |
+
+Measured on a static preview of `/demo/pashot/`, mobile, simulated throttling. 27 November 2026.
+
+## Screens
+
+<DeviceShot src={hero390} device="phone" alt="Pashot mobile hero with the address and a pasta photo" caption="390 — first screen and the note that this is not the official site." />
+<DeviceShot src={menu390} device="phone" alt="Mobile menu with category tabs and the 200 price filter" caption="390 — menu tabs and the price filter." />
+<DeviceShot src={lightbox390} device="phone" alt="Lightbox showing the Pashot cafe front" caption="390 — gallery lightbox." />
+
+## What was verified
+
+Shipped as static files inside the portfolio, marked as a concept. The cafe allowed the materials on the condition that the page is not presented as their official site. No quotes and no revenue figures — those were not measured.

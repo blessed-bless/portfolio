@@ -1,0 +1,1 @@
+function e(e,t=`start`){e.scrollIntoView({block:t,behavior:`auto`})}function t(e){document.documentElement.classList.toggle(`scroll-lock`,e)}export{t as n,e as t};
