@@ -203,7 +203,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
       if (replayBtn) replayBtn.hidden = false;
     };
     const onHeroKey = (event: KeyboardEvent): void => {
-      if (event.target === canvas) return;
+      if (root.dataset.webgl !== 'on' || event.target === canvas) return;
       if (!root.contains(document.activeElement)) return;
       if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
       event.preventDefault();
