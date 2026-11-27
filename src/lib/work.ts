@@ -48,13 +48,20 @@ export async function getWorkEntries(locale: Locale = defaultLocale): Promise<Wo
 }
 
 /** Projects shown on /work — only real cases with pages. */
-/** When a case named `pashot` exists, it leads the home ring and the work rows. */
-export function leadCase<T extends { slug: string }>(projects: T[], slug = 'pashot'): T[] {
-  const index = projects.findIndex((project) => project.slug === slug);
-  if (index <= 0) return projects;
-  const next = projects.slice();
-  const [lead] = next.splice(index, 1);
-  return lead ? [lead, ...next] : projects;
+/** Pashot leads when that case exists. Until then the ring opens on Gran, which has a live screenshot. */
+export function leadCase<T extends { slug: string }>(projects: T[]): T[] {
+  const preferred = ['pashot', 'gran'];
+  for (const slug of preferred) {
+    const index = projects.findIndex((project) => project.slug === slug);
+    if (index <= 0) {
+      if (index === 0) return projects;
+      continue;
+    }
+    const next = projects.slice();
+    const [lead] = next.splice(index, 1);
+    return lead ? [lead, ...next] : projects;
+  }
+  return projects;
 }
 
 export async function getProjects(locale: Locale = defaultLocale): Promise<Project[]> {
