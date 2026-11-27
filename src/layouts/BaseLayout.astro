@@ -189,6 +189,27 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     <CookieNotice />
     <script>
       import '../scripts/boot';
+
+      let heroWatch: IntersectionObserver | null = null;
+      const watchHero = (): void => {
+        heroWatch?.disconnect();
+        heroWatch = null;
+        const button = document.querySelector<HTMLElement>('.sticky-discuss');
+        const hero = document.querySelector('[data-hero]');
+        if (!button || !hero) {
+          button?.classList.remove('is-hidden');
+          return;
+        }
+        heroWatch = new IntersectionObserver(
+          ([entry]) => {
+            button.classList.toggle('is-hidden', Boolean(entry?.isIntersecting && entry.intersectionRatio > 0.28));
+          },
+          { threshold: [0, 0.28, 0.6] },
+        );
+        heroWatch.observe(hero);
+      };
+      watchHero();
+      document.addEventListener('astro:page-load', watchHero);
     </script>
   </body>
 </html>

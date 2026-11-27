@@ -116,8 +116,12 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
         </div>
       )}
       <div class="hero__nav" role="group" aria-label={t.home.carouselNav}>
-        <button type="button" class="hero__nav-btn mono" data-hero-prev data-cursor="hover" aria-label={t.home.carouselPrev} disabled>←</button>
-        <button type="button" class="hero__nav-btn mono" data-hero-next data-cursor="hover" aria-label={t.home.carouselNext} disabled>→</button>
+        <button type="button" class="hero__nav-btn" data-hero-prev data-cursor="hover" aria-label={t.home.carouselPrev} disabled>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+        <button type="button" class="hero__nav-btn" data-hero-next data-cursor="hover" aria-label={t.home.carouselNext} disabled>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9.5 5.5 16 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
       </div>
       <div class="hero__position">
         <div class="hero__meter" aria-hidden="true">
@@ -483,6 +487,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     position: relative;
     min-height: 0;
     aspect-ratio: 16 / 10;
+    overflow: hidden;
     contain: layout paint;
     container-type: inline-size;
     isolation: isolate;
@@ -606,14 +611,20 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
   }
 
   .hero__nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-width: 44px;
     min-height: 44px;
-    padding: 0 0.65rem;
+    padding: 0;
     border: var(--stroke) solid var(--border-strong);
     background: var(--bg-elevated);
     color: var(--fg);
-    font-size: var(--text-sm);
     cursor: pointer;
+  }
+
+  .hero__nav-btn svg {
+    display: block;
   }
 
   .hero__nav-btn:disabled {
@@ -869,6 +880,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 
     .hero__chrome {
       padding: var(--space-3);
+      padding-bottom: 4.75rem;
       column-gap: var(--space-2);
     }
 

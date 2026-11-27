@@ -1,9 +1,7 @@
 import {
-  AdditiveBlending,
-  CanvasTexture,
-  CircleGeometry,
   Color,
   Group,
+  LinearFilter,
   MathUtils,
   Mesh,
   MeshBasicMaterial,
@@ -13,12 +11,13 @@ import {
   Scene,
   ShaderMaterial,
   SRGBColorSpace,
+  TextureLoader,
   Vector2,
   WebGLRenderer,
   type Texture,
 } from 'three';
 import type { Project } from '../lib/work-types';
-import { applyTextureQuality, rasterizeCoverUrl } from './cover-texture';
+import { rasterizeCoverUrl } from './cover-texture';
 import { maxPixelRatio } from './perf';
 import { observeActivity, subscribeTicker } from './raf-hub';
 
@@ -41,42 +40,28 @@ type MountOptions = {
 
 type Panel = {
   mesh: Mesh;
-  material: ShaderMaterial;
+  material: MeshBasicMaterial;
   cover: string;
 };
 
 const ACCENT = new Color('#8B5CF6');
 
-const vertexShader = /* glsl */ `
+const glowVertex = /* glsl */ `
   varying vec2 vUv;
-  varying vec3 vNormal;
-  varying vec3 vWorld;
   void main() {
     vUv = uv;
-    vec4 world = modelMatrix * vec4(position, 1.0);
-    vWorld = world.xyz;
-    vNormal = normalize(mat3(modelMatrix) * normal);
-    gl_Position = projectionMatrix * viewMatrix * world;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 
-const fragmentShader = /* glsl */ `
+const glowFragment = /* glsl */ `
   precision highp float;
   varying vec2 vUv;
-  varying vec3 vNormal;
-  varying vec3 vWorld;
-  uniform sampler2D uMap;
-  uniform vec3 uAccent;
-  uniform float uDim;
-
+  uniform vec3 uColor;
   void main() {
-    vec3 viewDir = normalize(cameraPosition - vWorld);
-    float rim = pow(1.0 - max(dot(normalize(vNormal), viewDir), 0.0), 2.15);
-    vec3 tex = texture2D(uMap, vUv).rgb;
-    float grain = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453);
-    vec3 rgb = tex + uAccent * rim * 1.15 + (grain - 0.5) * 0.05;
-    gl_FragColor = vec4(rgb, 1.0 - uDim * 0.42);
-    #include <colorspace_fragment>
+    float dist = distance(vUv, vec2(0.5));
+    float alpha = smoothstep(0.5, 0.08, dist) * 0.38;
+    gl_FragColor = vec4(uColor, alpha);
   }
 `;
 
@@ -94,27 +79,36 @@ function bendPlane(geometry: PlaneGeometry): void {
   geometry.computeVertexNormals();
 }
 
-function solidTexture(): CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 4;
-  canvas.height = 4;
-  const context = canvas.getContext('2d');
-  if (context) {
-    context.fillStyle = '#16131c';
-    context.fillRect(0, 0, 4, 4);
-  }
-  const texture = new CanvasTexture(canvas);
+function showAsPhoto(texture: Texture): Texture {
   texture.colorSpace = SRGBColorSpace;
+  texture.generateMipmaps = false;
+  texture.minFilter = LinearFilter;
+  texture.magFilter = LinearFilter;
+  texture.anisotropy = 1;
+  texture.needsUpdate = true;
   return texture;
 }
 
-async function loadCover(url: string): Promise<Texture> {
+function loadImageTexture(url: string): Promise<Texture> {
+  const loader = new TextureLoader();
+  loader.setCrossOrigin('anonymous');
+  return new Promise((resolve, reject) => {
+    loader.load(url, (texture) => resolve(showAsPhoto(texture)), undefined, () => reject(new Error(url)));
+  });
+}
+
+async function loadCover(url: string): Promise<Texture | null> {
+  const absolute = new URL(url, window.location.origin).href;
   try {
-    const texture = await rasterizeCoverUrl(url, 'art', { width: 720, anisotropy: 4 });
-    applyTextureQuality(texture, 4);
-    return texture;
-  } catch {
-    return solidTexture();
+    if (/\.svg(\?|$)/i.test(url)) {
+      const texture = await rasterizeCoverUrl(absolute, 'art', { width: 1024, height: 640 });
+      return showAsPhoto(texture);
+    }
+    return await loadImageTexture(absolute);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'cover';
+    console.warn(`hero cover failed: ${url} (${message})`);
+    return null;
   }
 }
 
@@ -145,47 +139,46 @@ export async function mountHeroRing(
   const projects = options.projects;
   const count = projects.length;
   const step = (Math.PI * 2) / count;
-  const radius = count <= 4 ? 3.15 : 3.7;
+  const radius = 5.35;
 
   renderer.outputColorSpace = SRGBColorSpace;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio()));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxPixelRatio(), 1.5));
   if (options.ariaLabel) canvas.setAttribute('aria-label', options.ariaLabel);
 
+  const textures = await Promise.all(projects.map((project) => loadCover(project.cover)));
+  if (textures.some((texture) => !texture)) {
+    textures.forEach((texture) => texture?.dispose());
+    renderer.dispose();
+    return null;
+  }
+
   const scene = new Scene();
-  const camera = new PerspectiveCamera(32, 1, 0.1, 40);
-  camera.position.set(0, 0.12, 7.4);
+  const camera = new PerspectiveCamera(34, 1, 0.1, 60);
+  camera.position.set(0, 0.15, 13.1);
 
   const ring = new Group();
   scene.add(ring);
   const glow = new Mesh(
-    new CircleGeometry(3.1, 48),
-    new MeshBasicMaterial({
-      color: ACCENT,
+    new PlaneGeometry(9.5, 6.2),
+    new ShaderMaterial({
       transparent: true,
-      opacity: 0.42,
-      blending: AdditiveBlending,
       depthWrite: false,
+      uniforms: { uColor: { value: ACCENT } },
+      vertexShader: glowVertex,
+      fragmentShader: glowFragment,
     }),
   );
-  glow.position.z = -1.2;
+  glow.position.z = -2.4;
   scene.add(glow);
 
-  const geometry = new PlaneGeometry(2.25, 1.4, 28, 1);
+  const geometry = new PlaneGeometry(2.15, 1.34, 24, 1);
   bendPlane(geometry);
 
   const panels: Panel[] = [];
-  for (let index = 0; index < count; index += 1) {
-    const project = projects[index];
-    if (!project) continue;
-    const material = new ShaderMaterial({
-      uniforms: {
-        uMap: { value: solidTexture() },
-        uAccent: { value: ACCENT },
-        uDim: { value: 0 },
-      },
-      vertexShader,
-      fragmentShader,
-    });
+  projects.forEach((project, index) => {
+    const texture = textures[index];
+    if (!texture) return;
+    const material = new MeshBasicMaterial({ map: texture });
     const mesh = new Mesh(geometry, material);
     const angle = index * step;
     mesh.position.set(Math.sin(angle) * radius, 0, Math.cos(angle) * radius);
@@ -193,16 +186,7 @@ export async function mountHeroRing(
     mesh.userData.index = index;
     ring.add(mesh);
     panels.push({ mesh, material, cover: project.cover });
-  }
-
-  await Promise.all(
-    panels.map(async (panel) => {
-      const texture = await loadCover(panel.cover);
-      const previous = panel.material.uniforms.uMap?.value as Texture | undefined;
-      if (previous && previous !== texture) previous.dispose();
-      if (panel.material.uniforms.uMap) panel.material.uniforms.uMap.value = texture;
-    }),
-  );
+  });
 
   let disposed = false;
   let running = true;
@@ -245,14 +229,14 @@ export async function mountHeroRing(
 
   const paint = (): void => {
     panels.forEach((panel, index) => {
-      const uniform = panel.material.uniforms.uDim;
-      if (!uniform) return;
       const active = index === activeIndex;
-      const dim = active ? 0 : 1;
-      uniform.value = MathUtils.damp(uniform.value as number, dim, 6, 0.016);
-      const aim = active && hovering ? 1.08 : active ? 1.03 : 0.94;
+      const aim = active && hovering ? 1.06 : active ? 1 : 0.86;
       const nextScale = MathUtils.damp(panel.mesh.scale.x, aim, 7, 0.016);
       panel.mesh.scale.setScalar(nextScale);
+      const shade = active ? 1 : 0.62;
+      panel.material.color.r = MathUtils.damp(panel.material.color.r, shade, 6, 0.016);
+      panel.material.color.g = panel.material.color.r;
+      panel.material.color.b = panel.material.color.r;
     });
     const sway = dragging ? 0 : Math.sin(idle) * 0.05;
     ring.rotation.y = current + kick + sway;
@@ -373,13 +357,14 @@ export async function mountHeroRing(
     void Promise.all(
       panels.map(async (panel) => {
         const texture = await loadCover(panel.cover);
-        if (disposed) {
-          texture.dispose();
+        if (!texture || disposed) {
+          texture?.dispose();
           return;
         }
-        const previous = panel.material.uniforms.uMap?.value as Texture | undefined;
-        if (previous) previous.dispose();
-        if (panel.material.uniforms.uMap) panel.material.uniforms.uMap.value = texture;
+        const previous = panel.material.map;
+        panel.material.map = texture;
+        panel.material.needsUpdate = true;
+        previous?.dispose();
       }),
     );
   });
@@ -400,13 +385,12 @@ export async function mountHeroRing(
     canvas.removeEventListener('keydown', onKey);
     canvas.removeEventListener('webglcontextlost', onLost);
     panels.forEach((panel) => {
-      const texture = panel.material.uniforms.uMap?.value as Texture | undefined;
-      texture?.dispose();
+      panel.material.map?.dispose();
       panel.material.dispose();
     });
     geometry.dispose();
     glow.geometry.dispose();
-    (glow.material as MeshBasicMaterial).dispose();
+    (glow.material as ShaderMaterial).dispose();
     renderer.dispose();
     canvas.dataset.ready = 'false';
   };
