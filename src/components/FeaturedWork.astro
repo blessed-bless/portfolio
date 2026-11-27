@@ -1,244 +1,238 @@
 ---
+import Button from './Button.astro';
 import ProjectCover from './ProjectCover.astro';
-import { getFeaturedProjects } from '../lib/work';
-import type { Project } from '../lib/work-types';
-import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
+import { featuredWorkCopy } from '../data/featured-work';
+import { getFeaturedProjects, workStatusLabel } from '../lib/work';
+import { defaultLocale, isLocale, localizedPath, ui } from '../i18n';
 
-const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
 const t = ui(locale);
-const featured: Project[] = await getFeaturedProjects(locale);
-const first = featured[0];
+const featured = await getFeaturedProjects(locale);
+const catalog = locale === 'en' ? 'All projects' : 'Все проекты';
+const readCase = locale === 'en' ? 'Read the case' : 'Читать кейс';
 ---
 
-<section class="featured page-pad" id="work" data-featured aria-label={t.home.featuredTitle}>
-  <div class="featured__head">
-    <p class="eyebrow">{t.home.featuredEyebrow}</p>
-    <h2 class="featured__title" data-scramble>{t.home.featuredTitle}</h2>
-  </div>
+<section class="featured page-pad" id="work" data-featured aria-labelledby="featured-heading">
+  <header class="featured__head">
+    <h2 class="featured__title" id="featured-heading">{t.home.featuredTitle}</h2>
+    <Button href={localizedPath(locale, '/work/')} variant="ghost">{catalog} <span aria-hidden="true">↗</span></Button>
+  </header>
 
-  <div class="featured__scroll" data-featured-scroll>
-    <div class="featured__sticky">
-      <ul class="featured__list" data-featured-list>
-        {
-          featured.map((project, index) => (
-            <li>
-              <a
-                class="featured__row"
-                href={localizedPath(locale, `/work/${project.slug}/`)}
-                data-featured-row
-                data-slug={project.slug}
-                data-cursor="hover"
-                data-cursor-open
-              >
-                <span class="featured__mobile-preview" aria-hidden="true">
-                  <ProjectCover
-                    src={project.cover}
-                    transitionName={`work-cover-${project.slug}`}
-                    index={index + 1}
-                    title={project.title}
-                  />
-                </span>
-                <span class="featured__num mono">{String(index + 1).padStart(2, '0')}</span>
-                <span class="featured__name">{project.title}</span>
-                <span class="featured__year mono">{project.year}</span>
-                <span class="featured__stack mono">{project.stack}</span>
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-
-      {
-        first ? (
-          <a
-            class="featured__preview"
-            data-featured-preview
-            data-cover-lens
-            href={localizedPath(locale, `/work/${first.slug}/`)}
-            tabindex="-1"
-            aria-hidden="true"
-          >
-            <div class="featured__preview-media" data-featured-media>
-              <ProjectCover src={first.cover} index={1} title={first.title} />
-            </div>
+  <div class="featured__grid">
+    {featured.map((project, index) => {
+      const copy = featuredWorkCopy[project.slug]?.[locale];
+      const href = localizedPath(locale, `/work/${project.slug}/`);
+      const demoHref = project.links.live ?? `${href}#demo`;
+      return (
+        <article class:list={['featured__case', { 'featured__case--lead': index === 0 }]} aria-labelledby={`featured-${project.slug}`}>
+          <a class="featured__cover" href={href} aria-label={project.title} data-cursor="hover">
+            <ProjectCover src={project.cover} transitionName={`work-cover-${project.slug}`} />
           </a>
-        ) : null
-      }
-    </div>
+          <div class="featured__body">
+            <p class="featured__type mono">{copy?.category ?? project.role}</p>
+            <h3 class="featured__name" id={`featured-${project.slug}`}>{project.title}</h3>
+            <p class="featured__description">{copy?.scenario ?? project.summary}</p>
+            <p class="featured__status">{workStatusLabel(project.status, project.origin, t.workOrigin)} · {project.role}</p>
+            <div class="featured__links">
+              {copy && (
+                <Button
+                  href={demoHref}
+                  variant={index === 0 ? 'primary' : 'ghost'}
+                  data-demo-start={project.links.live ? undefined : project.slug}
+                  data-demo-from={project.links.live ? undefined : 'featured'}
+                >
+                  {copy.action} <span aria-hidden="true">{project.links.live ? '↗' : '→'}</span>
+                </Button>
+              )}
+              <Button href={href} variant="ghost">{readCase}</Button>
+            </div>
+          </div>
+        </article>
+      );
+    })}
   </div>
 </section>
 
 <style>
   .featured {
-    position: relative;
     padding-block: var(--section-gap);
     border-top: var(--stroke) solid var(--border);
   }
 
   .featured__head {
-    display: grid;
-    gap: var(--space-3);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-4);
     margin-bottom: var(--space-6);
   }
 
   .featured__title {
     margin: 0;
+    max-width: 15ch;
     font-size: var(--text-xl);
     font-weight: 700;
     letter-spacing: var(--tracking-tight);
     line-height: var(--leading-tight);
+    text-wrap: balance;
   }
 
-  .featured__list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    border-top: var(--stroke) solid var(--border);
-  }
-
-  .featured__row {
+  .featured__grid {
     display: grid;
-    grid-template-columns: 3.5rem minmax(0, 1.6fr) 4.5rem minmax(8rem, 0.9fr);
     gap: var(--space-4);
-    align-items: baseline;
-    padding-block: clamp(1.25rem, 2.5vw, 2rem);
-    border-bottom: var(--stroke) solid var(--border);
-    text-decoration: none;
-    color: inherit;
-    transition: color var(--dur-2) var(--ease-out);
   }
 
-  .featured__row:hover,
-  .featured__row:focus-visible,
-  .featured__row[data-active='true'] {
+  .featured__case {
+    display: grid;
+    align-content: start;
+    min-width: 0;
+    border-top: var(--stroke) solid var(--border-strong);
+    background: var(--bg-elevated);
+  }
+
+  .featured__case--lead {
+    border-top-color: var(--accent-strong);
+  }
+
+  .featured__cover {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+    background: var(--bg-elevated);
+  }
+
+  .featured__cover::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    pointer-events: none;
+    border: var(--stroke) solid var(--border);
+  }
+
+  .featured__cover:focus-visible {
+    outline-offset: -3px;
+    z-index: 1;
+  }
+
+  .featured__body {
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: var(--space-2);
+    padding: clamp(1rem, 2.3vw, 2rem);
+  }
+
+  .featured__body p {
+    margin: 0;
+  }
+
+  .featured__type {
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-mono);
     color: var(--accent-strong);
-  }
-
-  .featured__mobile-preview {
-    display: none;
-  }
-
-  .featured__num {
-    color: var(--accent-strong);
-    font-size: var(--text-sm);
+    text-transform: uppercase;
   }
 
   .featured__name {
-    font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2.75rem);
-    font-weight: 650;
+    margin: 0;
+    font-size: var(--text-md);
+    line-height: var(--leading-snug);
     letter-spacing: var(--tracking-tight);
-    display: inline-flex;
-    align-items: baseline;
-    gap: var(--space-3);
-    flex-wrap: wrap;
+    overflow-wrap: anywhere;
   }
 
-  .featured__year,
-  .featured__stack {
-    font-size: var(--text-sm);
+  .featured__case--lead .featured__name {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+  }
+
+  .featured__description {
+    max-width: 44ch;
+    color: var(--fg);
+  }
+
+  .featured__status {
     color: var(--fg-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: var(--text-xs);
   }
 
-  .featured__year {
-    text-align: right;
+  .featured__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
   }
 
-  .featured__preview {
-    display: none;
-    aspect-ratio: 16 / 10;
-    border: var(--stroke) solid var(--border);
-    background: var(--bg-elevated);
-    overflow: hidden;
-    text-decoration: none;
-  }
-
-  .featured__preview-media,
-  .featured__preview-media :global(.project-cover-wrap) {
-    width: 100%;
-    height: 100%;
-  }
-
-  @media (min-width: 901px) {
-    html[data-perf='high'] .featured__sticky,
-    html[data-perf='mid'] .featured__sticky {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
-      gap: clamp(1.25rem, 3vw, 3rem);
-      align-items: start;
+  @media (min-width: 720px) {
+    .featured__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    html[data-perf='mid'] .featured__preview {
-      display: block;
-      position: sticky;
-      top: calc(var(--header-h) + 1rem);
-      align-self: start;
-    }
-
-    html[data-perf='high'] .featured__preview {
-      display: block;
-      position: sticky;
-      top: 15vh;
-      align-self: start;
-      height: auto;
+    .featured__case--lead {
+      grid-column: 1 / -1;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      align-items: center;
     }
   }
 
-  @media (max-width: 900px) {
-    .featured__row {
-      grid-template-columns: 2.5rem 1fr;
-      grid-template-areas:
-        'preview preview'
-        'num name'
-        'year stack';
-      gap: var(--space-2) var(--space-3);
-      padding-block: var(--space-5);
+  @media (min-width: 1100px) {
+    .featured__grid {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
     }
 
-    .featured__mobile-preview {
-      display: block;
-      grid-area: preview;
-      aspect-ratio: 16 / 10;
-      margin-bottom: var(--space-2);
-      border: var(--stroke) solid var(--border);
-      background: var(--bg-elevated) center / cover no-repeat;
+    .featured__case--lead {
+      grid-column: 1;
+      grid-row: span 2;
+      grid-template-columns: minmax(0, 1fr);
     }
 
-    .featured__num {
-      grid-area: num;
+    .featured__case:not(.featured__case--lead) {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      align-content: stretch;
     }
 
-    .featured__name {
-      grid-area: name;
-      font-size: clamp(1.35rem, 5vw, 1.85rem);
+    .featured__case:not(.featured__case--lead) .featured__cover :global(.project-cover-wrap) {
+      height: 100%;
     }
 
-    .featured__year {
-      grid-area: year;
-    }
-
-    .featured__stack {
-      grid-area: stack;
-      text-align: right;
+    .featured__case:not(.featured__case--lead) .featured__cover :global(.project-cover) {
+      height: 100%;
+      object-fit: contain;
+      background: var(--bg-elevated);
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .featured__scroll {
-      height: auto !important;
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      :global(html:not([data-perf='low'])) .featured__cover:not(:focus-visible) {
+        animation: featured-cover-entry linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 82%;
+      }
+    }
+  }
+
+  @keyframes featured-cover-entry {
+    from {
+      clip-path: inset(12% 0 8% 0);
+      translate: 0 0.8rem;
     }
 
-    .featured__sticky {
-      position: static !important;
-      height: auto !important;
-      display: block !important;
-      overflow: visible !important;
+    to {
+      clip-path: inset(0);
+      translate: 0 0;
+    }
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    :global(html:not([data-perf='low'])) .featured__cover :global(.project-cover-wrap) {
+      transition: scale var(--dur-3) var(--ease-out);
     }
 
-    .featured__preview {
-      display: none !important;
+    :global(html:not([data-perf='low'])) .featured__cover:hover :global(.project-cover-wrap) {
+      scale: 1.035;
     }
   }
 </style>

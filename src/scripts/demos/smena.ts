@@ -71,10 +71,11 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
   const board = el('div', 'smena-demo__board');
   const actions = el('div', 'demo-ui__row smena-demo__actions');
   const note = el('p', 'demo-ui__meta', t.hint);
+  note.setAttribute('role', 'status');
   const share = el('pre', 'smena-demo__share');
   share.hidden = true;
 
-  let records = t.seed.map((r) => ({ ...r }));
+  let records: Visit[] = t.seed.map((r) => ({ ...r }));
   let selectedId: string | null = records.find((r) => r.status === 'confirmed')?.id ?? null;
   let tipVisible = true;
 
@@ -91,10 +92,14 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
       rail.append(el('span', 'smena-demo__hour', `${h}:00`));
     }
 
+    const targets: Array<{ start: number; button: HTMLButtonElement }> = [];
     const gaps = freeGaps(records, settings);
     for (const [start, end] of gaps) {
-      const slot = button(`${hhmm(start)}–${hhmm(end)}`);
-      slot.classList.add('smena-demo__gap');
+      const slot = el('button', 'smena-demo__gap', `${hhmm(start)}–${hhmm(end)}`);
+      slot.type = 'button';
+      if (records.some((visit) => !isActive(visit) && mins(visit.time) < end && mins(visit.time) + visit.duration > start)) {
+        slot.dataset.overlapsVisit = 'true';
+      }
       slot.style.top = `${((start - 600) / 540) * 100}%`;
       slot.style.height = `${((end - start) / 540) * 100}%`;
       slot.addEventListener('click', async () => {
@@ -117,8 +122,9 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
         note.textContent = t.bookedAt(hhmm(start));
         share.hidden = true;
         render();
+        board.querySelector<HTMLElement>(`[data-visit-id="${id}"]`)?.focus({ preventScroll: true });
       });
-      board.append(slot);
+      targets.push({ start, button: slot });
     }
 
     for (const r of records) {
@@ -127,6 +133,10 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
       card.style.top = `${((mins(r.time) - 600) / 540) * 100}%`;
       card.style.height = `${(r.duration / 540) * 100}%`;
       card.dataset.status = r.status;
+      if (!isActive(r) && gaps.some(([start, end]) => mins(r.time) < end && mins(r.time) + r.duration > start)) {
+        card.dataset.overlapsGap = 'true';
+      }
+      card.dataset.visitId = r.id;
       card.setAttribute('aria-pressed', String(r.id === selectedId));
       card.append(
         el('strong', '', r.name),
@@ -138,9 +148,12 @@ export function mountSmenaDemo(root: HTMLElement): () => void {
         selectedId = r.id;
         note.textContent = t.selectedNote(r.name, t.status[r.status]);
         render();
+        board.querySelector<HTMLElement>(`[data-visit-id="${r.id}"]`)?.focus({ preventScroll: true });
       });
-      board.append(card);
+      targets.push({ start: mins(r.time), button: card });
     }
+
+    board.append(...targets.sort((a, b) => a.start - b.start).map((target) => target.button));
 
     clear(actions);
     const selected = records.find((r) => r.id === selectedId);

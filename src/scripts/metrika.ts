@@ -1,10 +1,10 @@
 import { METRIKA_HOSTS, METRIKA_ID } from '../lib/metrika';
+import { analyticsChoice } from './cookie-notice';
 import { isTelegramChannelHref } from '../lib/telegram-channel';
 
 declare global {
   interface Window {
     ym?: (id: number, method: string, ...args: unknown[]) => void;
-    __metrikaBooted?: boolean;
     /** Set by deferred Metrika init — URL already counted; skip one matching hit. */
     __ymInitUrl?: string;
   }
@@ -14,6 +14,9 @@ type GoalParams = Record<string, string | number | boolean | undefined>;
 
 const firedGoals = new Set<string>();
 let mounted = false;
+let counterActive = false;
+let tag: HTMLScriptElement | undefined;
+let tagLoaded = false;
 let caseReadObserver: IntersectionObserver | null = null;
 let caseReadCleanup: (() => void) | null = null;
 
@@ -21,13 +24,13 @@ function canTrack(): boolean {
   if (!import.meta.env.PROD) return false;
   if (typeof window === 'undefined') return false;
   if (!METRIKA_HOSTS.has(location.hostname)) return false;
-  return true;
+  return analyticsChoice() === 'allow';
 }
 
 /** Send a Metrika reachGoal. Safe no-op off production domain. */
 export function goal(name: string, params?: GoalParams): void {
   if (!canTrack()) return;
-  if (typeof window.ym !== 'function') return;
+  if (!counterActive || typeof window.ym !== 'function') return;
   window.ym(METRIKA_ID, 'reachGoal', name, params);
 }
 
@@ -36,7 +39,8 @@ function tgPlace(el: Element): string {
   if (el.closest('[data-nav-panel], [data-site-header]')) return 'menu';
   if (el.closest('[data-case-demo]')) return 'demo';
   if (el.closest('[data-case]')) return 'case';
-  if (el.closest('[data-site-footer], [data-contact]')) return 'footer';
+  if (el.closest('[data-contact]')) return location.pathname.endsWith('/order/') ? 'order' : 'contact';
+  if (el.closest('[data-site-footer]')) return 'footer';
   if (el.closest('[data-channel]')) return 'channel';
   if (el.closest('[data-cmdk]')) return 'cmdk';
   return 'other';
@@ -51,7 +55,7 @@ function isGithubHref(href: string): boolean {
 }
 
 function onDocumentClick(event: MouseEvent): void {
-  if (!canTrack()) return;
+  if (!canTrack() || !counterActive) return;
   const target = event.target;
   if (!(target instanceof Element)) return;
 
@@ -60,6 +64,8 @@ function onDocumentClick(event: MouseEvent): void {
     const href = link.href;
     if (isTelegramChannelHref(href) || link.hasAttribute('data-tg-channel')) {
       goal('tg_channel_click', { from: tgPlace(link) });
+    } else if (link.hasAttribute('data-telegram-handoff')) {
+      goal('telegram_handoff', { from: tgPlace(link) });
     } else if (isTelegramHref(href)) {
       goal('tg_click', { from: tgPlace(link) });
     } else if (href.startsWith('mailto:')) {
@@ -95,7 +101,7 @@ function maybeDemoStart(target: Element): void {
 }
 
 function onDocumentPointerDown(event: PointerEvent): void {
-  if (!canTrack()) return;
+  if (!canTrack() || !counterActive) return;
   const target = event.target;
   if (!(target instanceof Element)) return;
   maybeDemoStart(target);
@@ -154,7 +160,7 @@ function mountCaseRead(): void {
 }
 
 function onPageLoad(): void {
-  if (!canTrack()) return;
+  if (!canTrack() || !counterActive) return;
   mountCaseRead();
 
   if (typeof window.ym !== 'function') return;
@@ -163,15 +169,61 @@ function onPageLoad(): void {
   if (window.__ymInitUrl) {
     const counted = window.__ymInitUrl;
     window.__ymInitUrl = undefined;
-    if (location.href === counted) return;
+    if (pageUrl() === counted) return;
   }
 
-  window.ym(METRIKA_ID, 'hit', location.href, { title: document.title });
+  window.ym(METRIKA_ID, 'hit', pageUrl(), { title: document.title });
 }
 
-/** Bind once for the whole SPA session (View Transitions safe). */
+function pageUrl(): string {
+  return location.origin + location.pathname;
+}
+
+export function stopMetrika(): void {
+  if (!counterActive) return;
+  counterActive = false;
+  clearCaseRead();
+  window.__ymInitUrl = undefined;
+  window.ym?.(METRIKA_ID, 'destruct');
+}
+
 export function mountMetrika(): void {
-  if (!canTrack() || mounted) return;
+  if (!canTrack() || counterActive) return;
+  const calls: unknown[][] = [];
+  window.ym ??= Object.assign(
+    (...args: unknown[]) => { calls.push(args); },
+    { a: calls, l: Date.now() },
+  );
+  if (!tagLoaded) {
+    if (tag) return;
+    tag = document.createElement('script');
+    tag.async = true;
+    tag.src = 'https://mc.yandex.ru/metrika/tag.js';
+    tag.addEventListener('load', () => {
+      tagLoaded = true;
+      mountMetrika();
+    }, { once: true });
+    tag.addEventListener('error', () => {
+      tag?.remove();
+      tag = undefined;
+    }, { once: true });
+    document.head.append(tag);
+    return;
+  }
+
+  window.ym(METRIKA_ID, 'init', {
+    url: pageUrl(),
+    referrer: document.referrer.split(/[?#]/, 1)[0],
+    webvisor: false,
+    clickmap: true,
+    accurateTrackBounce: true,
+    trackLinks: false,
+  });
+  counterActive = true;
+  window.__ymInitUrl = pageUrl();
+  mountCaseRead();
+
+  if (mounted) return;
   mounted = true;
 
   document.addEventListener('click', onDocumentClick, true);

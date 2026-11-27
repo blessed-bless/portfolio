@@ -1,0 +1,215 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Contact from './Contact.astro';
+import Button from './Button.astro';
+import { serviceOffers } from '../data/order';
+import { defaultLocale, isLocale, localizedPath, ui } from '../i18n';
+import { getCaseEntries, workStatusLabel } from '../lib/work';
+
+const locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const english = locale === 'en';
+const t = ui(locale);
+const copy = english ? {
+  heading: 'Start a project',
+  title: 'Start a project — websites, bots and booking | Bogdan',
+  description: 'Starting prices, timelines and demos for websites, Telegram bots, online booking and automation. Discuss your project with Bogdan.',
+  intro: 'Tell me what you want to make easier for your customers or team. We’ll go through the workflow together and I’ll put together an initial estimate.',
+  estimates: 'Services and estimates',
+  scope: 'The estimate depends on the workflows and integrations. We can discuss support, service fees and response times separately.',
+  case: 'Read the case',
+  demo: 'Try the demo',
+  live: 'Open the site',
+  discuss: 'Discuss your project',
+} : {
+  heading: 'Заказать проект',
+  title: 'Заказать проект — сайт, бот или онлайн-запись | Богдан',
+  description: 'Цены, сроки и примеры сайтов, Telegram-ботов, онлайн-записи и автоматизации. Обсудите свою задачу с Богданом.',
+  intro: 'Расскажите, что хотите упростить для клиентов или команды. Вместе разберём сценарий, и я дам предварительную оценку.',
+  estimates: 'Услуги и ориентиры',
+  scope: 'Итоговая оценка зависит от сценариев и интеграций. Сопровождение, оплату сервисов и сроки ответа обсудим отдельно.',
+  case: 'Читать кейс',
+  demo: 'Попробовать демо',
+  live: 'Открыть сайт',
+  discuss: 'Обсудить задачу',
+};
+const cases = await getCaseEntries(locale);
+const offers = serviceOffers(locale);
+---
+
+<BaseLayout
+  title={copy.title}
+  description={copy.description}
+  canonicalPath={localizedPath(locale, '/order/')}
+  ogImage={english ? '/og/en/order.png' : '/og/order.png'}
+>
+  <div class="order page-pad">
+    <header class="order__intro">
+      <h1>{copy.heading}</h1>
+      <p>{copy.intro}</p>
+      <div class="order__cta">
+        <Button href="#contact" variant="primary">{copy.discuss}</Button>
+      </div>
+    </header>
+
+    <section aria-labelledby="order-services">
+      <h2 id="order-services">{copy.estimates}</h2>
+      <p class="order__scope">{copy.scope}</p>
+      <div class="order__offers">
+        {offers.map((offer) => {
+          const project = cases.find(({ data }) => data.slug === offer.caseSlug)?.data;
+          const href = localizedPath(locale, `/work/${offer.caseSlug}/`);
+          return (
+            <article class="order__offer">
+              <div class="order__service">
+                <h3>{offer.title}</h3>
+                <p class="order__estimate">
+                  <strong>{offer.priceLabel}</strong>
+                  <span>{offer.timing}</span>
+                </p>
+                <p>{offer.description}</p>
+              </div>
+              {project && (
+                <div class="order__case">
+                  <h4>{project.title}</h4>
+                  <p class="order__meta">{workStatusLabel(project.status, project.origin, t.workOrigin)} · {project.role}</p>
+                  <p>{offer.example}</p>
+                  <div class="order__links">
+                    <Button href={href} variant="ghost">{copy.case}</Button>
+                    {offer.id === 'website' && project.links.live ? (
+                      <Button href={project.links.live} variant="ghost">{copy.live}</Button>
+                    ) : (
+                      <Button href={`${href}#demo`} variant="ghost">{copy.demo}</Button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  </div>
+  <Contact />
+</BaseLayout>
+
+<style>
+  .order {
+    padding-block: var(--section-gap);
+  }
+
+  .order__intro {
+    max-width: 48rem;
+    margin-bottom: var(--section-gap);
+  }
+
+  .order__intro h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1.3rem + 4vw, 4rem);
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-display);
+    overflow-wrap: anywhere;
+  }
+
+  .order p {
+    margin: var(--space-3) 0 0;
+    color: var(--fg-muted);
+    max-width: 62ch;
+  }
+
+  .order__cta {
+    margin-top: var(--space-5);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html:not([data-perf='low']):not(:has(#contact:target))) .order__intro:not(:focus-within) > * {
+      animation: order-intro var(--dur-3) var(--ease-out) var(--order-intro-delay, 0ms) backwards;
+    }
+
+    .order__intro > p {
+      --order-intro-delay: 70ms;
+    }
+
+    .order__intro > .order__cta {
+      --order-intro-delay: 125ms;
+    }
+  }
+
+  @keyframes order-intro {
+    from {
+      opacity: 0.55;
+      translate: 0 0.5rem;
+    }
+  }
+
+  .order h2,
+  .order h3,
+  .order h4 {
+    margin: 0;
+    line-height: var(--leading-snug);
+  }
+
+  .order h2 { font-size: var(--text-xl); }
+  .order h3 { font-size: var(--text-lg); }
+  .order h4 { font-size: var(--text-md); }
+
+  .order__offers {
+    margin-top: var(--space-5);
+    border-bottom: var(--stroke) solid var(--border-strong);
+  }
+
+  .order__offer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-6);
+    padding-block: var(--space-6);
+    border-top: var(--stroke) solid var(--border-strong);
+  }
+
+  .order__case {
+    padding: var(--space-4);
+    border-inline-start: var(--stroke) solid var(--border-strong);
+    background: var(--bg-elevated);
+    transition: border-color var(--dur-1) var(--ease-out);
+  }
+
+  .order__case:focus-within {
+    border-inline-start-color: var(--accent-strong);
+  }
+
+  @media (hover: hover) {
+    .order__case:hover {
+      border-inline-start-color: var(--accent-strong);
+    }
+  }
+
+  .order .order__estimate {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .order__estimate strong {
+    color: var(--accent-strong);
+    font-size: var(--text-lg);
+  }
+
+  .order .order__meta {
+    font-size: var(--text-sm);
+  }
+
+  .order__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+
+  @media (max-width: 680px) {
+    .order__offer {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+  }
+</style>

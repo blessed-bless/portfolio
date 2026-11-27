@@ -1,5 +1,6 @@
 import {
   Clock,
+  Color,
   Group,
   MathUtils,
   Mesh,
@@ -22,17 +23,17 @@ import { observeActivity, subscribeTicker } from './raf-hub';
 export type SceneHandle = {
   dispose: () => void;
   playIntro: () => Promise<void>;
+  replayCover: () => void;
   getActiveIndex: () => number;
   goBy: (delta: number) => void;
 };
 
 type MountOptions = {
   projects: Project[];
-  caption: HTMLElement | null;
-  counter: HTMLElement | null;
-  hint: HTMLElement | null;
+  onActiveIndexChange: (index: number) => void;
   onSelect: (project: Project) => void;
   reducedMotion: boolean;
+  showIntro: boolean;
   /** Localized name for the WebGL carousel canvas. */
   ariaLabel?: string;
 };
@@ -52,13 +53,60 @@ const cardFragment = /* glsl */ `
   uniform sampler2D uArt;
   uniform float uHover;
   uniform float uDim;
+  uniform float uPlayback;
+  uniform float uCoverKind;
+  uniform vec3 uAccent;
+
+  float rectMask(vec2 p, vec2 low, vec2 high) {
+    vec2 inBounds = smoothstep(low, low + vec2(0.002), p)
+      * (1.0 - smoothstep(high - vec2(0.002), high, p));
+    return inBounds.x * inBounds.y;
+  }
+
+  float coverMotion(vec2 p, float t) {
+    if (t < 0.0) return 0.0;
+    if (uCoverKind < 0.5) {
+      float right = mix(0.3625, 0.4375, smoothstep(0.15, 0.38, t));
+      return rectMask(p, vec2(0.3625, 0.47), vec2(right, 0.542))
+        * smoothstep(0.15, 0.26, t) * mix(1.0, 0.64, smoothstep(0.78, 1.0, t));
+    }
+
+    if (uCoverKind < 1.5) {
+      float right = mix(0.4375, 0.7875, smoothstep(0.0, 0.65, t));
+      float progress = rectMask(p, vec2(0.2625, 0.356), vec2(right, 0.368))
+        * smoothstep(0.0, 0.2, t) * mix(1.0, 0.68, smoothstep(0.88, 1.0, t));
+      float button = rectMask(p, vec2(0.675, 0.73), vec2(0.7875, 0.778))
+        * smoothstep(0.52, 0.7, t) * (1.0 - smoothstep(0.82, 1.0, t)) * 0.7;
+      return max(progress, button);
+    }
+
+    vec2 position;
+    if (t < 0.34) {
+      position = mix(vec2(0.324, 0.365), vec2(0.324, 0.614), smoothstep(0.04, 0.34, t));
+    } else if (t < 0.58) {
+      position = mix(vec2(0.324, 0.614), vec2(0.53, 0.614), smoothstep(0.34, 0.58, t));
+    } else if (t < 0.72) {
+      position = mix(vec2(0.53, 0.614), vec2(0.53, 0.493), smoothstep(0.58, 0.72, t));
+    } else {
+      position = mix(vec2(0.53, 0.493), vec2(0.649, 0.493), smoothstep(0.72, 0.91, t));
+    }
+    float distanceFromDot = length((p - position) * vec2(1.6, 1.0));
+    float dotLight = (1.0 - smoothstep(0.014, 0.04, distanceFromDot))
+      * smoothstep(0.0, 0.1, t) * (1.0 - smoothstep(0.88, 0.98, t));
+    float queue = rectMask(p, vec2(0.6125, 0.437), vec2(0.81875, 0.549))
+      * smoothstep(0.79, 0.88, t) * mix(0.30, 0.11, smoothstep(0.94, 1.0, t));
+    return max(dotLight, queue);
+  }
 
   void main() {
     vec2 shift = vec2(20.0 / 1600.0, 16.0 / 1000.0) * uHover;
     vec3 base = texture2D(uBase, vUv).rgb;
     vec4 art = texture2D(uArt, vUv - shift);
     vec3 rgb = mix(base, art.rgb, art.a);
-    gl_FragColor = vec4(rgb, 1.0 - uDim * 0.20);
+    float highlight = coverMotion(vec2(vUv.x, 1.0 - vUv.y), uPlayback);
+    rgb = mix(rgb, uAccent, highlight);
+    gl_FragColor = vec4(rgb, 1.0 - uDim * 0.48);
+    #include <colorspace_fragment>
   }
 `;
 
@@ -77,39 +125,39 @@ export async function mountHeroScene(
   canvas: HTMLCanvasElement,
   options: MountOptions,
 ): Promise<SceneHandle | null> {
-  const { projects, caption, counter, hint, onSelect, reducedMotion, ariaLabel } = options;
+  const { projects, onActiveIndexChange, onSelect, reducedMotion, ariaLabel } = options;
   if (reducedMotion || projects.length === 0) return null;
 
   const isMobile = window.matchMedia('(max-width: 720px)').matches;
-  const canWebGL = (() => {
-    try {
-      return Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl'));
-    } catch {
-      return false;
-    }
-  })();
-  if (!canWebGL) return null;
-
-  const root = canvas.closest('[data-hero]');
+  const root = canvas.closest<HTMLElement>('[data-hero]');
   const coverUrls = Array.from(
     root?.querySelectorAll<HTMLElement>('[data-hero-cover] [data-cover-src]') ?? [],
   ).map((node) => node.dataset.coverSrc || '');
   if (coverUrls.length !== projects.length || coverUrls.some((url) => !url)) return null;
 
-  const renderer = new WebGLRenderer({
-    canvas,
-    antialias: true,
-    alpha: true,
-    premultipliedAlpha: false,
-    powerPreference: isMobile ? 'low-power' : 'high-performance',
-  });
+  let renderer: WebGLRenderer;
+  try {
+    renderer = new WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+      premultipliedAlpha: false,
+      powerPreference: isMobile ? 'low-power' : 'high-performance',
+    });
+  } catch {
+    canvas.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext();
+    return null;
+  }
+  const releaseRenderer = (): void => {
+    renderer.dispose();
+    renderer.forceContextLoss();
+  };
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.setPixelRatio(maxPixelRatio());
 
   const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
   const allowShaderWarp = perfAllows('shaderWarp');
-  const splitByChars = perfAllows('splitChars');
   const tier = getPerfTier();
 
   const coverRasterSize = (): { width: number; height: number } => {
@@ -125,19 +173,10 @@ export async function mountHeroScene(
   const loadCovers = async () => {
     const size = coverRasterSize();
     const layers = await Promise.allSettled(
-      coverUrls.flatMap((url, index) => {
-        const project = projects[index];
-        const label = project
-          ? {
-              number: String(index + 1).padStart(2, '0'),
-              title: project.title,
-            }
-          : undefined;
-        return [
-          rasterizeCoverUrl(url, 'base', { ...size, anisotropy: maxAnisotropy, label }),
-          rasterizeCoverUrl(url, 'art', { ...size, anisotropy: maxAnisotropy }),
-        ];
-      }),
+      coverUrls.flatMap((url) => [
+        rasterizeCoverUrl(url, 'base', { ...size, anisotropy: maxAnisotropy }),
+        rasterizeCoverUrl(url, 'art', { ...size, anisotropy: maxAnisotropy }),
+      ]),
     );
     const next = layers.flatMap((layer) => (layer.status === 'fulfilled' ? [layer.value] : []));
     const failure = layers.find((layer) => layer.status === 'rejected');
@@ -155,25 +194,25 @@ export async function mountHeroScene(
     textures = await loadCovers();
   } catch (error) {
     console.warn('Could not load carousel covers', error);
-    renderer.dispose();
+    releaseRenderer();
     return null;
   }
   if (!canvas.isConnected) {
     textures.forEach((texture) => texture.dispose());
-    renderer.dispose();
+    releaseRenderer();
     return null;
   }
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(isMobile ? 46 : 34, 1, 0.1, 40);
-  camera.position.set(0, isMobile ? 0.08 : -0.28, isMobile ? 5.9 : 4.85);
+  camera.position.set(0, 0, 5);
 
   const clock = new Clock();
   const pointerNdc = new Vector2(0, 0);
   const raycaster = new Raycaster();
 
   const carousel = new Group();
-  carousel.position.set(0, isMobile ? 0.12 : -0.48, 0);
+
   scene.add(carousel);
 
   const cardWidth = isMobile ? 3.35 : 3.55;
@@ -195,9 +234,8 @@ export async function mountHeroScene(
   const hoverProgress = projects.map(() => 0);
   let disposed = false;
   let introProgress = 0;
-  let introDone = false;
-  let lastCaption = 0;
-  let browsed = false;
+  let introDone = !options.showIntro;
+  let lastCaption = -1;
   let loopActive = true;
   let needsRender = true;
   /** Soft settle toward integer slide (~700ms). */
@@ -208,74 +246,14 @@ export async function mountHeroScene(
   const tiltTarget = new Vector2(0, 0);
   const tilt = new Vector2(0, 0);
 
-  const markBrowsed = (): void => {
-    if (browsed) return;
-    browsed = true;
-    if (hint) hint.dataset.hidden = 'true';
+  const accent = new Color();
+  const syncAccent = (): void => {
+    accent.setStyle(getComputedStyle(document.documentElement).getPropertyValue('--accent-strong').trim());
   };
-
-  let captionBusy = false;
-
-  const buildCaptionHtml = (project: Project, number: string): string => {
-    return `<span>${number}</span><span>${project.title}</span><span>${project.year}</span><span>${project.stack}</span>`;
-  };
-
-  const animateCaption = async (html: string): Promise<void> => {
-    if (!caption) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      caption.innerHTML = html;
-      return;
-    }
-    if (captionBusy) {
-      caption.innerHTML = html;
-      return;
-    }
-    captionBusy = true;
-    try {
-      const gsap = (await import('gsap')).default;
-      const { SplitText } = await import('gsap/SplitText');
-      gsap.registerPlugin(SplitText);
-
-      await gsap.to(caption, { y: 10, opacity: 0, duration: 0.12, ease: 'power2.in' });
-      caption.innerHTML = html;
-      const split = SplitText.create(caption, {
-        type: splitByChars ? 'chars' : 'lines',
-        charsClass: 'caption-char',
-        linesClass: 'caption-line',
-        aria: 'none',
-      });
-      gsap.set(caption, { y: 0, opacity: 1 });
-      const targets = splitByChars ? split.chars : split.lines;
-      gsap.fromTo(
-        targets,
-        { y: 14, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.3,
-          stagger: splitByChars ? 0.006 : 0.04,
-          ease: 'power2.out',
-        },
-      );
-    } catch {
-      caption.innerHTML = html;
-      caption.style.opacity = '1';
-      caption.style.transform = 'none';
-    } finally {
-      captionBusy = false;
-    }
-  };
-
-  const updateCaption = (): void => {
-    const index = wrapIndex(Math.round(current), projects.length);
-    const project = projects[index];
-    if (!project) return;
-    const number = String(index + 1).padStart(2, '0');
-    const total = String(projects.length).padStart(2, '0');
-    const html = buildCaptionHtml(project, number);
-    if (counter) counter.textContent = `${number} / ${total}`;
-    void animateCaption(html);
-  };
+  syncAccent();
+  let playback = -1;
+  let coverMotionQueued = true;
+  let motionWasEnabled = root?.dataset.motion === 'on';
 
   projects.forEach((project, index) => {
     const material = new ShaderMaterial({
@@ -286,6 +264,9 @@ export async function mountHeroScene(
         uArt: { value: textures[index * 2 + 1] },
         uHover: { value: 0 },
         uDim: { value: 0 },
+        uPlayback: { value: -1 },
+        uCoverKind: { value: project.slug === 'smena' ? 0 : project.slug === 'gran' ? 1 : 2 },
+        uAccent: { value: accent },
       },
       transparent: true,
       depthWrite: false,
@@ -312,9 +293,9 @@ export async function mountHeroScene(
         (Math.cos(angle) * radius - radius) * intro,
       );
       mesh.rotation.y = -angle;
-      mesh.rotation.x = -0.04;
+      mesh.rotation.x = 0;
       const focus = 1 - Math.min(Math.abs(offset), 1.2) / 1.2;
-      const scale = MathUtils.lerp(0.78, 1, focus);
+      const scale = MathUtils.lerp(0.74, 1, focus);
       mesh.scale.setScalar(scale * MathUtils.lerp(0.75, 1, intro));
       mesh.renderOrder = 20 - Math.abs(offset) * 2;
       const material = materials[index];
@@ -331,16 +312,19 @@ export async function mountHeroScene(
     const height = parent.clientHeight;
     renderer.setSize(width, height, false);
     camera.aspect = width / Math.max(height, 1);
+    const viewHeight = Math.max(cardWidth / camera.aspect, cardWidth * 10 / 16);
+    camera.position.z = viewHeight / (2 * 0.92 * Math.tan(MathUtils.degToRad(camera.fov / 2)));
     camera.updateProjectionMatrix();
+    needsRender = true;
   };
 
   const setPointer = (clientX: number, clientY: number): void => {
     const rect = canvas.getBoundingClientRect();
-    const x = (clientX - rect.left) / Math.max(rect.width, 1);
-    const y = (clientY - rect.top) / Math.max(rect.height, 1);
+    const x = MathUtils.clamp((clientX - rect.left) / Math.max(rect.width, 1), 0, 1);
+    const y = MathUtils.clamp((clientY - rect.top) / Math.max(rect.height, 1), 0, 1);
     pointerNdc.set(x * 2 - 1, -(y * 2 - 1));
     if (!isMobile) {
-      tiltTarget.set((x - 0.5) * 0.12, -(y - 0.5) * 0.07);
+      tiltTarget.set((x - 0.5) * 0.075, -(y - 0.5) * 0.055);
     }
   };
 
@@ -353,7 +337,6 @@ export async function mountHeroScene(
   const goBy = (delta: number): void => {
     if (!delta) return;
     active = Math.round(active) + Math.sign(delta);
-    markBrowsed();
     needsRender = true;
   };
 
@@ -368,7 +351,6 @@ export async function mountHeroScene(
       const parentWidth = Math.max(canvas.parentElement?.clientWidth ?? 360, 280);
       dragOffset = MathUtils.clamp(dragOffset - dx / (parentWidth * 0.42), -1, 1);
       current = dragOrigin + dragOffset;
-      if (dragDistance > 6) markBrowsed();
     } else {
       const hit = pickCard();
       hoverIndex = hit && event.pointerType === 'mouse' ? Number(hit.userData.index) : -1;
@@ -377,12 +359,16 @@ export async function mountHeroScene(
   };
 
   const onPointerLeave = (): void => {
-    if (!dragging) hoverIndex = -1;
+    if (dragging) return;
+    hoverIndex = -1;
+    tiltTarget.set(0, 0);
+    needsRender = true;
   };
 
   const onPointerDown = (event: PointerEvent): void => {
     if (event.button !== 0) return;
     event.preventDefault();
+    setPointer(event.clientX, event.clientY);
     dragging = true;
     activePointerId = event.pointerId;
     hoverIndex = -1;
@@ -412,8 +398,9 @@ export async function mountHeroScene(
     } catch {
       /* ignore */
     }
-    const isClick = dragDistance < 8 && Math.abs(event.clientX - dragStartX) < 8;
+    const isClick = event.type === 'pointerup' && dragDistance < 8 && Math.abs(event.clientX - dragStartX) < 8;
     if (isClick) {
+      setPointer(event.clientX, event.clientY);
       const hit = pickCard();
       if (hit) {
         const index = Number(hit.userData.index);
@@ -423,15 +410,13 @@ export async function mountHeroScene(
           if (project?.hasPage) onSelect(project);
         } else {
           const offset = shortestOffset(index, currentIndex, projects.length);
-          active = currentIndex + Math.sign(offset);
-          markBrowsed();
+          active = Math.round(current) + Math.sign(offset);
         }
       }
     } else {
       if (dragOffset > 0.12) active = dragOrigin + 1;
       else if (dragOffset < -0.12) active = dragOrigin - 1;
       else active = dragOrigin;
-      markBrowsed();
     }
     canvas.style.cursor = 'grab';
   };
@@ -452,6 +437,7 @@ export async function mountHeroScene(
   };
 
   const onTheme = (): void => {
+    syncAccent();
     const revision = ++themeRevision;
     void loadCovers().then((nextTextures) => {
       if (disposed || revision !== themeRevision) {
@@ -485,18 +471,24 @@ export async function mountHeroScene(
     if (disposed || !loopActive) return;
     const elapsed = Math.min((deltaMs || clock.getDelta() * 1000) / 1000, 0.033);
     const dt = elapsed;
+    const motionEnabled = root?.dataset.motion === 'on';
+    if (motionEnabled !== motionWasEnabled) {
+      motionWasEnabled = motionEnabled;
+      needsRender = true;
+    }
     let moving = dragging || Math.abs(current - active) > 0.0015 || !introDone;
 
     if (!dragging) {
       const prev = current;
-      current = MathUtils.damp(current, active, SNAP_DAMP, dt);
+      current = motionEnabled ? MathUtils.damp(current, active, SNAP_DAMP, dt) : active;
       if (Math.abs(current - active) < 0.0015) current = active;
       if (Math.abs(current - prev) > 0.0001) moving = true;
     }
 
     const prevTiltX = tilt.x;
     const prevTiltY = tilt.y;
-    tilt.lerp(tiltTarget, 0.08);
+    if (motionEnabled) tilt.lerp(tiltTarget, 0.08);
+    else tilt.set(0, 0);
     if (Math.abs(tilt.x - prevTiltX) > 0.0001 || Math.abs(tilt.y - prevTiltY) > 0.0001) {
       moving = true;
     }
@@ -505,7 +497,7 @@ export async function mountHeroScene(
     layoutCards();
 
     materials.forEach((material, index) => {
-      if (!allowShaderWarp) {
+      if (!allowShaderWarp || !motionEnabled) {
         material.uniforms.uHover.value = 0;
         hoverProgress[index] = 0;
         return;
@@ -521,8 +513,23 @@ export async function mountHeroScene(
     const rounded = wrapIndex(Math.round(current), projects.length);
     if (rounded !== lastCaption) {
       lastCaption = rounded;
-      updateCaption();
+      playback = -1;
+      coverMotionQueued = true;
+      needsRender = true;
+      onActiveIndexChange(rounded);
     }
+
+    if (motionEnabled && coverMotionQueued && introDone && !dragging && Math.abs(current - active) < 0.035) {
+      coverMotionQueued = false;
+      playback = 0;
+    }
+    if (playback >= 0 && playback < 1) {
+      playback = motionEnabled ? Math.min(1, playback + elapsed / 1.6) : -1;
+      moving = true;
+    }
+    materials.forEach((material, index) => {
+      material.uniforms.uPlayback.value = motionEnabled && index === rounded ? playback : -1;
+    });
 
     if (!needsRender && !moving) return;
     needsRender = false;
@@ -533,7 +540,6 @@ export async function mountHeroScene(
   layoutCards();
   window.addEventListener('resize', resize);
   canvas.addEventListener('pointermove', onPointerMove, { passive: false });
-  window.addEventListener('pointermove', onPointerMove, { passive: false });
   canvas.addEventListener('pointerleave', onPointerLeave);
   canvas.addEventListener('pointerdown', onPointerDown);
   window.addEventListener('pointerup', onPointerUp);
@@ -555,6 +561,11 @@ export async function mountHeroScene(
   requestFrame();
 
   return {
+    replayCover: () => {
+      playback = -1;
+      coverMotionQueued = true;
+      requestFrame();
+    },
     getActiveIndex: () => wrapIndex(Math.round(current), projects.length),
     goBy: (delta: number) => {
       goBy(delta);
@@ -565,6 +576,13 @@ export async function mountHeroScene(
         const start = performance.now();
         const duration = 700;
         const tick = (now: number): void => {
+          if (disposed || root?.dataset.motion !== 'on') {
+            introDone = true;
+            introProgress = 1;
+            requestFrame();
+            resolve();
+            return;
+          }
           introProgress = Math.min(1, (now - start) / duration);
           requestFrame();
           if (introProgress < 1) {
@@ -585,7 +603,6 @@ export async function mountHeroScene(
       window.removeEventListener('resize', resize);
       canvas.removeEventListener('keydown', onKey);
       canvas.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointerup', onPointerUp);
@@ -595,52 +612,8 @@ export async function mountHeroScene(
       cardGeo.dispose();
       materials.forEach((material) => material.dispose());
       textures.forEach((texture) => texture.dispose());
-      renderer.dispose();
+      releaseRenderer();
       canvas.dataset.ready = 'false';
     },
   };
-}
-
-export function projectPlaneScreenRect(canvas: HTMLCanvasElement): DOMRect | null {
-  const rect = canvas.getBoundingClientRect();
-  const width = Math.min(rect.width * 0.72, 640);
-  const height = width * 0.66;
-  const left = rect.left + (rect.width - width) / 2;
-  const top = rect.top + (rect.height - height) / 2;
-  return new DOMRect(left, top, width, height);
-}
-
-export function expandToWorkPage(project: Project, from: DOMRect): Promise<void> {
-  return new Promise((resolve) => {
-    const shell = document.createElement('div');
-    shell.className = 'work-expand';
-    shell.style.cssText = [
-      'position:fixed',
-      `left:${from.left}px`,
-      `top:${from.top}px`,
-      `width:${from.width}px`,
-      `height:${from.height}px`,
-      'display:grid',
-      'place-items:center',
-      'overflow:hidden',
-      'z-index:70',
-      'border-radius:2px',
-    ].join(';');
-    const cover = Array.from(document.querySelectorAll<HTMLElement>('[data-hero-cover]'))
-      .find((card) => card.dataset.heroCover === project.slug)
-      ?.querySelector('.project-cover--dark, .project-cover');
-    if (cover) shell.appendChild(cover.cloneNode(true));
-    document.body.appendChild(shell);
-
-    requestAnimationFrame(() => {
-      shell.style.transition =
-        'left 520ms cubic-bezier(0.16,1,0.3,1), top 520ms cubic-bezier(0.16,1,0.3,1), width 520ms cubic-bezier(0.16,1,0.3,1), height 520ms cubic-bezier(0.16,1,0.3,1), border-radius 520ms ease';
-      shell.style.left = '0px';
-      shell.style.top = '0px';
-      shell.style.width = '100vw';
-      shell.style.height = '100vh';
-      shell.style.borderRadius = '0';
-      window.setTimeout(() => resolve(), 540);
-    });
-  });
 }

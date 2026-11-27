@@ -117,6 +117,7 @@ const jsonLd = [creativeWorkLd, breadcrumbJsonLd('en', project.title, casePath)]
         </div>
       </dl>
       <div class="case__links">
+        {project.slug === 'smena' && <a href="#demo" data-cursor="hover">Try the demo</a>}
         {
           project.links.live ? (
             <a href={project.links.live} data-cursor="hover">
@@ -168,8 +169,9 @@ const jsonLd = [creativeWorkLd, breadcrumbJsonLd('en', project.title, casePath)]
     }
 
     <div class="case__actions page-pad">
+      <Button href="/en/order/#contact" variant="primary">Discuss a project</Button>
       <Button href={localizedPath('en', '/work/')} variant="ghost">All work</Button>
-      <Button href={localizedPath('en', '/')} variant="primary">Home</Button>
+      <Button href={localizedPath('en', '/')} variant="ghost">Home</Button>
     </div>
   </article>
 </BaseLayout>
@@ -179,8 +181,12 @@ const jsonLd = [creativeWorkLd, breadcrumbJsonLd('en', project.title, casePath)]
   import { mountCodeCopy, mountReadingProgress } from '../../../scripts/work-case';
 
   let cleanups: Array<() => void> = [];
+  let activeCase: HTMLElement | null = null;
 
   const boot = () => {
+    const article = document.querySelector<HTMLElement>('[data-case]');
+    if (!article || article === activeCase) return;
+    activeCase = article;
     cleanups.forEach((fn) => fn());
     cleanups = [];
     const bar = document.querySelector<HTMLElement>('[data-reading-progress]');
@@ -193,6 +199,7 @@ const jsonLd = [creativeWorkLd, breadcrumbJsonLd('en', project.title, casePath)]
   boot();
   document.addEventListener('astro:page-load', boot);
   document.addEventListener('astro:before-swap', () => {
+    activeCase = null;
     cleanups.forEach((fn) => fn());
     cleanups = [];
   });

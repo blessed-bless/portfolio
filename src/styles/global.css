@@ -240,6 +240,19 @@ html[data-theme='light'] .astro-code span[style*='--shiki-light: #E36209'] {
 }
 
 #cover-lens [data-lens-mount] {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+}
+
+/* Astro can remove the library stylesheet while the shared canvas survives. */
+#cover-lens [data-lens-mount] > canvas {
+  contain: strict;
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   width: 100%;
   height: 100%;
 }

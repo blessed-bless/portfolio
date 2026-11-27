@@ -1,443 +1,118 @@
 ---
 import Button from './Button.astro';
 import { contactLinks } from '../data/home';
-import { isFilled } from '../lib/fill';
-import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
+import { defaultLocale, isLocale } from '../i18n';
 
-const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
-const t = ui(locale);
-const title = t.home.contactTitle;
-const letters = [...title];
-const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
-const github = isFilled(contactLinks.github) ? contactLinks.github : null;
-const email = isFilled(contactLinks.email) ? contactLinks.email : null;
-const privacyHref = localizedPath(locale, '/privacy/');
-const hasLinks = Boolean(telegram || github || email);
+const locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const english = locale === 'en';
+const email = contactLinks.email;
 ---
 
-<section class="contact page-pad" id="contact" data-contact aria-label={t.nav.contact}>
-  <p class="eyebrow">{t.nav.contact}</p>
-  <h2 class="contact__title" data-magnetic-title aria-label={title}>
-    {
-      letters.map((ch) =>
-        ch === ' ' ? (
-          <span class="contact__space" aria-hidden="true">&nbsp;</span>
-        ) : (
-          <span class="contact__letter" aria-hidden="true">{ch}</span>
-        ),
-      )
+<section class="contact page-pad" id="contact" data-contact aria-labelledby="contact-title">
+  <h2 class="contact__title" id="contact-title">{english ? 'Tell me about your project' : 'Расскажите о задаче'}</h2>
+  <p class="contact__hint">
+    {english
+      ? 'Tell me what your business does, how enquiries come in today, and where you run into problems. I’ll ask a few questions and give you an initial estimate.'
+      : 'Напишите, чем занимается бизнес, как сейчас приходят заявки и где возникает проблема. Я уточню детали и дам предварительную оценку.'}
+  </p>
+  <project-contact
+    class="contact__actions"
+    data-email={email}
+    data-copied={english ? 'Email address copied' : 'Адрес почты скопирован'}
+    data-copy-error={english ? 'Couldn’t copy the address. You can select it next to the button.' : 'Не удалось скопировать адрес. Его можно выделить рядом с кнопкой.'}
+  >
+    <div class="contact__links">
+      <Button href={contactLinks.telegram} variant="primary" data-telegram-handoff>
+        {english ? 'Message Bogdan on Telegram' : 'Написать Богдану в Telegram'}
+      </Button>
+      <Button href={`mailto:${email}`} variant="ghost">{email}</Button>
+      <button type="button" class="contact__copy" data-copy-email hidden>
+        {english ? 'Copy address' : 'Скопировать адрес'}
+      </button>
+    </div>
+    <p class="contact__status" data-copy-status role="status"></p>
+  </project-contact>
+</section>
+
+<script>
+  class ProjectContact extends HTMLElement {
+    connectedCallback() {
+      const copy = this.querySelector<HTMLButtonElement>('[data-copy-email]');
+      const status = this.querySelector<HTMLElement>('[data-copy-status]');
+      if (!copy || !status || !copy.hidden) return;
+      copy.addEventListener('click', async () => {
+        const email = this.dataset.email;
+        if (!email) return;
+        try {
+          await navigator.clipboard.writeText(email);
+          status.textContent = this.dataset.copied ?? '';
+        } catch {
+          status.textContent = this.dataset.copyError ?? '';
+        }
+      });
+      copy.hidden = false;
     }
-  </h2>
-
-  {
-    hasLinks ? (
-      <div class="contact__body">
-        <p class="contact__hint">{t.home.contactHint}</p>
-        <p class="contact__remote mono">{t.home.contactRemote}</p>
-
-        {telegram ? (
-          <form
-            class="contact__form"
-            data-lead-form
-            data-telegram={telegram}
-            data-status-success={t.leadForm.success}
-            data-status-error={t.leadForm.error}
-            novalidate
-          >
-            <div class="contact__hp" aria-hidden="true">
-              <label>
-                Company
-                <input
-                  type="text"
-                  name="company"
-                  tabindex="-1"
-                  autocomplete="off"
-                />
-              </label>
-            </div>
-            <label class="contact__field">
-              <span class="contact__label">{t.leadForm.nameLabel}</span>
-              <input
-                class="contact__input"
-                type="text"
-                name="name"
-                autocomplete="name"
-                required
-                maxlength="120"
-                placeholder={t.leadForm.namePlaceholder}
-              />
-            </label>
-            <label class="contact__field">
-              <span class="contact__label">{t.leadForm.contactLabel}</span>
-              <input
-                class="contact__input"
-                type="text"
-                name="contact"
-                autocomplete="tel"
-                required
-                maxlength="160"
-                placeholder={t.leadForm.contactPlaceholder}
-              />
-            </label>
-            <label class="contact__field">
-              <span class="contact__label">{t.leadForm.messageLabel}</span>
-              <textarea
-                class="contact__input contact__textarea"
-                name="message"
-                required
-                maxlength="2000"
-                rows="4"
-                placeholder={t.leadForm.messagePlaceholder}
-              ></textarea>
-            </label>
-
-            <label class="contact__consent">
-              <input
-                class="contact__check"
-                type="checkbox"
-                name="consent"
-                value="1"
-                required
-                aria-describedby="lead-consent-error"
-              />
-              <span>
-                {t.leadForm.consentPrefix}{' '}
-                <a href={privacyHref} data-cursor="hover">{t.leadForm.consentLink}</a>
-              </span>
-            </label>
-            <p
-              class="contact__consent-error"
-              id="lead-consent-error"
-              data-lead-consent-error
-              hidden
-              role="alert"
-            >
-              {t.leadForm.consentRequired}
-            </p>
-
-            <div class="contact__cta">
-              <button
-                class="btn btn--primary"
-                type="submit"
-                data-lead-submit
-                data-label-idle={t.leadForm.submit}
-                data-label-busy={t.leadForm.sending}
-                data-cursor="hover"
-              >
-                {t.leadForm.submit}
-              </button>
-              {email ? (
-                <Button href={`mailto:${email}`} variant="ghost">
-                  {t.home.contactWrite}
-                </Button>
-              ) : null}
-            </div>
-            <p
-              class="contact__status"
-              data-lead-status
-              role="status"
-              aria-live="polite"
-              hidden
-            ></p>
-          </form>
-        ) : email ? (
-          <div class="contact__cta">
-            <Button href={`mailto:${email}`} variant="primary">
-              {t.home.contactWrite}
-            </Button>
-          </div>
-        ) : null}
-
-        <div class="contact__links">
-          {github ? (
-            <a class="contact__link" href={github} data-cursor="hover">
-              GitHub
-            </a>
-          ) : null}
-          {email ? (
-            <button
-              class="contact__link contact__link--email"
-              type="button"
-              data-copy-email
-              data-email={email}
-              data-copy-label={t.home.copied}
-              data-cursor="hover"
-            >
-              {email}
-            </button>
-          ) : null}
-        </div>
-      </div>
-    ) : (
-      <p class="contact__pending">{t.home.contactPending}</p>
-    )
   }
 
-  <p class="contact__toast mono" data-copy-toast data-open="false" role="status" aria-live="polite"></p>
-</section>
+  customElements.define('project-contact', ProjectContact);
+</script>
 
 <style>
   .contact {
-    position: relative;
     padding-block: var(--section-gap);
     border-top: var(--stroke) solid var(--border);
+    transition: border-color var(--dur-2) var(--ease-out);
+  }
+
+  .contact:target {
+    border-top-color: var(--accent);
   }
 
   .contact__title {
-    margin: var(--space-4) 0 0;
-    font-size: clamp(2.6rem, 1.2rem + 8.5vw, 7.5rem);
-    font-weight: 750;
-    letter-spacing: var(--tracking-display);
-    line-height: 1;
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
-    padding-bottom: 0.08em;
-    overflow: visible;
-  }
-
-  .contact__letter,
-  .contact__space {
-    display: inline-block;
-    will-change: transform;
-    line-height: 1;
-  }
-
-  .contact__body {
-    margin-top: var(--space-7);
-    display: grid;
-    gap: var(--space-5);
-    max-width: 40rem;
+    margin: 0;
+    max-width: 24ch;
+    font-size: var(--text-xl);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-snug);
   }
 
   .contact__hint {
-    margin: 0;
-    color: var(--fg-muted);
-    font-size: var(--text-md);
-    line-height: var(--leading-body);
-    max-width: 36rem;
-  }
-
-  .contact__remote {
-    margin: calc(var(--space-2) * -1) 0 0;
-    color: var(--fg-muted);
-    font-size: var(--text-sm);
-  }
-
-  .contact__form {
-    display: grid;
-    gap: var(--space-4);
-  }
-
-  .contact__hp {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  .contact__field {
-    display: grid;
-    gap: var(--space-2);
-  }
-
-  .contact__label {
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-mono);
-    text-transform: uppercase;
+    margin: var(--space-4) 0 0;
+    max-width: 56ch;
     color: var(--fg-muted);
   }
 
-  .contact__input {
-    width: 100%;
-    margin: 0;
-    padding: 0.75rem 0.9rem;
-    border: var(--stroke) solid var(--border-strong);
-    border-radius: var(--radius-sm);
-    background: var(--bg-elevated);
-    color: var(--fg);
-    font: inherit;
-    font-size: var(--text-sm);
-    line-height: var(--leading-body);
-  }
-
-  .contact__input::placeholder {
-    color: var(--fg-faint);
-  }
-
-  .contact__input:focus-visible {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 2px;
-  }
-
-  .contact__textarea {
-    resize: vertical;
-    min-height: 7rem;
-  }
-
-  .contact__consent {
+  .contact__actions {
     display: grid;
-    grid-template-columns: auto 1fr;
     gap: var(--space-3);
-    align-items: start;
-    font-size: var(--text-sm);
-    line-height: var(--leading-body);
-    color: var(--fg-muted);
-    cursor: pointer;
-  }
-
-  .contact__consent a {
-    color: var(--fg);
-    text-underline-offset: 0.18em;
-  }
-
-  .contact__consent a:hover {
-    color: var(--accent-strong);
-  }
-
-  .contact__check {
-    width: 1.15rem;
-    height: 1.15rem;
-    margin-top: 0.2rem;
-    accent-color: var(--accent);
-    cursor: pointer;
-  }
-
-  .contact__check[aria-invalid='true'] {
-    outline: 2px solid var(--danger);
-    outline-offset: 2px;
-  }
-
-  .contact__consent-error {
-    margin: calc(var(--space-2) * -1) 0 0;
-    color: var(--danger);
-    font-size: var(--text-sm);
-  }
-
-  .contact__consent-error[hidden] {
-    display: none;
-  }
-
-  .contact__pending {
-    margin: var(--space-7) 0 0;
-    color: var(--fg-muted);
-    max-width: 28rem;
-  }
-
-  .contact__cta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-  }
-
-  .contact__cta :global(.btn) {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
-    min-height: 2.75rem;
-    padding: 0.7rem 1.25rem;
-    border: var(--stroke) solid transparent;
-    border-radius: var(--radius-sm);
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1;
-    text-decoration: none;
-    cursor: pointer;
-  }
-
-  .contact__cta :global(.btn--primary) {
-    background: var(--accent);
-    color: var(--accent-ink);
-    border-color: transparent;
-  }
-
-  .contact__cta :global(.btn--primary:hover) {
-    background: color-mix(in srgb, var(--accent) 92%, white);
-  }
-
-  .contact__status {
-    margin: 0;
-    font-size: var(--text-sm);
-    line-height: var(--leading-body);
-    color: var(--fg-muted);
-  }
-
-  .contact__status[data-kind='success'] {
-    color: var(--ok);
-  }
-
-  .contact__status[data-kind='error'] {
-    color: var(--danger);
-  }
-
-  .contact__status[hidden] {
-    display: none;
-  }
-
-  .contact__cta :global(.btn--primary:disabled) {
-    opacity: 0.7;
-    cursor: wait;
+    margin-top: var(--space-5);
   }
 
   .contact__links {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-4) var(--space-6);
-  }
-
-  .contact__link {
-    font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    letter-spacing: var(--tracking-mono);
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--fg);
-    background: none;
-    border: 0;
-    padding: 0;
-    min-height: 44px;
-    display: inline-flex;
     align-items: center;
+    gap: var(--space-3);
+    overflow-wrap: anywhere;
   }
 
-  .contact__link:hover {
-    color: var(--accent-strong);
+  .contact__status {
+    margin: 0;
+    color: var(--fg-muted);
+    min-height: 1.5em;
   }
 
-  .contact__link--email {
+  .contact__copy {
+    min-height: 44px;
+    padding-inline: var(--space-3);
+    border: var(--stroke) solid var(--border-strong);
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
     cursor: pointer;
   }
 
-  .contact__toast {
-    position: fixed;
-    left: 50%;
-    bottom: calc(var(--space-5) + var(--cookie-notice-space, 0px));
-    z-index: 50;
-    margin: 0;
-    padding: var(--space-2) var(--space-4);
-    border: var(--stroke) solid var(--border-strong);
-    background: var(--bg-elevated);
-    color: var(--fg);
-    font-size: var(--text-xs);
-    text-transform: uppercase;
-    transform: translateX(-50%) translateY(120%);
-    opacity: 0;
-    pointer-events: none;
-    transition:
-      transform var(--dur-3) var(--ease-out),
-      opacity var(--dur-2) var(--ease-out);
-  }
-
-  .contact__toast[data-open='true'] {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
+  [data-copy-email][hidden] {
+    display: none;
   }
 </style>

@@ -321,8 +321,8 @@ const t = ui(locale);
   .smena-demo__day {
     position: relative;
     display: grid;
-    grid-template-columns: 2.75rem 1fr;
-    min-height: 18rem;
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    min-height: 32rem;
     border: var(--stroke) solid var(--border);
     background: var(--bg-elevated);
     overflow: hidden;
@@ -340,12 +340,13 @@ const t = ui(locale);
 
   .smena-demo__board {
     position: relative;
-    min-height: 18rem;
+    min-height: 32rem;
   }
 
   .smena-demo__visit,
   .smena-demo__gap {
     position: absolute;
+    min-height: 0;
     left: 0.35rem;
     right: 0.35rem;
     display: grid;
@@ -359,6 +360,14 @@ const t = ui(locale);
     color: var(--fg);
     cursor: pointer;
     overflow: hidden;
+  }
+
+  .smena-demo__visit[data-overlaps-gap='true'] {
+    left: 54%;
+  }
+
+  .smena-demo__gap[data-overlaps-visit='true'] {
+    right: 49%;
   }
 
   .smena-demo__visit[data-status='done'] {
@@ -386,6 +395,8 @@ const t = ui(locale);
   }
 
   .smena-demo__gap {
+    align-content: center;
+    padding-block: 0;
     border-style: dashed;
     color: var(--fg-muted);
     font-size: 0.7rem;

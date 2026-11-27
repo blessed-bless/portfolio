@@ -53,19 +53,14 @@ export async function getProjects(locale: Locale = defaultLocale): Promise<Proje
   return entries.map(toProject);
 }
 
-/** Hero carousel: real projects marked for carousel, in catalog order. */
-export async function getCarouselProjects(locale: Locale = defaultLocale): Promise<Project[]> {
-  const entries = await getWorkEntries(locale);
-  return entries
-    .filter((entry) => entry.data.carousel && entry.data.hasPage)
-    .map(toProject);
-}
+const homeCaseSlugs = ['smena', 'gran', 'ai-funnel-ecosystem'] as const;
 
 export async function getFeaturedProjects(locale: Locale = defaultLocale): Promise<Project[]> {
   const entries = await getCaseEntries(locale);
-  const featured = entries.filter((entry) => entry.data.featured).map(toProject);
-  if (featured.length) return featured;
-  return entries.slice(0, 3).map(toProject);
+  return homeCaseSlugs.flatMap((slug) => {
+    const entry = entries.find(({ data }) => data.slug === slug);
+    return entry ? [toProject(entry)] : [];
+  });
 }
 
 export async function getCaseEntries(locale: Locale = defaultLocale): Promise<WorkEntry[]> {
