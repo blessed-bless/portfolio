@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="project-cover" width="1600" height="1000" viewBox="0 0 1600 1000" color="var(--cover-line, #A78BFA)" focusable="false" aria-hidden="true">
+  <rect width="1600" height="1000" fill="var(--cover-bg, #16131F)"/>
+  <path d="M72 206V72H222 M1378 928h150V794 M72 856H1528" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".5"/>
+  <g data-cover-art="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="280" y="238" width="1040" height="566" rx="10" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke"/>
+    <path d="M280 302H1320" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".38"/>
+    <circle cx="316" cy="270" r="6" fill="currentColor"/>
+    <circle cx="342" cy="270" r="6" fill="currentColor" opacity=".48"/>
+    <circle cx="368" cy="270" r="6" fill="currentColor" opacity=".48"/>
+    <path d="M1152 270H1280" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".62"/>
+    <path d="M280 302V804 M760 302V804" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".28"/>
+    <ellipse cx="520" cy="620" rx="168" ry="46" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".7"/>
+    <ellipse cx="520" cy="548" rx="92" ry="62" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke"/>
+    <circle cx="520" cy="548" r="28" fill="#8B5CF6"/>
+    <path d="M492 520c8-16 28-22 40-10" fill="none" stroke="#E9E3FF" vector-effect="non-scaling-stroke" opacity=".8"/>
+    <rect x="820" y="348" width="118" height="40" rx="20" fill="#8B5CF6"/>
+    <rect x="954" y="348" width="118" height="40" rx="20" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".6"/>
+    <rect x="1088" y="348" width="150" height="40" rx="20" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".6"/>
+    <path d="M836 448H1248 M836 508H1180 M836 568H1216 M836 628H1104 M836 688H1168" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" opacity=".55"/>
+    <rect x="836" y="430" width="72" height="16" rx="3" fill="#8B5CF6"/>
+    <rect x="836" y="550" width="54" height="16" rx="3" fill="currentColor" opacity=".4"/>
+  </g>
+</svg>
