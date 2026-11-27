@@ -1,12 +1,15 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Hero from '../../components/Hero.astro';
-import FeaturedWork from '../../components/FeaturedWork.astro';
+import WorkRows from '../../components/WorkRows.astro';
 import BusinessOffers from '../../components/BusinessOffers.astro';
-import WhoAmI from '../../components/WhoAmI.astro';
+import Stats from '../../components/Stats.astro';
+import Who from '../../components/Who.astro';
+import StackGrid from '../../components/StackGrid.astro';
 import Faq from '../../components/Faq.astro';
-import StackMarquee from '../../components/StackMarquee.astro';
 import Contact from '../../components/Contact.astro';
+import { serviceOffers } from '../../data/order';
+import { getProjects } from '../../lib/work';
 import {
   homeServiceOffersEn,
   personJsonLd,
@@ -16,6 +19,8 @@ import {
 import { ui } from '../../i18n';
 
 const t = ui('en');
+const projects = await getProjects('en');
+const demoCount = projects.filter((project) => project.links.demo || project.links.live || project.links.bot).length;
 
 const jsonLd = [
   webSiteJsonLd('en'),
@@ -34,43 +39,14 @@ const jsonLd = [
   ogImage="/og/en/home.png"
   jsonLd={jsonLd}
 >
-  <Hero />
-  <BusinessOffers />
-  <WhoAmI />
-  <FeaturedWork />
-  <StackMarquee />
-  <Faq />
-  <Contact />
+  <div data-home-root>
+    <Hero />
+    <WorkRows />
+    <BusinessOffers />
+    <Stats cases={projects.length} demos={demoCount} services={serviceOffers('en').length + 1} />
+    <Who />
+    <StackGrid />
+    <Faq />
+    <Contact />
+  </div>
 </BaseLayout>
-
-<script>
-  let offers: HTMLElement | null = null;
-  let observer: IntersectionObserver | null = null;
-  let unmountHomePage: (() => void) | null = null;
-
-  function scheduleHome(): void {
-    const root = document.querySelector<HTMLElement>('[data-offers]');
-    if (!root || root === offers) return;
-    offers = root;
-
-    observer = new IntersectionObserver(async ([entry]) => {
-      if (!entry?.isIntersecting) return;
-      observer?.disconnect();
-      const home = await import('../../scripts/home-page');
-      if (offers !== root) return;
-      home.mountHomePage();
-      unmountHomePage = home.unmountHomePage;
-    }, { rootMargin: '0px 0px -10% 0px' });
-    observer.observe(root);
-  }
-
-  scheduleHome();
-  document.addEventListener('astro:page-load', scheduleHome);
-  document.addEventListener('astro:before-swap', () => {
-    observer?.disconnect();
-    observer = null;
-    offers = null;
-    unmountHomePage?.();
-    unmountHomePage = null;
-  });
-</script>

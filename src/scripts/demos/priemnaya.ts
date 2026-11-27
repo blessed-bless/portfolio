@@ -40,7 +40,7 @@ export function mountPriemnayaDemo(root: HTMLElement): () => void {
   schedule.append(visitList);
   const note = el('p', 'demo-ui__meta', t.hint);
 
-  let serviceId = t.services[0].id;
+  let serviceId: string = t.services[0].id;
   let slots = buildWeekSlots(t.days);
   const visits: Visit[] = [];
 

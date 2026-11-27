@@ -1,0 +1,234 @@
+---
+import ProjectCover from './ProjectCover.astro';
+import { getProjects, leadCase, workStatusLabel } from '../lib/work';
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
+
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const projects = leadCase(await getProjects(locale));
+---
+
+<section class="work-rows page-pad" data-work-rows data-mode="rows" data-band="ink" aria-labelledby="work-rows-title">
+  <header class="work-rows__head">
+    <p class="eyebrow">{t.work.eyebrow}</p>
+    <div class="work-rows__bar">
+      <h2 id="work-rows-title" class="work-rows__title" data-scramble>{t.work.heading}</h2>
+      <div class="work-rows__modes" role="group" aria-label={t.home.workRowsLabel}>
+        <button type="button" class="work-rows__mode mono" data-work-mode="rows" aria-pressed="true">{t.work.list}</button>
+        <button type="button" class="work-rows__mode mono" data-work-mode="full" aria-pressed="false">{t.home.workFull}</button>
+      </div>
+    </div>
+  </header>
+  <ol class="work-rows__list">
+    {
+      projects.map((project, index) => {
+        const origin = project.origin ? t.workOrigin[project.origin] : workStatusLabel(project.status, project.origin, t.workOrigin);
+        return (
+          <li>
+            <a class="work-row" href={localizedPath(locale, `/work/${project.slug}/`)} data-cursor-open data-featured-row>
+              <span class="work-row__num mono">{String(index + 1).padStart(2, '0')}</span>
+              <span class="work-row__title">{project.title}</span>
+              <span class="work-row__origin">{origin}</span>
+              <span class="work-row__stack mono">{project.stack}</span>
+              <span class="work-row__preview" data-cover-lens data-lens-rich aria-hidden="true">
+                <ProjectCover
+                  src={project.cover}
+                  transitionName={`work-cover-${project.slug}`}
+                  title={project.title}
+                />
+              </span>
+            </a>
+          </li>
+        );
+      })
+    }
+  </ol>
+</section>
+
+<script>
+  function bindRows(root: HTMLElement): void {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-work-mode]')];
+    const setMode = (mode: string): void => {
+      root.dataset.mode = mode;
+      buttons.forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.dataset.workMode === mode));
+      });
+    };
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => setMode(button.dataset.workMode || 'rows'));
+    });
+
+    const place = (row: HTMLAnchorElement, x: number, y: number): void => {
+      const preview = row.querySelector<HTMLElement>('.work-row__preview');
+      if (!preview) return;
+      const width = preview.offsetWidth || 280;
+      const height = preview.offsetHeight || 175;
+      const left = Math.min(window.innerWidth - width - 12, Math.max(12, x + 28));
+      const top = Math.min(window.innerHeight - height - 12, Math.max(12, y - height * 0.5));
+      preview.style.left = `${left}px`;
+      preview.style.top = `${top}px`;
+    };
+
+    root.querySelectorAll<HTMLAnchorElement>('.work-row').forEach((row) => {
+      row.addEventListener('pointermove', (event) => {
+        if (root.dataset.mode === 'full') return;
+        place(row, event.clientX, event.clientY);
+      });
+      row.addEventListener('focus', () => {
+        const rect = row.getBoundingClientRect();
+        place(row, rect.left + rect.width * 0.62, rect.top + rect.height / 2);
+      });
+    });
+  }
+
+  function startRows(): void {
+    document.querySelectorAll<HTMLElement>('[data-work-rows]').forEach((root) => {
+      if (root.dataset.bound === 'true') return;
+      root.dataset.bound = 'true';
+      bindRows(root);
+    });
+  }
+
+  startRows();
+  document.addEventListener('astro:page-load', startRows);
+</script>
+
+<style>
+  .work-rows {
+    padding-block: var(--section-gap);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .work-rows__head {
+    margin-bottom: var(--space-6);
+  }
+
+  .work-rows__bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+  }
+
+  .work-rows__title {
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+    line-height: 0.95;
+  }
+
+  .work-rows__modes {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .work-rows__mode {
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border: var(--stroke) solid var(--border-strong);
+    background: transparent;
+    color: var(--fg);
+    cursor: pointer;
+  }
+
+  .work-rows__mode[aria-pressed='true'] {
+    border-color: var(--accent);
+    color: var(--accent-strong);
+  }
+
+  .work-rows__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-bottom: var(--stroke) solid var(--border);
+  }
+
+  .work-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3.2rem minmax(0, 1.5fr) minmax(8rem, 0.7fr) minmax(0, 1.1fr);
+    gap: var(--space-4);
+    align-items: baseline;
+    min-height: 44px;
+    padding-block: 1.05rem;
+    border-top: var(--stroke) solid var(--border);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .work-row:hover .work-row__title,
+  .work-row:focus-visible .work-row__title {
+    color: var(--accent-strong);
+  }
+
+  .work-row__num,
+  .work-row__origin,
+  .work-row__stack {
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
+  .work-row__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 1rem + 1.4vw, 2.4rem);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.05;
+  }
+
+  .work-row__stack {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .work-row__preview {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    width: min(320px, 40vw);
+    aspect-ratio: 16 / 10;
+    z-index: 40;
+    pointer-events: none;
+    opacity: 0;
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .work-row:hover .work-row__preview,
+  .work-row:focus-visible .work-row__preview {
+    opacity: 1;
+  }
+
+  .work-rows[data-mode='full'] .work-row__origin,
+  .work-rows[data-mode='full'] .work-row__stack,
+  .work-rows[data-mode='full'] .work-row__preview {
+    display: none;
+  }
+
+  .work-rows[data-mode='full'] .work-row {
+    grid-template-columns: 3.2rem minmax(0, 1fr);
+  }
+
+  @media (max-width: 800px) {
+    .work-rows__bar {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .work-row {
+      grid-template-columns: 2.4rem minmax(0, 1fr);
+      row-gap: 0.2rem;
+    }
+
+    .work-row__origin,
+    .work-row__stack {
+      grid-column: 2;
+    }
+
+    .work-row__preview {
+      display: none;
+    }
+  }
+</style>

@@ -1,8 +1,7 @@
 import { getPerfTier, isLessMotionPreferred, perfAllows } from './perf';
 import { observeActivity, subscribeTicker } from './raf-hub';
 
-const HOVER_SELECTOR = 'a, button, [data-cursor="hover"], .project-card, .btn';
-const OPEN_SELECTOR = '[data-cursor-open]';
+const HOVER_SELECTOR = 'a, button, [data-cursor="hover"], [data-cursor="drag"], [data-cursor="play"], .project-card, .btn';
 const READY_ATTR = 'data-cursor-ready';
 
 type CursorHandle = {
@@ -61,7 +60,7 @@ export function mountCustomCursor(root: HTMLElement): () => void {
   let ry = y;
   let hovering = false;
   let onControl = false;
-  let openLabel = false;
+  let labelKind: 'open' | 'drag' | 'play' | null = null;
   let openMix = 0;
   let visible = false;
   let running = false;
@@ -71,7 +70,15 @@ export function mountCustomCursor(root: HTMLElement): () => void {
   const setHoverState = (): void => {
     root.dataset.hover = hovering ? 'true' : 'false';
     root.dataset.onControl = onControl ? 'true' : 'false';
-    root.dataset.open = openLabel ? 'true' : 'false';
+    root.dataset.open = labelKind ? 'true' : 'false';
+    if (label && labelKind) {
+      const english = document.documentElement.lang.startsWith('en');
+      label.textContent = labelKind === 'drag'
+        ? (english ? 'Drag' : 'Тяни')
+        : labelKind === 'play'
+          ? (english ? 'Play' : 'Игра')
+          : (english ? 'Open' : 'Открыть');
+    }
   };
 
   const paint = (): void => {
@@ -95,7 +102,7 @@ export function mountCustomCursor(root: HTMLElement): () => void {
       rx = x;
       ry = y;
     }
-    const aim = openLabel ? 1 : 0;
+    const aim = labelKind ? 1 : 0;
     openMix += (aim - openMix) * 0.28;
     paint();
   };
@@ -123,11 +130,19 @@ export function mountCustomCursor(root: HTMLElement): () => void {
     if (!(target instanceof Element)) return;
     const nextHover = Boolean(target.closest(HOVER_SELECTOR));
     const nextControl = Boolean(target.closest('a, button, .btn, [role="button"]'));
-    const nextOpen = Boolean(target.closest(OPEN_SELECTOR));
-    if (nextHover === hovering && nextControl === onControl && nextOpen === openLabel) return;
+    const labeled = target.closest<HTMLElement>('[data-cursor-open], [data-cursor="open"], [data-cursor="drag"], [data-cursor="play"]');
+    const cursorValue = labeled?.getAttribute('data-cursor');
+    const nextKind: 'open' | 'drag' | 'play' | null = !labeled
+      ? null
+      : cursorValue === 'drag'
+        ? 'drag'
+        : cursorValue === 'play'
+          ? 'play'
+          : 'open';
+    if (nextHover === hovering && nextControl === onControl && nextKind === labelKind) return;
     hovering = nextHover;
     onControl = nextControl;
-    openLabel = nextOpen;
+    labelKind = nextKind;
     setHoverState();
   };
 

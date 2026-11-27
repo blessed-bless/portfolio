@@ -1,12 +1,15 @@
 ---
 import BrandMark from './BrandMark.astro';
-import { telegramChannel } from '../data/home';
+import { contactLinks, telegramChannel } from '../data/home';
+import { isFilled } from '../lib/fill';
 import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
 const year = new Date().getFullYear();
 const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
 const t = ui(locale);
 const credit = t.footer.credit.replace('{year}', String(year));
+const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
+const email = isFilled(contactLinks.email) ? contactLinks.email : null;
 ---
 
 <footer class="site-footer page-pad" data-site-footer>
@@ -24,6 +27,22 @@ const credit = t.footer.credit.replace('{year}', String(year));
         {t.footer.uses}
       </a>
       <span class="site-footer__sep" aria-hidden="true">·</span>
+      {
+        telegram ? (
+          <a class="site-footer__link" href={telegram} data-cursor="hover" data-telegram-handoff>
+            Telegram
+          </a>
+        ) : null
+      }
+      {
+        email ? (
+          <>
+            <span class="site-footer__sep" aria-hidden="true">·</span>
+            <a class="site-footer__link" href={`mailto:${email}`} data-cursor="hover">{email}</a>
+          </>
+        ) : null
+      }
+      <span class="site-footer__sep" aria-hidden="true">·</span>
       <a
         class="site-footer__link"
         href={telegramChannel.href}
@@ -32,7 +51,7 @@ const credit = t.footer.credit.replace('{year}', String(year));
         data-cursor="hover"
         data-tg-channel
       >
-        {t.footer.channel}
+        {locale === 'en' ? 'Telegram channel' : 'Канал в Telegram'}
       </a>
     </nav>
 
@@ -53,6 +72,10 @@ const credit = t.footer.credit.replace('{year}', String(year));
     <a class="site-footer__privacy" href={localizedPath(locale, '/privacy/')} data-cursor="hover">
       {t.footer.privacy}
     </a>
+
+    <button type="button" class="site-footer__motion site-footer__cookies" data-cookie-settings hidden>
+      {t.cookie.settings}
+    </button>
 
     <button
       type="button"
@@ -104,6 +127,10 @@ const credit = t.footer.credit.replace('{year}', String(year));
 </script>
 
 <style>
+  [data-cookie-settings][hidden] {
+    display: none;
+  }
+
   .site-footer {
     border-top: var(--stroke) solid var(--border);
     padding-block: var(--space-5) var(--space-7);
@@ -149,7 +176,7 @@ const credit = t.footer.credit.replace('{year}', String(year));
     grid-template-columns: 1fr auto 1fr;
     grid-template-areas:
       'credit nav top'
-      'privacy . motion';
+      'privacy cookies motion';
     column-gap: var(--space-4);
     row-gap: var(--space-3);
     align-items: baseline;
@@ -259,6 +286,12 @@ const credit = t.footer.credit.replace('{year}', String(year));
     white-space: nowrap;
   }
 
+  .site-footer__cookies {
+    grid-area: cookies;
+    justify-self: center;
+    align-items: center;
+  }
+
   .site-footer__motion-track {
     position: relative;
     width: 2.1rem;
@@ -300,12 +333,19 @@ const credit = t.footer.credit.replace('{year}', String(year));
   }
 
   @media (max-width: 720px) {
+    .site-footer__nav {
+      flex-wrap: wrap;
+      white-space: normal;
+      justify-content: flex-start;
+    }
+
     .site-footer__inner {
       grid-template-columns: 1fr;
       grid-template-areas:
         'credit'
         'nav'
         'privacy'
+        'cookies'
         'motion'
         'top';
       justify-items: start;

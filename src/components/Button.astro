@@ -8,6 +8,7 @@ interface Props {
   class?: string;
   'data-demo-start'?: string;
   'data-demo-from'?: string;
+  'data-telegram-handoff'?: boolean;
 }
 
 const {
@@ -17,6 +18,7 @@ const {
   class: className = '',
   'data-demo-start': demoStart,
   'data-demo-from': demoFrom,
+  'data-telegram-handoff': telegramHandoff,
 } = Astro.props;
 
 const classes = ['btn', `btn--${variant}`, className].filter(Boolean).join(' ');
@@ -30,6 +32,7 @@ const classes = ['btn', `btn--${variant}`, className].filter(Boolean).join(' ');
       data-cursor="hover"
       data-demo-start={demoStart}
       data-demo-from={demoFrom}
+      data-telegram-handoff={telegramHandoff}
     >
       <slot />
     </a>

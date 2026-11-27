@@ -48,24 +48,35 @@ export async function getWorkEntries(locale: Locale = defaultLocale): Promise<Wo
 }
 
 /** Projects shown on /work — only real cases with pages. */
+/** Pashot leads when that case exists. Until then the ring opens on Gran, which has a live screenshot. */
+export function leadCase<T extends { slug: string }>(projects: T[]): T[] {
+  const preferred = ['pashot', 'gran'];
+  for (const slug of preferred) {
+    const index = projects.findIndex((project) => project.slug === slug);
+    if (index <= 0) {
+      if (index === 0) return projects;
+      continue;
+    }
+    const next = projects.slice();
+    const [lead] = next.splice(index, 1);
+    return lead ? [lead, ...next] : projects;
+  }
+  return projects;
+}
+
 export async function getProjects(locale: Locale = defaultLocale): Promise<Project[]> {
   const entries = await getCaseEntries(locale);
   return entries.map(toProject);
 }
 
-/** Hero carousel: real projects marked for carousel, in catalog order. */
-export async function getCarouselProjects(locale: Locale = defaultLocale): Promise<Project[]> {
-  const entries = await getWorkEntries(locale);
-  return entries
-    .filter((entry) => entry.data.carousel && entry.data.hasPage)
-    .map(toProject);
-}
+const homeCaseSlugs = ['smena', 'gran', 'ai-funnel-ecosystem'] as const;
 
 export async function getFeaturedProjects(locale: Locale = defaultLocale): Promise<Project[]> {
   const entries = await getCaseEntries(locale);
-  const featured = entries.filter((entry) => entry.data.featured).map(toProject);
-  if (featured.length) return featured;
-  return entries.slice(0, 3).map(toProject);
+  return homeCaseSlugs.flatMap((slug) => {
+    const entry = entries.find(({ data }) => data.slug === slug);
+    return entry ? [toProject(entry)] : [];
+  });
 }
 
 export async function getCaseEntries(locale: Locale = defaultLocale): Promise<WorkEntry[]> {

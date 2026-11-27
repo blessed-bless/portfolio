@@ -28,3 +28,9 @@ pnpm-debug.log*
 .tmp-assets/
 lighthouse-*.json
 docs/qa-screenshots/
+tmp/
+.playwright-mcp/
+tilda-zerno/
+/audit*.png
+/feat*.png
+/font-variant-*.png

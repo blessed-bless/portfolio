@@ -15,6 +15,7 @@ let current: HTMLElement | null = null;
 let image: HTMLImageElement | null = null;
 let pointerX = 0;
 let pointerY = 0;
+let lastPaint: { rect: DOMRect; x: number; y: number } | null = null;
 let unsubTick: (() => void) | null = null;
 let bound = false;
 let failed = false;
@@ -66,15 +67,15 @@ function ensureHost(): HTMLElement {
   return el;
 }
 
-function uniforms(img: HTMLImageElement, bulge: number, angle: number): LensDistortionUniforms {
+function uniforms(img: HTMLImageElement, bulge: number, angle: number) {
   return {
     u_image: img,
     u_spread: 0.1,
     u_bias: 0.15,
     u_angle: angle,
-    u_perspective: 0.4,
+    u_perspective: 0.18,
     u_count: 4,
-    u_dispersion: 0.28,
+    u_dispersion: 0.12,
     u_dispersionShift: 0.15,
     u_dispersionColor: 0.76,
     u_focusCenter: 0.2,
@@ -98,16 +99,16 @@ function uniforms(img: HTMLImageElement, bulge: number, angle: number): LensDist
     u_offsetY: 0,
     u_worldWidth: 0,
     u_worldHeight: 0,
-  };
+  } satisfies LensDistortionUniforms;
 }
 
-function ensureMount(slot: HTMLElement, img: HTMLImageElement): ShaderMount | null {
+function ensureMount(slot: HTMLElement, img: HTMLImageElement, bulge: number, angle: number): ShaderMount | null {
   if (mount) return mount;
   try {
     mount = new ShaderMount(
       slot,
       lensDistortionFragmentShader,
-      uniforms(img, 0.06, 70),
+      uniforms(img, bulge, angle),
       { alpha: false, antialias: false, powerPreference: 'low-power' },
       0,
       0,
@@ -119,13 +120,12 @@ function ensureMount(slot: HTMLElement, img: HTMLImageElement): ShaderMount | nu
   } catch {
     failed = true;
     mount = null;
+    slot.replaceChildren();
     return null;
   }
 }
 
-function place(target: HTMLElement): void {
-  const el = ensureHost();
-  const rect = target.getBoundingClientRect();
+function place(el: HTMLElement, rect: DOMRect): void {
   const inset = 1;
   el.hidden = false;
   el.dataset.on = 'true';
@@ -150,7 +150,7 @@ function hide(): void {
   current?.style.removeProperty('--shine');
   current = null;
   image = null;
-  mount?.setSpeed(0);
+  lastPaint = null;
   if (host) {
     host.dataset.on = 'false';
     host.hidden = true;
@@ -158,19 +158,37 @@ function hide(): void {
 }
 
 function paintLens(): void {
-  if (!current || !mount || !image) return;
-  place(current);
+  if (!current || !image || !host || document.hidden) return;
   const rect = current.getBoundingClientRect();
+  if (rect.right <= 0 || rect.bottom <= 0 || rect.left >= innerWidth || rect.top >= innerHeight) {
+    hide();
+    return;
+  }
+  const previous = lastPaint;
+  const moved = !previous || rect.left !== previous.rect.left || rect.top !== previous.rect.top ||
+    rect.width !== previous.rect.width || rect.height !== previous.rect.height;
+  if (!moved && previous?.x === pointerX && previous.y === pointerY) return;
+  if (moved) place(host, rect);
+  lastPaint = { rect, x: pointerX, y: pointerY };
   const dx = (pointerX - (rect.left + rect.width / 2)) / Math.max(rect.width, 1);
   const dy = (pointerY - (rect.top + rect.height / 2)) / Math.max(rect.height, 1);
   const dist = Math.min(1, Math.hypot(dx, dy));
-  const bulge = 0.04 + dist * 0.1;
+  const bulge = 0.025 + dist * 0.038;
   const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-  mount.setUniforms({
-    u_lensBulge: bulge,
-    u_angle: angle,
-    u_image: image,
-  });
+  if (mount) {
+    const rich = current.hasAttribute('data-lens-rich');
+    mount.setUniforms({
+      u_lensBulge: bulge,
+      u_angle: angle,
+      u_grainOverlay: rich ? 0.28 : 0,
+      u_dispersion: rich ? 0.28 : 0.12,
+      u_dispersionShift: rich ? 0.22 : 0.15,
+      ...(!previous && { u_image: image }),
+    });
+  } else {
+    const slot = host.querySelector<HTMLElement>('[data-lens-mount]');
+    if (!slot || !ensureMount(slot, image, bulge, angle)) hide();
+  }
 }
 
 function paintTilt(): void {
@@ -179,8 +197,8 @@ function paintTilt(): void {
   const dx = (pointerX - (rect.left + rect.width / 2)) / Math.max(rect.width / 2, 1);
   const dy = (pointerY - (rect.top + rect.height / 2)) / Math.max(rect.height / 2, 1);
   const clamp = (value: number) => Math.max(-1, Math.min(1, value));
-  current.style.setProperty('--tilt-y', `${clamp(dx) * 6}deg`);
-  current.style.setProperty('--tilt-x', `${clamp(-dy) * 5}deg`);
+  current.style.setProperty('--tilt-y', `${clamp(dx) * 3}deg`);
+  current.style.setProperty('--tilt-x', `${clamp(-dy) * 2.5}deg`);
   current.style.setProperty('--shine', `${clamp(dx) * 30}%`);
 }
 
@@ -200,19 +218,10 @@ function show(target: HTMLElement): void {
   current = target;
   image = img;
   current.classList.add('is-lens-live');
-  const el = ensureHost();
-  place(target);
+  ensureHost();
   syncMeta(target);
-  const slot = el.querySelector<HTMLElement>('[data-lens-mount]');
-  if (!slot) return;
-  const next = ensureMount(slot, img);
-  if (!next) {
-    hide();
-    return;
-  }
-  next.setSpeed(0.18);
   paintLens();
-  if (!unsubTick) unsubTick = subscribeTicker(() => paintLens());
+  if (current && !unsubTick) unsubTick = subscribeTicker(paintLens);
 }
 
 function targetFrom(event: Event): HTMLElement | null {
@@ -252,6 +261,11 @@ export function mountCoverLens(): void {
   document.addEventListener('pointermove', onMove, { passive: true });
   document.addEventListener('pointerout', onOut);
   document.addEventListener('astro:before-preparation', hide);
+  document.addEventListener('astro:before-swap', () => {
+    hide();
+    mount?.dispose();
+    mount = null;
+  });
   onPerfChange(() => {
     hide();
     if (!lensAllowed()) {

@@ -9,7 +9,7 @@ export type ServiceItem = {
   text: string;
 };
 
-/** Kept for StackMarquee / legacy; home uses businessOffers. */
+/** Legacy service blurbs. Home offers come from the order catalogue. */
 export const services: ServiceItem[] = [
   {
     title: 'Веб-продукты',
@@ -54,17 +54,17 @@ export const businessOffers = [
 export const processSteps = [
   {
     title: 'Бриф',
-    text: 'Разбираем задачу, каналы и что должно работать в проде.',
+    text: 'Уточняем, что должен сделать клиент и куда будет приходить заявка или запись.',
     timing: '{{заполнить}}',
   },
   {
     title: 'Прототип',
-    text: 'Собираю рабочий контур: форма → бэкенд → уведомление.',
+    text: 'Показываю версию, на которой уже можно отправить заявку и увидеть, как она доходит до команды.',
     timing: '{{заполнить}}',
   },
   {
-    title: 'Доводка',
-    text: 'Проверяю сценарии, крайние случаи и тексты. Подключаю прод-окружение.',
+    title: 'Проверка',
+    text: 'Проверяю основные действия, тексты и возможные ошибки. Готовлю проект к запуску.',
     timing: '{{заполнить}}',
   },
   {

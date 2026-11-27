@@ -52,6 +52,8 @@ export const GET: APIRoute = async () => {
   const urls = [
     urlEntry('/', 'src/pages/index.astro'),
     urlEntry('/en/', 'src/pages/en/index.astro'),
+    urlEntry('/order/', 'src/pages/order.astro'),
+    urlEntry('/en/order/', 'src/pages/en/order.astro'),
     urlEntry('/work/', 'src/pages/work/index.astro'),
     urlEntry('/en/work/', 'src/pages/en/work/index.astro'),
     urlEntry('/about/', 'src/pages/about.astro'),

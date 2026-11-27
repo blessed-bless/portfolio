@@ -1,44 +1,67 @@
-const STORAGE_KEY = 'portfolio-cookie-ok';
-const BOUND = 'bound';
+type AnalyticsChoice = 'allow' | 'decline';
 
-function accepted(): boolean {
+const STORAGE_KEY = 'portfolio-analytics-choice';
+let currentChoice: AnalyticsChoice | undefined;
+
+export function analyticsChoice(): AnalyticsChoice | undefined {
+  if (currentChoice) return currentChoice;
   try {
-    return localStorage.getItem(STORAGE_KEY) === '1';
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === 'allow' || stored === 'decline') currentChoice = stored;
   } catch {
-    return false;
+    // The choice still applies to this page when storage is unavailable.
   }
-}
-
-function remember(): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, '1');
-  } catch {
-    /* private mode */
-  }
-}
-
-function hideNotice(root: HTMLElement): void {
-  root.hidden = true;
-  delete document.documentElement.dataset.showCookie;
+  return currentChoice;
 }
 
 export function mountCookieNotice(): void {
-  const root = document.querySelector<HTMLElement>('div[data-cookie-banner]');
-  if (!root) return;
+  const root = document.querySelector<HTMLElement>('[data-cookie-banner]');
+  const settings = document.querySelector<HTMLButtonElement>('[data-cookie-settings]');
+  if (!root || !settings || !settings.hidden) return;
 
-  if (accepted()) {
-    hideNotice(root);
-    return;
-  }
+  const allow = root.querySelector<HTMLButtonElement>('[data-cookie-allow]');
+  const decline = root.querySelector<HTMLButtonElement>('[data-cookie-decline]');
+  const showNotice = (show: boolean): void => {
+    root.hidden = !show;
+    if (show) document.documentElement.dataset.showCookie = '1';
+    else delete document.documentElement.dataset.showCookie;
+  };
 
-  document.documentElement.dataset.showCookie = '1';
-  root.hidden = false;
+  let settingsOpened = false;
+  const choose = (choice: AnalyticsChoice): void => {
+    const previous = analyticsChoice();
+    currentChoice = choice;
+    try {
+      localStorage.setItem(STORAGE_KEY, choice);
+    } catch {
+      // Keep the in-memory choice and stop the counter below even without storage.
+    }
+    showNotice(false);
+    if (settingsOpened) settings.focus({ preventScroll: true });
+    settingsOpened = false;
+    if (choice === 'allow') {
+      void import('./metrika').then(({ mountMetrika }) => mountMetrika());
+    } else if (previous === 'allow') {
+      void import('./metrika').then(({ stopMetrika }) => stopMetrika());
+    }
+  };
 
-  if (root.dataset[BOUND] === 'true') return;
-  root.dataset[BOUND] = 'true';
-
-  root.querySelector<HTMLButtonElement>('[data-cookie-ok]')?.addEventListener('click', () => {
-    remember();
-    hideNotice(root);
+  allow?.addEventListener('click', () => choose('allow'));
+  decline?.addEventListener('click', () => choose('decline'));
+  settings.addEventListener('click', () => {
+    settingsOpened = true;
+    showNotice(true);
+    decline?.focus({ preventScroll: true });
   });
+  root.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !analyticsChoice()) return;
+    showNotice(false);
+    settingsOpened = false;
+    settings.focus({ preventScroll: true });
+  });
+  settings.hidden = false;
+  showNotice(!analyticsChoice());
+  if (analyticsChoice() === 'allow') {
+    void import('./metrika').then(({ mountMetrika }) => mountMetrika());
+  }
 }

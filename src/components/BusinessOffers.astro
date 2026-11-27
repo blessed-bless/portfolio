@@ -1,85 +1,73 @@
 ---
-import { pricingFrom } from '../data/home';
+import { serviceOffers } from '../data/order';
+import Button from './Button.astro';
 import { isFilled } from '../lib/fill';
-import { defaultLocale, isLocale, ui, type Locale } from '../i18n';
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
 const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
 const t = ui(locale);
-const offers = t.offers;
+const offers = serviceOffers(locale);
 const processSteps = t.process;
-const showPricing = locale === 'ru' && pricingFrom.some((item) => isFilled(item.price));
 const showTiming = processSteps.some((step) => isFilled(step.timing));
-const caseLabel = locale === 'en' ? 'View case →' : 'Смотреть кейс →';
-const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо →';
 ---
 
-<section class="offers page-pad" id="services" data-offers aria-label={t.home.offersTitle}>
+<section class="offers page-pad" id="services" data-offers data-band="violet" aria-label={t.home.offersTitle}>
   <div class="offers__intro">
     <p class="eyebrow">{t.home.offersEyebrow}</p>
     <h2 class="offers__title" data-scramble>{t.home.offersTitle}</h2>
   </div>
 
-  <div class="offers__grid">
+  <div class="offers__list">
     {
-      offers.map((offer, index) => (
-        <article class="offers__card">
-          <p class="offers__num mono">{String(index + 1).padStart(2, '0')}</p>
-          <h3 class="offers__card-title">{offer.title}</h3>
-          <p class="offers__card-text">{offer.text}</p>
-          <p class="offers__card-links">
-            <a class="offers__card-link mono" href={offer.href} data-cursor="hover">
-              {index === 0 ? caseLabel : demoLabel}
-            </a>
-            {offer.secondaryHref && offer.secondaryLabel ? (
-              <a class="offers__card-link mono" href={offer.secondaryHref} data-cursor="hover">
-                {offer.secondaryLabel} →
-              </a>
-            ) : null}
+      offers.map((offer) => (
+        <article class="offer-row">
+          <h3 class="offer-row__title">
+            <a href={localizedPath(locale, `/work/${offer.caseSlug}/`)}>{offer.title}</a>
+          </h3>
+          <p class="offer-row__text">{offer.description}</p>
+          <p class="offers__estimate">
+            <strong>{offer.priceLabel}</strong>
+            <span>{offer.timing}</span>
           </p>
         </article>
       ))
     }
+    <article class="offer-row">
+      <h3 class="offer-row__title">
+        <a href={localizedPath(locale, '/work/shipcrew/')}>{t.home.agentTitle}</a>
+      </h3>
+      <p class="offer-row__text">{t.home.agentOutcome}</p>
+    </article>
+  </div>
+  <div class="offers__card-links">
+    <Button href={localizedPath(locale, '/order/')} variant="primary">{t.nav.order}</Button>
   </div>
 </section>
 
-<section class="process page-pad" data-process aria-label={t.home.processTitle}>
-  <div class="process__intro">
-    <p class="eyebrow">{t.home.processEyebrow}</p>
-    <h2 class="process__title" data-scramble>{t.home.processTitle}</h2>
+<section class="process page-pad" data-process data-band="ink" aria-label={t.home.processTitle}>
+  <div class="process__pin" data-process-pin>
+    <div class="process__intro">
+      <p class="eyebrow">{t.home.processEyebrow}</p>
+      <h2 class="process__title" data-scramble>{t.home.processTitle}</h2>
+    </div>
+    <ol class="process__list">
+      {
+        processSteps.map((step, index) => (
+          <li class="process__step" data-process-step>
+            <p class="process__num mono">{String(index + 1).padStart(2, '0')}</p>
+            <h3 class="process__step-title">{step.title}</h3>
+            <p class="process__step-text">{step.text}</p>
+            {showTiming && isFilled(step.timing) ? (
+              <p class="process__timing mono">{step.timing}</p>
+            ) : null}
+          </li>
+        ))
+      }
+    </ol>
+    <div class="process__meter" aria-hidden="true">
+      <span data-process-bar></span>
+    </div>
   </div>
-
-  <ol class="process__list">
-    {
-      processSteps.map((step, index) => (
-        <li class="process__step">
-          <p class="process__num mono">{String(index + 1).padStart(2, '0')}</p>
-          <h3 class="process__step-title">{step.title}</h3>
-          <p class="process__step-text">{step.text}</p>
-          {showTiming && isFilled(step.timing) ? (
-            <p class="process__timing mono">{step.timing}</p>
-          ) : null}
-        </li>
-      ))
-    }
-  </ol>
-
-  {
-    showPricing ? (
-      <div class="process__pricing">
-        <p class="eyebrow">Ориентир по цене</p>
-        <ul class="process__pricing-list">
-          {pricingFrom
-            .filter((item) => isFilled(item.price))
-            .map((item) => (
-              <li>
-                <span>{item.label}</span>
-                <strong class="mono">от {item.price}</strong>
-              </li>
-            ))}
-        </ul>
-      </div>
-    ) : null
-  }
 </section>
 
 <style>
@@ -104,71 +92,59 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
     line-height: var(--leading-tight);
   }
 
-  .offers__lead {
-    margin: var(--space-3) 0 0;
-    color: var(--fg-muted);
-    font-size: var(--text-md);
-    max-width: 40ch;
+  .offers__list {
+    border-bottom: var(--stroke) solid var(--border);
   }
 
-  .offers__grid {
+  .offer-row {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr) auto;
     gap: var(--space-4);
+    align-items: baseline;
+    padding-block: 1.15rem;
+    border-top: var(--stroke) solid var(--border);
   }
 
-  .offers__card {
-    display: grid;
-    align-content: start;
-    gap: var(--space-3);
-    min-width: 0;
-    padding: var(--space-5);
-    border: var(--stroke) solid var(--border);
-    background: var(--bg-elevated);
-    color: inherit;
-    transition: border-color var(--dur-2) var(--ease-out);
-  }
-
-  .offers__card:hover {
-    border-color: var(--border-strong);
-  }
-
-  .offers__num {
+  .offer-row__title {
     margin: 0;
-    color: var(--accent-strong);
-    font-size: var(--text-sm);
-  }
-
-  .offers__card-title {
-    margin: 0;
-    font-size: clamp(1.25rem, 1rem + 0.8vw, 1.65rem);
-    font-weight: 650;
+    font-size: clamp(1.25rem, 1rem + 0.8vw, 1.8rem);
     letter-spacing: var(--tracking-tight);
     line-height: var(--leading-snug);
   }
 
-  .offers__card-text {
+  .offer-row__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .offer-row__title a:hover,
+  .offer-row__title a:focus-visible {
+    color: var(--accent-strong);
+  }
+
+  .offer-row__text {
     margin: 0;
     color: var(--fg-muted);
     font-size: var(--text-sm);
   }
 
-  .offers__card-links {
-    margin: var(--space-2) 0 0;
+  .offers__estimate {
+    margin: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-3);
+    justify-content: flex-end;
+    gap: var(--space-1) var(--space-3);
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
   }
 
-  .offers__card-link {
+  .offers__estimate strong {
     color: var(--accent-strong);
-    font-size: var(--text-xs);
-    text-transform: uppercase;
-    text-decoration: none;
+    font-size: var(--text-md);
   }
 
-  .offers__card-link:hover {
-    color: var(--fg);
+  .offers__card-links {
+    margin: var(--space-5) 0 0;
   }
 
   .process__list {
@@ -187,6 +163,10 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
     display: grid;
     gap: var(--space-2);
     align-content: start;
+  }
+
+  .process__step[data-current='true'] .process__num {
+    color: var(--accent);
   }
 
   .process__num {
@@ -214,32 +194,32 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
     text-transform: uppercase;
   }
 
-  .process__pricing {
-    margin-top: var(--space-7);
-    padding-top: var(--space-5);
-    border-top: var(--stroke) solid var(--border);
+  .process__meter {
+    height: 2px;
+    margin-top: var(--space-5);
+    background: var(--border);
   }
 
-  .process__pricing-list {
-    margin: var(--space-4) 0 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: var(--space-3);
-    max-width: 28rem;
-  }
-
-  .process__pricing-list li {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-4);
-    font-size: var(--text-sm);
+  .process__meter span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform: scaleX(0.04);
+    transform-origin: left center;
   }
 
   @media (max-width: 900px) {
-    .offers__grid,
+    .offer-row,
     .process__list {
       grid-template-columns: 1fr;
+    }
+
+    .offers__estimate {
+      justify-content: flex-start;
+    }
+
+    .process__step {
+      opacity: 1;
     }
   }
 </style>

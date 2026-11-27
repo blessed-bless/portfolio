@@ -240,6 +240,19 @@ html[data-theme='light'] .astro-code span[style*='--shiki-light: #E36209'] {
 }
 
 #cover-lens [data-lens-mount] {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+}
+
+/* Astro can remove the library stylesheet while the shared canvas survives. */
+#cover-lens [data-lens-mount] > canvas {
+  contain: strict;
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   width: 100%;
   height: 100%;
 }
@@ -276,6 +289,96 @@ html[data-theme='light'] .astro-code span[style*='--shiki-light: #E36209'] {
     );
     transform: translate3d(var(--shine, -40%), 0, 0);
   }
+}
+
+[data-home-root][data-band='violet'] {
+  background:
+    radial-gradient(70% 45% at 85% 0%, rgb(139 92 246 / 0.28), transparent 60%),
+    #0d0b12;
+}
+
+[data-theme='light'] [data-home-root][data-band='violet'] {
+  background:
+    radial-gradient(70% 45% at 85% 0%, rgb(139 92 246 / 0.16), transparent 60%),
+    var(--bg);
+}
+
+[data-home-root][data-band='ink'] {
+  background: var(--bg);
+}
+
+.sticky-discuss {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .sticky-discuss {
+    position: fixed;
+    z-index: 45;
+    right: 0.8rem;
+    bottom: calc(0.8rem + env(safe-area-inset-bottom, 0px));
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 44px;
+    padding: 0 0.9rem;
+    border-radius: 999px;
+    background: #8b5cf6;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 650;
+    text-decoration: none;
+    box-shadow: 0 10px 30px rgb(139 92 246 / 0.35);
+  }
+
+  body.nav-lock .sticky-discuss {
+    display: none;
+  }
+}
+
+.orbit-toy {
+  width: min(28rem, calc(100vw - 2rem));
+  padding: 0;
+  border: var(--stroke) solid var(--border-strong);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.orbit-toy::backdrop {
+  background: var(--overlay);
+}
+
+.orbit-toy__panel {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.orbit-toy__canvas {
+  width: 100%;
+  height: 220px;
+  background: var(--bg-elevated);
+  touch-action: none;
+}
+
+.orbit-toy__title,
+.orbit-toy__hint {
+  margin: 0;
+}
+
+.orbit-toy__hint {
+  color: var(--fg-muted);
+  font-size: var(--text-sm);
+}
+
+.orbit-toy__close {
+  min-height: 44px;
+  padding: 0 1rem;
+  border: var(--stroke) solid var(--border-strong);
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
 }
 
 @media (prefers-reduced-motion: reduce) {

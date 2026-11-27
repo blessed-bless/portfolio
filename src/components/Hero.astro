@@ -1,103 +1,130 @@
 ---
 import ProjectCover from './ProjectCover.astro';
 import Button from './Button.astro';
-import { getCarouselProjects } from '../lib/work';
+import { getProjects, leadCase } from '../lib/work';
 import { contactLinks } from '../data/home';
+import { featuredWorkCopy } from '../data/featured-work';
+import { coverPublicUrl } from '../lib/paths';
 import { isFilled } from '../lib/fill';
 import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
 const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
 const t = ui(locale);
-const projects = await getCarouselProjects(locale);
-const projectsJson = JSON.stringify(projects);
-const firstProject = projects[0];
+const headline = `${t.home.heroHeadline} ${t.home.heroHeadlineAccent}`;
+const projects = leadCase(await getProjects(locale));
+const slides = projects.map((project) => {
+  const copy = featuredWorkCopy[project.slug]?.[locale];
+  return {
+    ...project,
+    cover: coverPublicUrl(project.cover),
+    category: copy?.category ?? project.role,
+    result: copy?.scenario ?? project.summary,
+    action: copy?.action ?? (locale === 'en' ? 'Read the case' : 'Читать кейс'),
+    actionHref: copy
+      ? project.links.live ?? localizedPath(locale, `/work/${project.slug}/#demo`)
+      : localizedPath(locale, `/work/${project.slug}/`),
+  };
+});
+const projectsJson = JSON.stringify(slides);
+const firstProject = slides[0];
 const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 ---
 
 <section
-  class="hero"
+  class="hero page-pad"
   data-hero
   data-locale={locale}
-  aria-label={t.home.heroHeadline}
+  aria-label={headline}
   data-carousel-label={t.home.carouselNav}
   data-projects={projectsJson}
 >
   <div class="hero__copy">
     <p class="hero__brand" data-hero-name>{t.brand}</p>
-    <h1 class="hero__line" data-hero-line data-page-title>{t.home.heroHeadline}</h1>
+    <h1 class="hero__line" data-hero-line data-page-title aria-label={headline}>
+      <span>{t.home.heroHeadline}</span>
+      <span class="hero__headline-accent">{t.home.heroHeadlineAccent}</span>
+    </h1>
     <p class="hero__sub" data-hero-sub>{t.home.heroSubtitle}</p>
-    <div class="hero__actions" data-hero-foot>
+    <div class="hero__actions">
       {
         telegram ? (
-          <Button href={telegram} variant="primary">
+          <Button href={telegram} variant="primary" data-telegram-handoff>
             {t.home.heroCta}
           </Button>
         ) : null
       }
-      <Button
-        href={`${localizedPath(locale, '/work/smena/')}#demo`}
-        variant="ghost"
-        class="hero__demo-cta"
-        data-demo-start="smena"
-        data-demo-from="hero"
-      >
-        {t.home.heroDemo}
-      </Button>
+      <Button href={`mailto:${contactLinks.email}`} variant="ghost">{t.home.contactWrite}</Button>
+      <Button href={localizedPath(locale, '/order/')} variant="link">{t.home.heroServices}</Button>
     </div>
   </div>
 
   <div class="hero__stage-wrap">
     <div class="hero__stage">
-      <canvas class="hero__canvas" data-hero-canvas data-cursor-open data-lenis-prevent></canvas>
+      <canvas class="hero__canvas" data-hero-canvas data-cursor="drag" tabindex="0" aria-roledescription="carousel"></canvas>
+      <div class="hero__grain" data-hero-grain aria-hidden="true"></div>
       <div class="hero__static" data-hero-static>
         {
-          projects.map((project, index) => {
+          slides.map((project, index) => {
             const number = String(index + 1).padStart(2, '0');
-            const label = `${number} · ${project.title}`;
             return (
               <a
                 class="hero__static-card"
                 href={localizedPath(locale, `/work/${project.slug}/`)}
                 data-cursor="hover"
-                data-cursor-open
-                aria-label={label}
+                aria-label={`${number} · ${project.title}`}
+                aria-current={index === 0 ? 'true' : undefined}
+                data-active={String(index === 0)}
                 data-hero-cover={project.slug}
               >
                 <ProjectCover
                   src={project.cover}
                   loading={index === 0 ? 'eager' : 'lazy'}
-                  index={index + 1}
-                  title={project.title}
-                  label={label}
                 />
+                <span class="hero__cover-motion" aria-hidden="true"><i></i><i></i></span>
               </a>
             );
           })
         }
       </div>
+      <button
+        class="hero__replay"
+        type="button"
+        data-hero-replay
+        aria-label={locale === 'en' ? 'Replay cover animation' : 'Повторить анимацию обложки'}
+        title={locale === 'en' ? 'Replay cover animation' : 'Повторить анимацию обложки'}
+        hidden
+      >↻</button>
     </div>
 
     <div class="hero__chrome">
-      <p class="hero__counter mono" data-hero-counter>01 / {String(projects.length).padStart(2, '0')}</p>
+      {firstProject && (
+        <div class="hero__caption" data-hero-caption>
+          <div class="hero__caption-copy" data-hero-caption-copy aria-live="polite" aria-atomic="true">
+            <p class="hero__category mono" data-hero-category>{firstProject.category}</p>
+            <p class="hero__project-title" data-hero-project-title>{firstProject.title}</p>
+            <p class="hero__result" data-hero-result>{firstProject.result}</p>
+          </div>
+          <a
+            class="hero__case-link"
+            data-hero-action
+            href={firstProject.actionHref}
+            data-demo-from={firstProject.actionHref.endsWith('#demo') ? 'hero' : undefined}
+            data-demo-start={firstProject.actionHref.endsWith('#demo') ? firstProject.slug : undefined}
+          >
+            <span data-hero-action-label>{firstProject.action}</span> <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      )}
       <div class="hero__nav" role="group" aria-label={t.home.carouselNav}>
-        <button type="button" class="hero__nav-btn mono" data-hero-prev data-cursor="hover" aria-label={t.home.carouselPrev}>
-          ←
-        </button>
-        <button type="button" class="hero__nav-btn mono" data-hero-next data-cursor="hover" aria-label={t.home.carouselNext}>
-          →
-        </button>
+        <button type="button" class="hero__nav-btn mono" data-hero-prev data-cursor="hover" aria-label={t.home.carouselPrev} disabled>←</button>
+        <button type="button" class="hero__nav-btn mono" data-hero-next data-cursor="hover" aria-label={t.home.carouselNext} disabled>→</button>
       </div>
-      <p class="hero__hint mono" data-hero-hint>{t.home.carouselHint}</p>
-      <p class="hero__caption mono" data-hero-caption aria-live="polite">
-        {firstProject && (
-          <>
-            <span>01</span>
-            <span>{firstProject.title}</span>
-            <span>{firstProject.year}</span>
-            <span>{firstProject.stack}</span>
-          </>
-        )}
-      </p>
+      <div class="hero__position">
+        <div class="hero__meter" aria-hidden="true">
+          {slides.map((project, index) => <span data-hero-step={project.slug} data-current={String(index === 0)} />)}
+        </div>
+        <p class="hero__counter mono" data-hero-counter>01 / {String(slides.length).padStart(2, '0')}</p>
+      </div>
     </div>
   </div>
 </section>
@@ -105,77 +132,134 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 <script>
   import type { Project } from '../lib/work-types';
 
+  type HeroProject = Project & { category: string; result: string; action: string; actionHref: string };
+
   let sceneTeardown: (() => void) | null = null;
 
-  function readProjects(root: HTMLElement): Project[] {
+  function readProjects(root: HTMLElement): HeroProject[] {
     try {
       const raw = root.dataset.projects || '[]';
-      const parsed = JSON.parse(raw) as Project[];
+      const parsed = JSON.parse(raw) as HeroProject[];
       return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
   }
 
-  async function openProject(project: Project): Promise<void> {
-    if (!project.hasPage) return;
-    const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
-    const { expandToWorkPage, projectPlaneScreenRect } = await import('../scripts/hero-scene');
-    const from =
-      (canvas && projectPlaneScreenRect(canvas)) ||
-      new DOMRect(window.innerWidth * 0.35, window.innerHeight * 0.28, 480, 320);
-    await expandToWorkPage(project, from);
-    const { navigate } = await import('astro:transitions/client');
-    const hero = document.querySelector<HTMLElement>('[data-hero]');
-    const locale = hero?.dataset.locale === 'en' ? 'en' : 'ru';
-    navigate(locale === 'en' ? `/en/work/${project.slug}/` : `/work/${project.slug}/`);
-    window.setTimeout(() => {
-      document.querySelectorAll('.work-expand').forEach((node) => node.remove());
-    }, 900);
-  }
-
-  async function bootHero(): Promise<void> {
-    const root = document.querySelector<HTMLElement>('[data-hero]');
-    if (!root) return;
-
+  async function bootHero(root: HTMLElement, showIntro: boolean): Promise<void> {
     sceneTeardown?.();
     sceneTeardown = null;
 
     const projects = readProjects(root);
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const canvas = root.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
-    const caption = root.querySelector<HTMLElement>('[data-hero-caption]');
+    const caption = root.querySelector<HTMLElement>('[data-hero-caption-copy]');
+    const title = root.querySelector<HTMLElement>('[data-hero-project-title]');
+    const category = root.querySelector<HTMLElement>('[data-hero-category]');
+    const action = root.querySelector<HTMLAnchorElement>('[data-hero-action]');
+    const actionLabel = root.querySelector<HTMLElement>('[data-hero-action-label]');
     const counter = root.querySelector<HTMLElement>('[data-hero-counter]');
-    const hint = root.querySelector<HTMLElement>('[data-hero-hint]');
+    const steps = [...root.querySelectorAll<HTMLElement>('[data-hero-step]')];
+    const caseLinks = [...root.querySelectorAll<HTMLAnchorElement>('[data-hero-cover]')];
+    let captionAnimation: Animation | undefined;
+    let activeIndex = 0;
+    const updateProject = (index: number): void => {
+      const project = projects[index];
+      if (!project || activeIndex === index) return;
+      activeIndex = index;
+      const number = String(index + 1).padStart(2, '0');
+      const total = String(projects.length).padStart(2, '0');
+      if (title) title.textContent = project.title;
+      if (category) category.textContent = project.category;
+      const result = root.querySelector<HTMLElement>('[data-hero-result]');
+      if (result) result.textContent = project.result;
+      if (counter) counter.textContent = `${number} / ${total}`;
+      if (action && actionLabel) {
+        actionLabel.textContent = project.action;
+        action.href = project.actionHref;
+        if (project.actionHref.endsWith('#demo')) {
+          action.dataset.demoStart = project.slug;
+          action.dataset.demoFrom = 'hero';
+        } else {
+          delete action.dataset.demoStart;
+          delete action.dataset.demoFrom;
+        }
+      }
+      steps.forEach((step, i) => { step.dataset.current = String(i === index); });
+      captionAnimation?.cancel();
+      if (caption && !isLessMotionPreferred()) {
+        captionAnimation = caption.animate(
+          [{ opacity: 0.55, translate: '0 7px' }, { opacity: 1, translate: '0 0' }],
+          { duration: 280, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+        );
+      }
+    };
     const staticGrid = root.querySelector<HTMLElement>('[data-hero-static]');
+    const replayBtn = root.querySelector<HTMLButtonElement>('[data-hero-replay]');
     const prevBtn = root.querySelector<HTMLButtonElement>('[data-hero-prev]');
     const nextBtn = root.querySelector<HTMLButtonElement>('[data-hero-next]');
+    const enableControls = (): void => {
+      if (prevBtn) prevBtn.disabled = false;
+      if (nextBtn) nextBtn.disabled = false;
+      if (replayBtn) replayBtn.hidden = false;
+    };
+    const onHeroKey = (event: KeyboardEvent): void => {
+      if (root.dataset.webgl !== 'on' || event.target === canvas) return;
+      if (!root.contains(document.activeElement)) return;
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      if (event.key === 'ArrowLeft') prevBtn?.click();
+      else nextBtn?.click();
+    };
+    root.addEventListener('keydown', onHeroKey);
 
-    const { isWeakGpu, mountHeroFallback } = await import('../scripts/hero-fallback');
-    const { getPerfTier, perfAllows } = await import('../scripts/perf');
+    const [{ isWeakGpu, mountHeroFallback }, { getPerfTier, isLessMotionPreferred, perfAllows }] = await Promise.all([
+      import('../scripts/hero-fallback'),
+      import('../scripts/perf'),
+    ]);
+    if (!root.isConnected) return;
     // Mobile / narrow: CSS snap — better touch UX and keeps three.js off the critical path.
     const narrow = window.matchMedia('(max-width: 900px)').matches;
-    const preferFallback =
-      reduce ||
-      narrow ||
-      !perfAllows('webgl') ||
-      isWeakGpu() ||
-      getPerfTier() === 'low';
+    const force3d = (() => {
+      try {
+        const params = new URLSearchParams(location.search);
+        if (params.get('force3d') === '0') {
+          sessionStorage.removeItem('portfolio-force3d');
+          return false;
+        }
+        if (params.get('force3d') === '1') {
+          sessionStorage.setItem('portfolio-force3d', '1');
+          return true;
+        }
+        return sessionStorage.getItem('portfolio-force3d') === '1';
+      } catch {
+        return false;
+      }
+    })();
+    const preferFallback = !force3d && (isLessMotionPreferred() || narrow ||
+      getPerfTier() === 'low' || !perfAllows('webgl') || isWeakGpu());
 
     const enableFallback = (): void => {
       if (!staticGrid) return;
       canvas?.setAttribute('hidden', '');
-      sceneTeardown = mountHeroFallback(root, staticGrid, {
-        projects,
-        counter,
-        caption,
-        hint,
-        onSelect: (project) => {
-          void openProject(project);
-        },
-      });
+      const stop = mountHeroFallback(root, staticGrid, updateProject);
+      const onReplay = (): void => {
+        const motion = caseLinks[activeIndex]?.querySelector<HTMLElement>('.hero__cover-motion');
+        motion?.getAnimations({ subtree: true }).forEach((animation) => {
+          animation.currentTime = 0;
+          animation.play();
+        });
+      };
+      replayBtn?.addEventListener('click', onReplay);
+      enableControls();
+      sceneTeardown = () => {
+        root.removeEventListener('keydown', onHeroKey);
+        replayBtn?.removeEventListener('click', onReplay);
+        captionAnimation?.cancel();
+        stop();
+      };
     };
 
+    root.dataset.motion = isLessMotionPreferred() ? 'off' : 'on';
     let playIntro: (() => Promise<void>) | null = null;
 
     if (preferFallback) {
@@ -186,23 +270,49 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 
       const scenePromise = (async () => {
         await new Promise<void>((resolve) => {
-          if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(() => resolve(), { timeout: 1200 });
-          } else {
-            window.setTimeout(() => resolve(), 220);
-          }
+          const idle = window.requestIdleCallback?.bind(window);
+          if (idle) idle(() => resolve(), { timeout: 1200 });
+          else setTimeout(() => resolve(), 220);
         });
         if (!document.contains(root)) return null;
-        const { mountHeroScene } = await import('../scripts/hero-scene');
-        const handle = await mountHeroScene(canvas, {
+        const { mountHeroRing } = await import('../scripts/hero-ring');
+        if (!root.isConnected || isLessMotionPreferred()) return null;
+        const handle = await mountHeroRing(canvas, {
           projects,
-          caption,
-          counter,
-          hint,
+          onActiveIndexChange: updateProject,
           reducedMotion: false,
+          showIntro,
           ariaLabel: root.getAttribute('data-carousel-label') || undefined,
           onSelect: (project) => {
-            void openProject(project);
+            const link = caseLinks.find((item) => item.dataset.heroCover === project.slug);
+            if (!link) return;
+            const name = `work-cover-${project.slug}`;
+            document.querySelectorAll<HTMLElement>(`[data-vt-cover="${name}"]`).forEach((node) => {
+              node.style.viewTransitionName = 'none';
+            });
+            const rect = canvas.getBoundingClientRect();
+            const fly = document.createElement('span');
+            fly.dataset.vtCover = name;
+            fly.style.viewTransitionName = name;
+            fly.style.position = 'fixed';
+            fly.style.left = `${rect.left}px`;
+            fly.style.top = `${rect.top}px`;
+            fly.style.width = `${rect.width}px`;
+            fly.style.height = `${rect.height}px`;
+            fly.style.zIndex = '35';
+            fly.style.overflow = 'hidden';
+            fly.style.pointerEvents = 'none';
+            const source = link.querySelector('img');
+            if (source) {
+              const clone = source.cloneNode(true) as HTMLImageElement;
+              clone.style.width = '100%';
+              clone.style.height = '100%';
+              clone.style.objectFit = 'cover';
+              fly.append(clone);
+            }
+            document.body.append(fly);
+            document.documentElement.dataset.pendingCover = '1';
+            link.click();
           },
         });
         if (!document.contains(root)) {
@@ -214,7 +324,12 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 
       playIntro = async () => {
         const handle = await scenePromise;
-        if (!handle) {
+        if (!root.isConnected) {
+          handle?.dispose();
+          return;
+        }
+        if (!handle || isLessMotionPreferred()) {
+          handle?.dispose();
           enableFallback();
           return;
         }
@@ -224,22 +339,26 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
         const onNext = (): void => handle.goBy(1);
         prevBtn?.addEventListener('click', onPrev);
         nextBtn?.addEventListener('click', onNext);
+        replayBtn?.addEventListener('click', handle.replayCover);
+        enableControls();
         sceneTeardown = () => {
+          root.removeEventListener('keydown', onHeroKey);
           prevBtn?.removeEventListener('click', onPrev);
           nextBtn?.removeEventListener('click', onNext);
+          replayBtn?.removeEventListener('click', handle.replayCover);
+          captionAnimation?.cancel();
           handle.dispose();
         };
         staticGrid?.setAttribute('hidden', '');
         canvas.removeAttribute('hidden');
-        await handle.playIntro();
+        if (showIntro) await handle.playIntro();
       };
     } else {
       enableFallback();
     }
 
     if (preferFallback) return;
-
-    if (window.matchMedia('(max-width: 900px)').matches) {
+    if (!showIntro) {
       await playIntro?.();
       return;
     }
@@ -253,15 +372,27 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
   }
 
   let activeHero: HTMLElement | null = null;
+  let hasVisitedHero = false;
 
   function startHero(): void {
     const root = document.querySelector<HTMLElement>('[data-hero]');
     if (!root || root === activeHero) return;
     activeHero = root;
-    void bootHero();
+    const showIntro = !hasVisitedHero;
+    hasVisitedHero = true;
+    void bootHero(root, showIntro);
   }
 
   startHero();
+  async function updateMotionPreference(): Promise<void> {
+    const root = activeHero;
+    if (!root) return;
+    const { isLessMotionPreferred } = await import('../scripts/perf');
+    if (root === activeHero) root.dataset.motion = isLessMotionPreferred() ? 'off' : 'on';
+  }
+
+  window.addEventListener('portfolio:less-motion', () => { void updateMotionPreference(); });
+  matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => { void updateMotionPreference(); });
   document.addEventListener('astro:page-load', startHero);
   document.addEventListener('astro:before-swap', () => {
     activeHero = null;
@@ -272,60 +403,61 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 
 <style>
   .hero {
-    --hero-copy-w: clamp(16rem, 34vw, 30rem);
     position: relative;
-    isolation: isolate;
-    height: calc(100svh - var(--header-h));
-    max-height: calc(100svh - var(--header-h));
-    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.36fr);
+    align-items: start;
+    gap: clamp(1.5rem, 4vw, 5rem);
+    min-height: calc(100svh - var(--header-h));
+    padding-top: clamp(1.25rem, 4vh, 2.75rem);
+    padding-bottom: clamp(7rem, 16vh, 9rem);
     background: var(--bg);
+    isolation: isolate;
   }
 
   .hero__copy {
-    position: relative;
-    z-index: 3;
-    box-sizing: border-box;
-    width: var(--hero-copy-w);
-    height: 100%;
-    padding: clamp(1rem, 3vh, 2rem) var(--space-4) clamp(1rem, 3vh, 2rem) var(--page-pad);
     display: grid;
     align-content: center;
-    gap: var(--space-3);
-    pointer-events: none;
-  }
-
-  .hero__copy > * {
-    pointer-events: auto;
+    min-width: 0;
+    gap: var(--space-4);
   }
 
   .hero__brand,
   .hero__line,
   .hero__sub {
     margin: 0;
-    overflow: hidden;
   }
 
   .hero__brand {
-    font-size: clamp(2.4rem, 1.6rem + 3vw, 4.5rem);
-    font-weight: 750;
-    letter-spacing: var(--tracking-display);
-    line-height: var(--leading-tight);
+    justify-self: start;
+    padding-block-end: var(--space-2);
+    border-bottom: var(--stroke) solid var(--accent-strong);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-mono);
+    text-transform: uppercase;
   }
 
   .hero__line {
-    max-width: 16ch;
-    /* Seat for ~3 lines before SplitText paints — avoids CLS from char wraps. */
-    min-height: calc(3 * 1em * var(--leading-snug));
-    font-size: clamp(1.35rem, 1rem + 1.5vw, 2.15rem);
-    font-weight: 650;
-    letter-spacing: var(--tracking-tight);
-    line-height: var(--leading-snug);
-    color: color-mix(in srgb, var(--fg) 88%, var(--accent-strong));
+    font-size: clamp(2rem, 0.7rem + 4.4vw, 5.1rem);
+    font-weight: 700;
+    letter-spacing: var(--tracking-display);
+    line-height: 1.04;
+    overflow-wrap: anywhere;
+  }
+
+  .hero__line > span {
+    display: block;
+  }
+
+  .hero__headline-accent {
+    color: var(--accent-strong);
   }
 
   .hero__sub {
-    max-width: 34ch;
-    font-size: var(--text-sm);
+    max-width: 32ch;
+    font-size: var(--text-base);
     color: var(--fg-muted);
     line-height: var(--leading-body);
   }
@@ -337,41 +469,24 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     margin-top: var(--space-2);
   }
 
+  .hero__actions :global(.btn--link) {
+    min-height: 2.75rem;
+  }
+
   .hero__stage-wrap {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 62%;
-    z-index: 1;
-    display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
-    align-content: stretch;
-    pointer-events: none;
-    background: transparent;
-    /* Reserved seat matches final desktop stage — cuts CLS when cards/canvas paint. */
-    min-height: min(70vh, 42rem);
+    min-width: 0;
+    border: var(--stroke) solid var(--border-strong);
+    background: var(--bg-elevated);
   }
 
   .hero__stage {
     position: relative;
-    min-height: min(58vh, 34rem);
-    height: 100%;
-    aspect-ratio: 16 / 11;
-    margin-block: 0;
-    overflow: visible;
-    background: transparent;
-    border: 0;
-    pointer-events: auto;
+    min-height: 0;
+    aspect-ratio: 16 / 10;
     contain: layout paint;
-    -webkit-mask-image:
-      linear-gradient(90deg, transparent 0%, #000 10%, #000 100%),
-      linear-gradient(180deg, transparent 0%, #000 2%, #000 100%);
-    -webkit-mask-composite: source-in;
-    mask-image:
-      linear-gradient(90deg, transparent 0%, #000 10%, #000 100%),
-      linear-gradient(180deg, transparent 0%, #000 2%, #000 100%);
-    mask-composite: intersect;
+    container-type: inline-size;
+    isolation: isolate;
+    pointer-events: auto;
   }
 
   .hero__canvas {
@@ -380,30 +495,113 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     width: 100%;
     height: 100%;
     opacity: 0;
-    transition: opacity var(--dur-4) var(--ease-out);
+    pointer-events: none;
+    transition: opacity var(--dur-3) var(--ease-out);
     touch-action: none;
   }
 
   .hero[data-webgl='on'] .hero__canvas[data-ready='true'] {
     opacity: 1;
+    pointer-events: auto;
   }
 
   .hero__chrome {
     position: relative;
-    z-index: 4;
     display: grid;
-    grid-template-columns: auto auto 1fr;
-    gap: var(--space-1) var(--space-3);
-    align-items: center;
-    margin-top: 0;
-    padding: 0 var(--page-pad) clamp(0.25rem, 0.8vh, 0.5rem) var(--space-5);
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--space-3) var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    border-top: var(--stroke) solid var(--border-strong);
+  }
+
+  .hero__caption {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .hero__caption-copy {
+    min-width: 0;
+  }
+
+  .hero__category,
+  .hero__project-title,
+  .hero__counter {
+    margin: 0;
+  }
+
+  .hero__category,
+  .hero__counter {
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-mono);
+    text-transform: uppercase;
+  }
+
+  .hero__category {
+    color: var(--accent-strong);
+  }
+
+  .hero__project-title {
+    margin-top: var(--space-1);
+    width: 100%;
+    font-family: var(--font-display);
+    font-size: clamp(1.05rem, 1rem + 1vw, 1.78rem);
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-tight);
+    overflow-wrap: anywhere;
+  }
+
+  .hero__result {
+    margin: var(--space-2) 0 0;
+    max-width: 42ch;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  .hero__grain {
+    display: none;
+    position: absolute;
+    inset: 0;
     pointer-events: none;
-    isolation: isolate;
+    opacity: 0.28;
+    mix-blend-mode: overlay;
+    background-image: radial-gradient(rgb(255 255 255 / 0.45) 0.6px, transparent 0.65px);
+    background-size: 3px 3px;
+  }
+
+  .hero[data-webgl='on'] .hero__grain {
+    display: block;
+  }
+
+  .hero[data-webgl='on'] .hero__stage {
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.35), 0 0 72px rgb(139 92 246 / 0.35);
+  }
+
+  .hero__case-link {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    justify-self: start;
+    min-height: 44px;
+    color: var(--accent-strong);
+    font-weight: 600;
+    font-size: var(--text-sm);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    pointer-events: auto;
+  }
+
+  .hero__case-link:hover,
+  .hero__case-link:focus-visible {
+    color: var(--accent-strong);
   }
 
   .hero__nav {
-    display: inline-flex;
+    display: flex;
     gap: var(--space-2);
+    align-self: end;
     pointer-events: auto;
   }
 
@@ -411,122 +609,240 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     min-width: 44px;
     min-height: 44px;
     padding: 0 0.65rem;
-    border: var(--stroke) solid var(--border);
+    border: var(--stroke) solid var(--border-strong);
     background: var(--bg-elevated);
     color: var(--fg);
     font-size: var(--text-sm);
     cursor: pointer;
   }
 
-  .hero__nav-btn:hover,
+  .hero__nav-btn:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  .hero__nav-btn:enabled:hover,
   .hero__nav-btn:focus-visible {
-    border-color: var(--border-strong);
+    border-color: var(--accent-strong);
     color: var(--accent-strong);
   }
 
-  .hero__counter,
-  .hero__hint,
-  .hero__caption {
-    margin: 0;
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-mono);
-    text-transform: uppercase;
+  .hero[data-motion='on'] .hero__nav-btn {
+    transition: scale var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
+  }
+
+  .hero[data-motion='on'] .hero__nav-btn:active {
+    scale: 0.96;
+  }
+
+  .hero__position {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .hero__meter {
+    display: flex;
+    flex: 1;
+    gap: var(--space-1);
+  }
+
+  .hero__meter > span {
+    position: relative;
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+  }
+
+  .hero__meter > span::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    background: var(--accent-strong);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+
+  .hero[data-motion='on'] .hero__meter > span::after {
+    transition: transform var(--dur-3) var(--ease-out);
+  }
+
+  .hero__meter > span[data-current='true']::after {
+    transform: scaleX(1);
   }
 
   .hero__counter {
-    color: var(--accent-strong);
-  }
-
-  .hero__hint {
     color: var(--fg-muted);
-    justify-self: end;
-    grid-column: 3;
-    transition: opacity var(--dur-2) var(--ease-out);
-  }
-
-  .hero__hint[data-hidden='true'] {
-    opacity: 0;
-  }
-
-  .hero__caption {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-    color: var(--fg);
-    overflow: hidden;
-    min-height: 1.2em;
-  }
-
-  .hero__caption span:nth-child(3),
-  .hero__caption span:nth-child(4) {
-    color: var(--fg-muted);
-  }
-
-  .hero__caption :global(.caption-char) {
-    display: inline-block;
-  }
-
-  .hero__caption span:nth-child(1),
-  .hero__caption span:nth-child(2) {
-    color: var(--accent-strong);
+    font-variant-numeric: tabular-nums;
   }
 
   .hero__static {
+    --hero-card-width: 92cqi;
     position: absolute;
-    inset: 1% 2% 2%;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-3);
-    align-content: center;
-    pointer-events: auto;
-    min-height: 100%;
-    width: 100%;
+    inset: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 4cqi;
+    padding-inline: calc((100% - var(--hero-card-width)) / 2);
+    overflow: auto hidden;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
+    cursor: grab;
   }
 
   .hero__static[hidden] {
     display: none;
   }
 
-  .hero[data-carousel='snap'] .hero__static {
-    inset: auto 0 2%;
-    top: 1%;
-    bottom: 2%;
-    display: flex;
-    gap: var(--space-4);
-    padding-inline: var(--page-pad);
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--page-pad);
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    align-items: center;
-    cursor: grab;
-    touch-action: pan-x;
-  }
-
-  .hero[data-carousel='snap'] .hero__static:active {
+  .hero__static[data-dragging] {
+    scroll-snap-type: none;
     cursor: grabbing;
-  }
-
-  .hero[data-carousel='snap'] .hero__static-card {
-    flex: 0 0 min(78vw, 28rem);
-    scroll-snap-align: center;
-  }
-
-  .hero[data-carousel='snap'] .hero__static-card[data-active='true'] {
-    border-color: var(--border-strong);
+    user-select: none;
   }
 
   .hero__static-card {
+    position: relative;
+    isolation: isolate;
+    flex: 0 0 var(--hero-card-width);
+    min-width: 0;
     aspect-ratio: 16 / 10;
-    display: block;
-    border: var(--stroke) solid var(--border);
-    background-color: var(--bg-elevated);
+    scroll-snap-align: center;
     overflow: hidden;
-    text-decoration: none;
+    background: var(--bg-elevated);
     color: inherit;
+  }
+
+  .hero__static-card:focus-visible {
+    outline-offset: -4px;
+  }
+
+  .hero__static-card :global(.project-cover-wrap) {
+    height: 100%;
+  }
+
+  .hero__replay {
+    position: absolute;
+    z-index: 3;
+    top: var(--space-3);
+    right: var(--space-3);
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: var(--stroke) solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--fg);
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+  .hero__replay:hover,
+  .hero__replay:focus-visible {
+    color: var(--accent-strong);
+    border-color: var(--accent-strong);
+  }
+
+  .hero__replay[hidden],
+  .hero:not([data-motion='on']) .hero__replay {
+    display: none;
+  }
+
+  .hero__cover-motion {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .hero__cover-motion > i {
+    position: absolute;
+    opacity: 0;
+    border-radius: var(--radius-sm);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero[data-motion='on'] [data-hero-cover='smena'][data-playing] .hero__cover-motion > :first-child {
+      inset: 47% auto auto 36.25%;
+      width: 7.5%;
+      height: 7.2%;
+      background: var(--accent);
+      transform-origin: left center;
+      animation: booking-fill 1.45s var(--ease-in-out) both;
+    }
+
+    .hero[data-motion='on'] [data-hero-cover='gran'][data-playing] .hero__cover-motion > :first-child {
+      inset: 36% auto auto 26.25%;
+      width: 52.5%;
+      height: 0.75%;
+      background: var(--accent-strong);
+      transform-origin: left center;
+      animation: progress-fill 1.45s var(--ease-in-out) both;
+    }
+
+    .hero[data-motion='on'] [data-hero-cover='gran'][data-playing] .hero__cover-motion > :nth-child(2) {
+      inset: 73% auto auto 67.5%;
+      width: 11.25%;
+      height: 4.8%;
+      outline: 2px solid var(--accent-strong);
+      animation: queue-pulse 1.35s 0.4s var(--ease-out) both;
+    }
+
+    .hero[data-motion='on'] [data-hero-cover='ai-funnel-ecosystem'][data-playing] .hero__cover-motion > :first-child {
+      width: 1.6%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--accent-strong);
+      box-shadow: 0 0 0.7rem var(--accent-strong);
+      translate: -50% -50%;
+      animation: queue-travel 1.35s var(--ease-in-out) both;
+    }
+
+    .hero[data-motion='on'] [data-hero-cover='ai-funnel-ecosystem'][data-playing] .hero__cover-motion > :nth-child(2) {
+      inset: 43.7% auto auto 61.25%;
+      width: 20.625%;
+      height: 11.2%;
+      outline: 2px solid var(--accent-strong);
+      animation: queue-selected 0.65s 0.95s var(--ease-out) both;
+    }
+
+    @keyframes booking-fill {
+      0%, 15% { transform: scaleX(0); opacity: 0; }
+      38%, 78% { transform: scaleX(1); opacity: 0.95; }
+      100% { transform: scaleX(1); opacity: 0.64; }
+    }
+
+    @keyframes progress-fill {
+      0% { transform: scaleX(0.33); opacity: 0; }
+      20% { opacity: 1; }
+      65%, 88% { transform: scaleX(1); opacity: 1; }
+      100% { transform: scaleX(1); opacity: 0.68; }
+    }
+
+    @keyframes queue-travel {
+      0% { left: 32.4%; top: 36.5%; opacity: 0; }
+      12% { opacity: 1; }
+      37% { left: 32.4%; top: 61.4%; }
+      62% { left: 53%; top: 61.4%; }
+      78% { left: 53%; top: 49.3%; }
+      96% { left: 63%; top: 49.3%; opacity: 1; }
+      100% { left: 64%; top: 49.3%; opacity: 0; }
+    }
+
+    @keyframes queue-selected {
+      0% { opacity: 0; }
+      45% { opacity: 1; }
+      100% { opacity: 0.58; }
+    }
+
+    @keyframes queue-pulse {
+      0%, 100% { opacity: 0; }
+      38%, 65% { opacity: 1; }
+    }
   }
 
   :global(.hero-char) {
@@ -534,129 +850,30 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     will-change: transform, opacity;
   }
 
-  :global(.hero-word) {
-    display: inline-block;
-    white-space: nowrap;
-  }
-
-  /* Desktop: fill stage under the header; cards sit low near chrome. Mobile untouched. */
-  @media (min-width: 901px) {
-    .hero__stage-wrap {
-      top: 0;
-      grid-template-rows: minmax(0, 1fr) auto;
-      align-content: stretch;
-    }
-
-    .hero__stage {
-      height: 100%;
-      max-height: none;
-      min-height: 0;
-      aspect-ratio: auto;
-      align-self: stretch;
-    }
-
-    .hero__static {
-      align-content: end;
-      inset: 4% 2% 6%;
-    }
-
-    .hero[data-carousel='snap'] .hero__static {
-      inset: auto 0 6%;
-      top: auto;
-      bottom: 6%;
-    }
-  }
-
-  @media (max-width: 900px) {
+  @media (max-width: 1023px) {
     .hero {
-      display: grid;
-      grid-template-rows: auto minmax(48svh, 1fr);
-      height: auto;
-      max-height: none;
-      min-height: calc(100svh - var(--header-h));
-      overflow: visible;
+      gap: var(--space-6);
     }
+  }
 
-    .hero__copy {
-      width: 100%;
-      height: auto;
-      align-content: start;
-      gap: var(--space-2);
-      padding: var(--space-3) var(--page-pad) var(--space-2);
-    }
-
-    .hero__brand {
-      font-size: clamp(2rem, 8vw, 2.8rem);
-      min-height: 1.15em;
+  @media (max-width: 760px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 0;
+      padding-block: var(--space-6);
     }
 
     .hero__line {
-      max-width: 20ch;
-      font-size: clamp(1.1rem, 4vw, 1.4rem);
-      min-height: calc(2.5 * 1em * var(--leading-snug));
-    }
-
-    .hero__stage-wrap {
-      position: relative;
-      width: 100vw;
-      max-width: 100vw;
-      margin-inline: calc(50% - 50vw);
-      height: auto;
-      /* Fixed seat avoids CLS when snap cards paint. */
-      min-height: 48svh;
-    }
-
-    .hero__stage {
-      min-height: 48svh;
-      height: 48svh;
-      -webkit-mask-image: linear-gradient(
-        90deg,
-        transparent 0%,
-        #000 1.5%,
-        #000 98.5%,
-        transparent 100%
-      );
-      -webkit-mask-composite: source-over;
-      mask-image: linear-gradient(
-        90deg,
-        transparent 0%,
-        #000 1.5%,
-        #000 98.5%,
-        transparent 100%
-      );
-      mask-composite: add;
+      font-size: clamp(1.85rem, 7vw, 3.4rem);
     }
 
     .hero__chrome {
-      padding: var(--space-1) var(--page-pad) var(--space-2);
+      padding: var(--space-3);
+      column-gap: var(--space-2);
     }
 
-    /* Snap carousel is the mobile default — paint final layout before JS sets data-carousel. */
-    .hero__static,
-    .hero[data-carousel='snap'] .hero__static {
-      inset: auto 0 4%;
-      top: 1%;
-      bottom: 4%;
-      display: flex;
-      gap: var(--space-4);
-      padding-inline: var(--page-pad);
-      overflow-x: auto;
-      overflow-y: hidden;
-      scroll-snap-type: x mandatory;
-      scroll-padding-inline: var(--page-pad);
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-x: contain;
-      align-items: center;
-      cursor: grab;
-      touch-action: pan-x;
-      min-height: 0;
-      width: auto;
-    }
-
-    .hero__static-card,
-    .hero[data-carousel='snap'] .hero__static-card {
-      flex: 0 0 min(86vw, 22rem);
-      scroll-snap-align: center;
+    .hero__copy {
+      gap: var(--space-3);
     }
   }
 </style>

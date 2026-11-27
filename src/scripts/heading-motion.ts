@@ -6,9 +6,8 @@ let observer: IntersectionObserver | null = null;
 let bound = false;
 
 function headingMode(): HeadingMode {
-  if (isLessMotionPreferred() || getPerfTier() === 'low') return 'off';
-  if (getPerfTier() === 'mid') return 'lines';
-  return 'scramble';
+  if (isLessMotionPreferred() || getPerfTier() === 'low' || matchMedia('(max-width: 900px)').matches) return 'off';
+  return 'lines';
 }
 
 function charset(): string {

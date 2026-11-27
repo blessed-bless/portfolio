@@ -6,7 +6,7 @@
     <rect x="220" y="320" width="1160" height="420" rx="9" fill="var(--cover-bg, #16131F)" stroke="currentColor" vector-effect="non-scaling-stroke"/>
     <path d="M248 400 H1352" fill="none" stroke="currentColor" opacity=".35" vector-effect="non-scaling-stroke"/>
     <!-- hour labels -->
-    <g fill="currentColor" opacity=".55" font-family="ui-monospace, monospace" font-size="16">
+    <g fill="currentColor" opacity=".75" font-family="ui-monospace, monospace" font-size="22">
       <text x="248" y="430">10</text>
       <text x="380" y="430">11</text>
       <text x="512" y="430">12</text>
@@ -24,9 +24,9 @@
     <rect x="720" y="470" width="120" height="72" rx="8" fill="#8B5CF6" stroke="none"/>
     <rect x="1000" y="470" width="90" height="72" rx="8" fill="#8B5CF6" stroke="none"/>
     <!-- free windows (outline) -->
-    <rect x="580" y="470" width="120" height="72" rx="8" fill="none" stroke="currentColor" opacity=".7" vector-effect="non-scaling-stroke"/>
-    <rect x="860" y="470" width="120" height="72" rx="8" fill="none" stroke="currentColor" opacity=".7" vector-effect="non-scaling-stroke"/>
-    <rect x="1110" y="470" width="220" height="72" rx="8" fill="none" stroke="currentColor" opacity=".7" vector-effect="non-scaling-stroke"/>
+    <rect x="580" y="470" width="120" height="72" rx="8" fill="none" stroke="currentColor" opacity=".88" vector-effect="non-scaling-stroke"/>
+    <rect x="860" y="470" width="120" height="72" rx="8" fill="none" stroke="currentColor" opacity=".88" vector-effect="non-scaling-stroke"/>
+    <rect x="1110" y="470" width="220" height="72" rx="8" fill="none" stroke="currentColor" opacity=".88" vector-effect="non-scaling-stroke"/>
     <!-- status chips -->
     <rect x="248" y="590" width="160" height="44" rx="8" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke"/>
     <rect x="428" y="590" width="160" height="44" rx="8" fill="#8B5CF6" stroke="none"/>

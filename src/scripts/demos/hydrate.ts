@@ -13,19 +13,20 @@ const loaders: Record<DemoId, () => Promise<(root: HTMLElement) => () => void>> 
 
 const cleanups = new WeakMap<Element, () => void>();
 
-async function mountOne(section: HTMLElement): Promise<void> {
+async function mountOne(section: HTMLElement, signal: AbortSignal): Promise<void> {
   const id = section.dataset.caseDemo as DemoId | undefined;
   const stage = section.querySelector<HTMLElement>('[data-demo-mount]');
   if (!id || !stage || !(id in loaders)) return;
-  if (section.dataset.demoReady === 'true') return;
+  if (signal.aborted || section.dataset.demoReady === 'true' || section.dataset.demoReady === 'pending') return;
   section.dataset.demoReady = 'pending';
   try {
     const mount = await loaders[id]();
-    cleanups.get(section)?.();
+    if (signal.aborted) return;
     const dispose = mount(stage);
     cleanups.set(section, dispose);
     section.dataset.demoReady = 'true';
   } catch (error) {
+    if (signal.aborted) return;
     section.dataset.demoReady = 'error';
     stage.textContent = demoShell(demoLocale()).loadError;
     console.warn(`Demo ${id} failed`, error);
@@ -36,13 +37,14 @@ export function hydrateCaseDemos(root: ParentNode = document): () => void {
   const sections = Array.from(root.querySelectorAll<HTMLElement>('[data-case-demo]'));
   if (!sections.length) return () => undefined;
 
+  const controller = new AbortController();
   const observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
         const section = entry.target as HTMLElement;
         observer.unobserve(section);
-        void mountOne(section);
+        void mountOne(section, controller.signal);
       }
     },
     { rootMargin: '120px 0px', threshold: 0.05 },
@@ -51,7 +53,12 @@ export function hydrateCaseDemos(root: ParentNode = document): () => void {
   for (const section of sections) observer.observe(section);
 
   return () => {
+    controller.abort();
     observer.disconnect();
-    for (const section of sections) cleanups.get(section)?.();
+    for (const section of sections) {
+      cleanups.get(section)?.();
+      cleanups.delete(section);
+      delete section.dataset.demoReady;
+    }
   };
 }

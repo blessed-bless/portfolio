@@ -1,4 +1,3 @@
-import type { Project } from '../lib/work-types';
 import { getLenis } from './lenis-scroll';
 
 export function isWeakGpu(): boolean {
@@ -6,208 +5,164 @@ export function isWeakGpu(): boolean {
     const probe = document.createElement('canvas');
     const gl = probe.getContext('webgl2') || probe.getContext('webgl');
     if (!gl) return true;
-    const info = gl.getExtension('WEBGL_debug_renderer_info');
-    if (info) {
-      const renderer = String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL) || '');
-      if (/SwiftShader|llvmpipe|Softwar|Microsoft Basic/i.test(renderer)) return true;
+    try {
+      const mobile = /Mobi|Android/i.test(navigator.userAgent);
+      return mobile && (navigator.hardwareConcurrency || 8) <= 4;
+    } finally {
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
     }
-    const mobile = /Mobi|Android/i.test(navigator.userAgent);
-    if (mobile && (navigator.hardwareConcurrency || 8) <= 4) return true;
-    return false;
   } catch {
     return true;
   }
 }
 
-type FallbackOptions = {
-  projects: Project[];
-  counter: HTMLElement | null;
-  caption: HTMLElement | null;
-  hint: HTMLElement | null;
-  onSelect: (project: Project) => void;
-};
-
 export function mountHeroFallback(
   root: HTMLElement,
   track: HTMLElement,
-  options: FallbackOptions,
+  onActiveIndexChange: (index: number) => void,
 ): () => void {
-  const { projects, counter, caption, hint, onSelect } = options;
-  const cards = Array.from(track.querySelectorAll<HTMLElement>('[data-hero-cover]'));
-  let active = 0;
+  const cards = [...track.querySelectorAll<HTMLAnchorElement>('[data-hero-cover]')];
+  if (cards.length === 0) return () => {};
+
+  const prev = root.querySelector<HTMLButtonElement>('[data-hero-prev]');
+  const next = root.querySelector<HTMLButtonElement>('[data-hero-next]');
+  let active = -1;
   let settleTimer = 0;
-  let dragging = false;
-  let dragStartX = 0;
-  let dragOriginScroll = 0;
-  let dragDistance = 0;
-  let pointerId: number | null = null;
+  let drag: { id: number; startX: number; scrollLeft: number; moved: boolean } | undefined;
+  let suppressClick = false;
 
   root.dataset.webgl = 'off';
   root.dataset.carousel = 'snap';
   track.hidden = false;
-  track.removeAttribute('hidden');
 
-  const syncChrome = (index: number): void => {
-    const project = projects[index];
-    if (!project) return;
-    const number = String(index + 1).padStart(2, '0');
-    const total = String(projects.length).padStart(2, '0');
-    if (counter) counter.textContent = `${number} / ${total}`;
-    if (caption) {
-      caption.hidden = false;
-      caption.innerHTML = `<span>${number}</span><span>${project.title}</span><span>${project.year}</span><span>${project.stack}</span>`;
-    }
+  const setActive = (index: number): void => {
+    if (active === index) return;
+    active = index;
     cards.forEach((card, i) => {
-      card.dataset.active = i === index ? 'true' : 'false';
-      card.setAttribute('aria-current', i === index ? 'true' : 'false');
+      card.dataset.active = String(i === index);
+      if (i === index) card.setAttribute('aria-current', 'true');
+      else card.removeAttribute('aria-current');
     });
+    onActiveIndexChange(index);
   };
 
   const nearestIndex = (): number => {
     const mid = track.scrollLeft + track.clientWidth / 2;
-    let best = 0;
-    let bestDist = Number.POSITIVE_INFINITY;
+    let nearest = 0;
+    let distance = Infinity;
     cards.forEach((card, index) => {
-      const center = card.offsetLeft + card.offsetWidth / 2;
-      const dist = Math.abs(center - mid);
-      if (dist < bestDist) {
-        bestDist = dist;
-        best = index;
+      const offset = Math.abs(card.offsetLeft + card.offsetWidth / 2 - mid);
+      if (offset < distance) {
+        nearest = index;
+        distance = offset;
       }
     });
-    return best;
-  };
-
-  const wrap = (value: number): number => {
-    const len = projects.length;
-    return ((value % len) + len) % len;
+    return nearest;
   };
 
   const goTo = (index: number, smooth = true): void => {
-    const target = cards[wrap(index)];
-    if (!target) return;
-    active = wrap(index);
-    target.scrollIntoView({
-      inline: 'center',
-      block: 'nearest',
-      behavior: smooth && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        ? 'smooth'
-        : 'auto',
-    });
-    syncChrome(active);
-    if (hint) hint.dataset.hidden = 'true';
+    const wrapped = ((index % cards.length) + cards.length) % cards.length;
+    const card = cards[wrapped];
+    const left = card.offsetLeft + (card.offsetWidth - track.clientWidth) / 2;
+    window.clearTimeout(settleTimer);
+    setActive(wrapped);
+    cards.forEach((cover) => cover.removeAttribute('data-playing'));
+    track.scrollTo({ left, behavior: smooth && root.dataset.motion === 'on' ? 'smooth' : 'instant' });
+    settleTimer = window.setTimeout(settleCover, 100);
+  };
+
+  const settleCover = (): void => {
+    const index = nearestIndex();
+    setActive(index);
+    cards.forEach((card, i) => card.toggleAttribute('data-playing', i === index));
   };
 
   const onScroll = (): void => {
     window.clearTimeout(settleTimer);
-    settleTimer = window.setTimeout(() => {
-      const next = nearestIndex();
-      if (next !== active) {
-        active = next;
-        syncChrome(active);
-      }
-    }, 80);
+    if (drag?.moved) return;
+    settleTimer = window.setTimeout(settleCover, 100);
   };
 
-  const onClick = (event: Event): void => {
-    if (dragDistance > 8) {
+  const onClick = (event: MouseEvent): void => {
+    if (suppressClick && event.detail !== 0) {
       event.preventDefault();
       return;
     }
-    const card = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-hero-cover]');
-    if (!card || !track.contains(card)) return;
-    const index = cards.indexOf(card);
-    if (index < 0) return;
-    if (index === active) {
-      const project = projects[index];
-      if (project?.hasPage) onSelect(project);
-      return;
-    }
+    if (event.detail === 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const card = (event.target as Element | null)?.closest<HTMLAnchorElement>('[data-hero-cover]');
+    const index = card ? cards.indexOf(card) : -1;
+    if (index < 0 || index === active) return;
     event.preventDefault();
     goTo(index);
   };
 
   const onPointerDown = (event: PointerEvent): void => {
-    if (event.button !== 0) return;
-    dragging = true;
-    pointerId = event.pointerId;
-    dragStartX = event.clientX;
-    dragOriginScroll = track.scrollLeft;
-    dragDistance = 0;
-    getLenis()?.stop();
-    try {
-      track.setPointerCapture(event.pointerId);
-    } catch {
-      /* ignore */
-    }
+    suppressClick = false;
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+    drag = { id: event.pointerId, startX: event.clientX, scrollLeft: track.scrollLeft, moved: false };
   };
 
   const onPointerMove = (event: PointerEvent): void => {
-    if (!dragging || (pointerId !== null && event.pointerId !== pointerId)) return;
-    const dx = event.clientX - dragStartX;
-    dragDistance = Math.abs(dx);
-    track.scrollLeft = dragOriginScroll - dx;
-    if (hint) hint.dataset.hidden = 'true';
+    if (!drag || drag.id !== event.pointerId) return;
+    const delta = event.clientX - drag.startX;
+    if (!drag.moved && Math.abs(delta) < 8) return;
+    if (!drag.moved) {
+      drag.moved = true;
+      suppressClick = true;
+      track.dataset.dragging = '';
+      track.setPointerCapture(event.pointerId);
+      getLenis()?.stop();
+    }
+    track.scrollLeft = drag.scrollLeft - delta;
   };
 
   const onPointerUp = (event: PointerEvent): void => {
-    if (!dragging || (pointerId !== null && event.pointerId !== pointerId)) return;
-    dragging = false;
-    pointerId = null;
+    if (drag?.id !== event.pointerId) return;
+    const wasDragging = drag.moved;
+    drag = undefined;
+    if (!wasDragging) return;
+    const nearest = nearestIndex();
+    delete track.dataset.dragging;
+    if (track.hasPointerCapture(event.pointerId)) track.releasePointerCapture(event.pointerId);
     getLenis()?.start();
-    try {
-      track.releasePointerCapture(event.pointerId);
-    } catch {
-      /* ignore */
-    }
-    if (dragDistance > 24) {
-      const delta = event.clientX < dragStartX ? 1 : -1;
-      goTo(active + delta);
-    } else {
-      goTo(nearestIndex());
-    }
+    goTo(nearest);
   };
+
+  const onDragStart = (event: DragEvent): void => event.preventDefault();
 
   const onKey = (event: KeyboardEvent): void => {
-    if (event.key === 'ArrowRight') {
-      event.preventDefault();
-      goTo(active + 1);
-    }
-    if (event.key === 'ArrowLeft') {
-      event.preventDefault();
-      goTo(active - 1);
-    }
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    goTo(active + (event.key === 'ArrowRight' ? 1 : -1));
   };
 
-  const prev = root.querySelector<HTMLButtonElement>('[data-hero-prev]');
-  const next = root.querySelector<HTMLButtonElement>('[data-hero-next]');
   const onPrev = (): void => goTo(active - 1);
   const onNext = (): void => goTo(active + 1);
-
   track.addEventListener('scroll', onScroll, { passive: true });
   track.addEventListener('click', onClick);
+  track.addEventListener('dragstart', onDragStart);
   track.addEventListener('pointerdown', onPointerDown);
   track.addEventListener('pointermove', onPointerMove);
-  track.addEventListener('pointerup', onPointerUp);
-  track.addEventListener('pointercancel', onPointerUp);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', onPointerUp);
   root.addEventListener('keydown', onKey);
   prev?.addEventListener('click', onPrev);
   next?.addEventListener('click', onNext);
 
-  syncChrome(0);
   goTo(0, false);
 
   return () => {
     window.clearTimeout(settleTimer);
     track.removeEventListener('scroll', onScroll);
     track.removeEventListener('click', onClick);
+    track.removeEventListener('dragstart', onDragStart);
     track.removeEventListener('pointerdown', onPointerDown);
     track.removeEventListener('pointermove', onPointerMove);
-    track.removeEventListener('pointerup', onPointerUp);
-    track.removeEventListener('pointercancel', onPointerUp);
+    window.removeEventListener('pointerup', onPointerUp);
+    window.removeEventListener('pointercancel', onPointerUp);
     root.removeEventListener('keydown', onKey);
     prev?.removeEventListener('click', onPrev);
     next?.removeEventListener('click', onNext);
-    getLenis()?.start();
+    if (drag?.moved) getLenis()?.start();
   };
 }
