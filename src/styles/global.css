@@ -14,9 +14,9 @@ html {
   scroll-behavior: auto;
 }
 
-/* Keep hash targets clear of the sticky header (desktop + mobile). */
-:where(section[id], [data-contact], [data-case-demo], [data-featured], [data-offers], [data-faq]) {
-  scroll-margin-top: var(--anchor-scroll-margin);
+/* Keep hash targets and section titles clear of the sticky header. */
+:where(section, h1, h2, h3, [data-contact], [data-case-demo], [data-featured], [data-offers], [data-faq], [data-work-rows], [data-process], .who, .stack-grid, .stats) {
+  scroll-margin-top: calc(var(--header-h) + 1.25rem);
 }
 
 html.lenis,
@@ -331,8 +331,10 @@ html[data-theme='light'] .astro-code span[style*='--shiki-light: #E36209'] {
     box-shadow: 0 10px 30px rgb(139 92 246 / 0.35);
   }
 
-  body.nav-lock .sticky-discuss {
-    display: none;
+  body.nav-lock .sticky-discuss,
+  .sticky-discuss.is-hidden {
+    visibility: hidden;
+    pointer-events: none;
   }
 }
 
