@@ -106,6 +106,7 @@ const CASE_TITLE_MID: Record<'ru' | 'en', Partial<Record<string, string>>> = {
     fleetkit: 'Control plane для ботов и воркеров',
     shipcrew: 'Агенты от брифа до prod-бандла',
     priemnaya: 'Запись в шиномонтаж после пропущенного',
+    pashot: 'Сайт кафе в Анапе',
   },
   en: {
     smena: 'Barber bookings and free slots in Telegram',
@@ -115,6 +116,7 @@ const CASE_TITLE_MID: Record<'ru' | 'en', Partial<Record<string, string>>> = {
     ipcheck: 'Network privacy diagnostics',
     priemnaya: 'Tire-shop booking after a missed call',
     gran: 'Barbershop booking on the first screen',
+    pashot: 'Cafe site in Anapa',
   },
 };
 

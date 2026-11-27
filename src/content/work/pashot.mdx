@@ -1,0 +1,74 @@
+---
+title: Пашот
+slug: pashot
+year: '2026'
+role: Фронтенд
+stack:
+  - Astro
+  - TypeScript
+status: концепт
+origin: demo
+cover: ../../assets/covers/pashot.png
+summary: >-
+  Одностраничный сайт кафе «Пашот» в Анапе: меню с вкладками и фильтром цены,
+  галерея, карта и контакты.
+links:
+  demo: /demo/pashot/
+order: 11
+tags:
+  - TypeScript
+  - Web
+hasPage: true
+featured: true
+carousel: true
+---
+
+import hero390 from '../../assets/screenshots/pashot-hero-390.png';
+import hero1440 from '../../assets/screenshots/pashot-hero-1440.png';
+import menu390 from '../../assets/screenshots/pashot-menu-390.png';
+import lightbox390 from '../../assets/screenshots/pashot-lightbox-390.png';
+import Button from '../../components/Button.astro';
+import DeviceShot from '../../components/mdx/DeviceShot.astro';
+
+<p class="case-lead-cta">
+  <Button href="/demo/pashot/" variant="primary">{'Открыть демо'}</Button>
+</p>
+
+<p class="case-note">Неофициальный сайт. Концепт для портфолио, материалы используются с разрешения кафе.</p>
+
+<DeviceShot src={hero1440} device="browser" alt="Десктопный первый экран «Пашота»: название, паста и кнопка меню" caption="1440 — первый экран." />
+
+## Задача
+
+У кафе был простой сайт. Нужна одна страница, где видно меню, фотографии и как дойти. Я пересобрал её руками, своими компонентами. Это не официальный сайт кафе.
+
+## Что сделано
+
+- **Меню.** Вкладки «Основное меню» и «Напитки». Внутри каждой — фильтр цены: 200 ₽, 400 ₽ и «Другие цены».
+- **Галерея.** Сетка фотографий. По нажатию открывается лайтбокс: снимок, подпись, «Назад», «Дальше», «Закрыть».
+- **Карта и контакты.** Анапа, ул. Горького, 6. Каждый день с 9:00 до 23:00. Телефон на странице.
+- **Плашка на телефоне.** До 800px внизу закреплена полоса «Позвонить» и «Маршрут». На широком экране её нет.
+- **Скролл.** Обычный, без перехвата колеса.
+- **Логотип.** Sofia Sans Condensed, файл шрифта лежит на том же адресе, что и страница.
+- **Картинки.** AVIF и WebP.
+
+## Цифры
+
+| | Lighthouse mobile |
+| --- | --- |
+| Performance | 96 |
+| Accessibility | 100 |
+| LCP | 2,6 с |
+| CLS | 0,03 |
+
+Замер на статическом превью `/demo/pashot/`, mobile, simulated throttling. 27 ноября 2026.
+
+## Экраны
+
+<DeviceShot src={hero390} device="phone" alt="Мобильный первый экран «Пашота» с адресом и фото пасты" caption="390 — первый экран и пометка, что это не официальный сайт." />
+<DeviceShot src={menu390} device="phone" alt="Мобильное меню с вкладками и фильтром 200 ₽" caption="390 — вкладки меню и фильтр цены." />
+<DeviceShot src={lightbox390} device="phone" alt="Лайтбокс с фото фасада кафе «Пашот»" caption="390 — галерея, лайтбокс." />
+
+## Честность
+
+Страница собрана статикой и лежит в портфолио как концепт. Кафе разрешило материалы, если явно написано, что это не их официальный сайт. Цитат и цифр про выручку нет — я их не замерял.
