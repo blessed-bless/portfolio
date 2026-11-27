@@ -5,6 +5,7 @@ import {
   liquidMetalFragmentShader,
   toProcessedLiquidMetal,
   type LiquidMetalUniforms,
+  type ShaderMountUniforms,
 } from '@paper-design/shaders';
 import { getPerfTier } from './perf';
 
@@ -157,7 +158,7 @@ export async function mountLiquidMetal404(root: HTMLElement): Promise<LiquidMeta
     mount = new ShaderMount(
       host,
       liquidMetalFragmentShader,
-      buildUniforms(image),
+      buildUniforms(image) as unknown as ShaderMountUniforms,
       { alpha: true, antialias: false, powerPreference: 'low-power' },
       SPEED,
       0,

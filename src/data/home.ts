@@ -9,7 +9,7 @@ export type ServiceItem = {
   text: string;
 };
 
-/** Kept for StackMarquee / legacy; home uses businessOffers. */
+/** Legacy service blurbs. Home offers come from the order catalogue. */
 export const services: ServiceItem[] = [
   {
     title: 'Веб-продукты',

@@ -1,0 +1,79 @@
+---
+import { defaultLocale, isLocale, ui, type Locale } from '../i18n';
+
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const cells = t.aboutStackGroups.flatMap((group) => group.items);
+---
+
+<section class="stack-grid page-pad" data-band="violet" aria-labelledby="stack-title">
+  <header class="stack-grid__head">
+    <p class="eyebrow">{t.home.stackEyebrow}</p>
+    <h2 id="stack-title" class="stack-grid__title" data-scramble>{t.home.stackTitle}</h2>
+  </header>
+  <ul class="stack-grid__cells">
+    {
+      cells.map((name, index) => (
+        <li class="stack-grid__cell" data-marquee-row>
+          <span class="mono">{String(index + 1).padStart(2, '0')}</span>
+          <span>{name}</span>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .stack-grid {
+    padding-block: var(--section-gap);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .stack-grid__head {
+    margin-bottom: var(--space-6);
+  }
+
+  .stack-grid__title {
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-xl);
+    letter-spacing: var(--tracking-tight);
+    line-height: 0.95;
+  }
+
+  .stack-grid__cells {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--stroke) solid var(--border);
+    border-left: var(--stroke) solid var(--border);
+  }
+
+  .stack-grid__cell {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-height: 3.4rem;
+    padding: 0.85rem 0.9rem;
+    border-right: var(--stroke) solid var(--border);
+    border-bottom: var(--stroke) solid var(--border);
+    font-size: var(--text-sm);
+  }
+
+  .stack-grid__cell .mono {
+    color: var(--fg-faint);
+  }
+
+  @media (max-width: 900px) {
+    .stack-grid__cells {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 520px) {
+    .stack-grid__cells {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,7 +1,7 @@
 ---
 import ProjectCover from './ProjectCover.astro';
 import Button from './Button.astro';
-import { getFeaturedProjects } from '../lib/work';
+import { getProjects } from '../lib/work';
 import { contactLinks } from '../data/home';
 import { featuredWorkCopy } from '../data/featured-work';
 import { isFilled } from '../lib/fill';
@@ -10,12 +10,13 @@ import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n
 const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
 const t = ui(locale);
 const headline = `${t.home.heroHeadline} ${t.home.heroHeadlineAccent}`;
-const projects = await getFeaturedProjects(locale);
+const projects = await getProjects(locale);
 const slides = projects.map((project) => {
   const copy = featuredWorkCopy[project.slug]?.[locale];
   return {
     ...project,
     category: copy?.category ?? project.role,
+    result: copy?.scenario ?? project.summary,
     action: copy?.action ?? (locale === 'en' ? 'Read the case' : 'Читать кейс'),
     actionHref: copy
       ? project.links.live ?? localizedPath(locale, `/work/${project.slug}/#demo`)
@@ -56,7 +57,8 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 
   <div class="hero__stage-wrap">
     <div class="hero__stage">
-      <canvas class="hero__canvas" data-hero-canvas data-lenis-prevent></canvas>
+      <canvas class="hero__canvas" data-hero-canvas data-cursor="drag" tabindex="0" aria-roledescription="carousel"></canvas>
+      <div class="hero__grain" data-hero-grain aria-hidden="true"></div>
       <div class="hero__static" data-hero-static>
         {
           slides.map((project, index) => {
@@ -97,6 +99,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
           <div class="hero__caption-copy" data-hero-caption-copy aria-live="polite" aria-atomic="true">
             <p class="hero__category mono" data-hero-category>{firstProject.category}</p>
             <p class="hero__project-title" data-hero-project-title>{firstProject.title}</p>
+            <p class="hero__result" data-hero-result>{firstProject.result}</p>
           </div>
           <a
             class="hero__case-link"
@@ -126,7 +129,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 <script>
   import type { Project } from '../lib/work-types';
 
-  type HeroProject = Project & { category: string; action: string; actionHref: string };
+  type HeroProject = Project & { category: string; result: string; action: string; actionHref: string };
 
   let sceneTeardown: (() => void) | null = null;
 
@@ -164,6 +167,8 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
       const total = String(projects.length).padStart(2, '0');
       if (title) title.textContent = project.title;
       if (category) category.textContent = project.category;
+      const result = root.querySelector<HTMLElement>('[data-hero-result]');
+      if (result) result.textContent = project.result;
       if (counter) counter.textContent = `${number} / ${total}`;
       if (action && actionLabel) {
         actionLabel.textContent = project.action;
@@ -194,6 +199,15 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
       if (nextBtn) nextBtn.disabled = false;
       if (replayBtn) replayBtn.hidden = false;
     };
+    const onHeroKey = (event: KeyboardEvent): void => {
+      if (event.target === canvas) return;
+      if (!root.contains(document.activeElement)) return;
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      if (event.key === 'ArrowLeft') prevBtn?.click();
+      else nextBtn?.click();
+    };
+    root.addEventListener('keydown', onHeroKey);
 
     const [{ isWeakGpu, mountHeroFallback }, { getPerfTier, isLessMotionPreferred, perfAllows }] = await Promise.all([
       import('../scripts/hero-fallback'),
@@ -219,6 +233,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
       replayBtn?.addEventListener('click', onReplay);
       enableControls();
       sceneTeardown = () => {
+        root.removeEventListener('keydown', onHeroKey);
         replayBtn?.removeEventListener('click', onReplay);
         captionAnimation?.cancel();
         stop();
@@ -236,16 +251,14 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
 
       const scenePromise = (async () => {
         await new Promise<void>((resolve) => {
-          if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(() => resolve(), { timeout: 1200 });
-          } else {
-            window.setTimeout(() => resolve(), 220);
-          }
+          const idle = window.requestIdleCallback?.bind(window);
+          if (idle) idle(() => resolve(), { timeout: 1200 });
+          else setTimeout(() => resolve(), 220);
         });
         if (!document.contains(root)) return null;
-        const { mountHeroScene } = await import('../scripts/hero-scene');
+        const { mountHeroRing } = await import('../scripts/hero-ring');
         if (!root.isConnected || isLessMotionPreferred()) return null;
-        const handle = await mountHeroScene(canvas, {
+        const handle = await mountHeroRing(canvas, {
           projects,
           onActiveIndexChange: updateProject,
           reducedMotion: false,
@@ -282,6 +295,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
         replayBtn?.addEventListener('click', handle.replayCover);
         enableControls();
         sceneTeardown = () => {
+          root.removeEventListener('keydown', onHeroKey);
           prevBtn?.removeEventListener('click', onPrev);
           nextBtn?.removeEventListener('click', onNext);
           replayBtn?.removeEventListener('click', handle.replayCover);
@@ -345,10 +359,11 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.36fr);
-    align-items: center;
+    align-items: start;
     gap: clamp(1.5rem, 4vw, 5rem);
     min-height: calc(100svh - var(--header-h));
-    padding-block: clamp(2.5rem, 8vh, 7rem);
+    padding-top: clamp(1.25rem, 4vh, 2.75rem);
+    padding-bottom: clamp(7rem, 16vh, 9rem);
     background: var(--bg);
     isolation: isolate;
   }
@@ -378,7 +393,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
   }
 
   .hero__line {
-    font-size: clamp(1.85rem, 0.6rem + 4vw, 4.5rem);
+    font-size: clamp(2rem, 0.7rem + 4.4vw, 5.1rem);
     font-weight: 700;
     letter-spacing: var(--tracking-display);
     line-height: 1.04;
@@ -488,6 +503,29 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     line-height: var(--leading-snug);
     letter-spacing: var(--tracking-tight);
     overflow-wrap: anywhere;
+  }
+
+  .hero__result {
+    margin: var(--space-2) 0 0;
+    max-width: 42ch;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+    line-height: var(--leading-body);
+  }
+
+  .hero__grain {
+    display: none;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.28;
+    mix-blend-mode: overlay;
+    background-image: radial-gradient(rgb(255 255 255 / 0.45) 0.6px, transparent 0.65px);
+    background-size: 3px 3px;
+  }
+
+  .hero[data-webgl='on'] .hero__grain {
+    display: block;
   }
 
   .hero__case-link {

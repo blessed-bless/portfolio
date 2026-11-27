@@ -1,0 +1,91 @@
+---
+import { formatChannelDate, type ChannelPost } from '../lib/telegram-channel';
+import { telegramChannel } from '../data/home';
+import { defaultLocale, isLocale, ui, type Locale } from '../i18n';
+
+interface Props {
+  posts: ChannelPost[];
+}
+
+const { posts } = Astro.props;
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+---
+
+{
+  posts.length ? (
+    <section class="channel page-pad" data-band="ink" aria-labelledby="channel-title">
+      <header class="channel__head">
+        <p class="eyebrow">{t.home.channelEyebrow}</p>
+        <h2 id="channel-title" class="channel__title" data-scramble>{t.home.channelTitle}</h2>
+      </header>
+      <ol class="channel__list">
+        {posts.map((post) => (
+          <li>
+            <a href={post.href} target="_blank" rel="noopener noreferrer" data-cursor="hover">
+              <time datetime={post.date}>{formatChannelDate(post.date, locale)}</time>
+              <span>{post.text}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+      <a class="channel__more" href={telegramChannel.href} target="_blank" rel="noopener noreferrer">
+        {t.home.channelMore}
+      </a>
+    </section>
+  ) : null
+}
+
+<style>
+  .channel {
+    padding-block: var(--section-gap);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .channel__title {
+    margin: var(--space-3) 0 var(--space-6);
+    font-size: var(--text-xl);
+    letter-spacing: var(--tracking-tight);
+    line-height: 0.95;
+  }
+
+  .channel__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-bottom: var(--stroke) solid var(--border);
+  }
+
+  .channel__list a {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    gap: var(--space-4);
+    min-height: 44px;
+    padding-block: 0.9rem;
+    border-top: var(--stroke) solid var(--border);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .channel__list time {
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .channel__more {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: var(--space-4);
+    color: var(--accent-strong);
+    font-weight: 600;
+  }
+
+  @media (max-width: 640px) {
+    .channel__list a {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+  }
+</style>

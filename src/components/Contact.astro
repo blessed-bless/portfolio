@@ -22,9 +22,21 @@ const email = contactLinks.email;
     data-copy-error={english ? 'Couldn’t copy the address. You can select it next to the button.' : 'Не удалось скопировать адрес. Его можно выделить рядом с кнопкой.'}
   >
     <div class="contact__links">
-      <Button href={contactLinks.telegram} variant="primary" data-telegram-handoff>
-        {english ? 'Message Bogdan on Telegram' : 'Написать Богдану в Telegram'}
-      </Button>
+      <span class="roll">
+        <Button class="roll-cta" href={contactLinks.telegram} variant="primary" data-telegram-handoff>
+          <svg class="roll__spin" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <path id="contact-roll" d="M50,50 m-36,0 a36,36 0 1,1 72,0 a36,36 0 1,1 -72,0" />
+            </defs>
+            <text>
+              <textPath href="#contact-roll">
+                {english ? 'Write · Write · Write · ' : 'Написать · Написать · '}
+              </textPath>
+            </text>
+          </svg>
+          <span class="roll__face">{english ? 'Message on Telegram' : 'Написать в Telegram'}</span>
+        </Button>
+      </span>
       <Button href={`mailto:${email}`} variant="ghost">{email}</Button>
       <button type="button" class="contact__copy" data-copy-email hidden>
         {english ? 'Copy address' : 'Скопировать адрес'}
@@ -114,5 +126,45 @@ const email = contactLinks.email;
 
   [data-copy-email][hidden] {
     display: none;
+  }
+
+  .roll :global(.roll-cta) {
+    position: relative;
+    width: 8.75rem;
+    height: 8.75rem;
+    padding: 1.4rem;
+    border-radius: 50%;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .roll__spin {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: roll-spin 14s linear infinite;
+  }
+
+  .roll__spin text {
+    fill: currentColor;
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .roll__face {
+    position: relative;
+    font-size: 0.78rem;
+    line-height: 1.2;
+  }
+
+  @keyframes roll-spin {
+    to { transform: rotate(1turn); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .roll__spin { animation: none; }
   }
 </style>

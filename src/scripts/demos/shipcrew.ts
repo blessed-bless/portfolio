@@ -29,7 +29,7 @@ export function mountShipcrewDemo(root: HTMLElement): () => void {
       const item = el('li', 'demo-ui__item');
       const left = el('div');
       left.append(el('div', '', step.title), el('span', 'demo-ui__meta', step.role));
-      let label = t.waiting;
+      let label: string = t.waiting;
       let tone = 'warn';
       if (index < done || (done === t.steps.length && index < t.steps.length)) {
         label = t.done;

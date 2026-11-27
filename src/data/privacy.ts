@@ -21,7 +21,7 @@ export const privacyRu: PrivacyCopy = {
     {
       title: 'Кто оператор',
       body: [
-        'Оператор: Кетасонкс Богдан, самозанятый, г. Омск.',
+        'Оператор: Кетасонкс Богдан, Швеция.',
         'Почта: bogdan@dubstepmolitva.ru.',
       ],
     },
@@ -35,7 +35,7 @@ export const privacyRu: PrivacyCopy = {
     {
       title: 'Зачем',
       body: [
-        'Чтобы ответить на заявку и связаться с вами.',
+        'Чтобы ответить на сообщение и связаться с вами.',
         'Чтобы считать посещаемость и понимать, как пользуются сайтом.',
       ],
     },
@@ -53,7 +53,7 @@ export const privacyRu: PrivacyCopy = {
       title: 'Кому передаю',
       body: [
         'При переходе по ссылке Telegram открывается личный чат. Переписка хранится на серверах Telegram.',
-        'Обработка через Telegram — трансграничная передача. Отправляя заявку, вы на это соглашаетесь.',
+        'Обработка через Telegram — трансграничная передача. Написав в Telegram, вы на это соглашаетесь.',
         'ООО «Яндекс» — сервис Яндекс Метрика.',
         'Хостинг Timeweb — размещение сайта.',
       ],
@@ -78,7 +78,7 @@ export const privacyEn: PrivacyCopy = {
     {
       title: 'Operator',
       body: [
-        'Operator: Ketasonx Bogdan, self-employed, Omsk, Russia.',
+        'Operator: Ketasonx Bogdan, Sweden.',
         'Email: bogdan@dubstepmolitva.ru.',
       ],
     },
@@ -92,7 +92,7 @@ export const privacyEn: PrivacyCopy = {
     {
       title: 'Why',
       body: [
-        'To reply to your request and get in touch.',
+        'To reply to your message and get in touch.',
         'To measure traffic and see how the site is used.',
       ],
     },
@@ -110,7 +110,7 @@ export const privacyEn: PrivacyCopy = {
       title: 'Who else gets it',
       body: [
         'The Telegram link opens a private chat. Telegram stores the conversation on its servers.',
-        'Processing via Telegram is a cross-border transfer. By sending a request, you agree to that.',
+        'Processing via Telegram is a cross-border transfer. By writing on Telegram, you agree to that.',
         'Yandex LLC — Yandex Metrica.',
         'Timeweb hosting — where the site runs.',
       ],

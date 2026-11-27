@@ -3,7 +3,6 @@ import { applyTheme, resolveInitialTheme } from './theme';
 
 let cursorTeardown: (() => void) | null = null;
 let chromeBound = false;
-let stopLenisFn: (() => void) | null = null;
 let stopMagnetic: (() => void) | null = null;
 let magneticGen = 0;
 
@@ -46,23 +45,7 @@ async function ensureCursor(): Promise<void> {
 
 async function bootChrome(): Promise<void> {
   applyTheme(resolveInitialTheme());
-
-  // Lenis is desktop-only — on narrow/touch it fights native scroll and burns TBT.
-  const allowLenis =
-    perfAllows('lenis') &&
-    window.matchMedia('(min-width: 901px)').matches &&
-    window.matchMedia('(pointer: fine)').matches;
-
-  if (allowLenis) {
-    const { stopLenis, startLenis } = await import('./lenis-scroll');
-    stopLenisFn = stopLenis;
-    stopLenis();
-    startLenis();
-  } else {
-    stopLenisFn?.();
-    stopLenisFn = null;
-  }
-
+  // Lenis stays off. Smoothed wheel scroll fights short pins and a real mouse.
   await ensureCursor();
 }
 
@@ -88,6 +71,7 @@ void import('./dev-eggs').then(({ mountDevEggs }) => mountDevEggs());
 void import('./page-transitions').then(({ mountPageTransitions }) => mountPageTransitions());
 mountPageCoverLens();
 void import('./heading-motion').then(({ mountHeadingMotion }) => mountHeadingMotion());
+void import('./home-motion').then(({ mountHomeMotion }) => mountHomeMotion());
 bootMagnetic();
 void import('./hash-scroll').then(({ mountHashScroll }) => mountHashScroll());
 mountPrivacyChrome();
@@ -106,10 +90,11 @@ document.addEventListener('astro:page-load', () => {
   mountPrivacyChrome();
   mountPageCoverLens();
   bootMagnetic();
+  void import('./home-motion').then(({ mountHomeMotion }) => mountHomeMotion());
 });
 document.addEventListener('astro:before-swap', () => {
-  stopLenisFn?.();
   magneticGen += 1;
   stopMagnetic?.();
   stopMagnetic = null;
+  void import('./home-motion').then(({ stopHomeMotion }) => stopHomeMotion());
 });
