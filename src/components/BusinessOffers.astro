@@ -11,18 +11,20 @@ const processSteps = t.process;
 const showTiming = processSteps.some((step) => isFilled(step.timing));
 ---
 
-<section class="offers page-pad" id="services" data-offers aria-label={t.home.offersTitle}>
+<section class="offers page-pad" id="services" data-offers data-band="violet" aria-label={t.home.offersTitle}>
   <div class="offers__intro">
     <p class="eyebrow">{t.home.offersEyebrow}</p>
     <h2 class="offers__title" data-scramble>{t.home.offersTitle}</h2>
   </div>
 
-  <div class="offers__grid">
+  <div class="offers__list">
     {
       offers.map((offer) => (
-        <article class="offers__card">
-          <h3 class="offers__card-title">{offer.title}</h3>
-          <p class="offers__card-text">{offer.description}</p>
+        <article class="offer-row">
+          <h3 class="offer-row__title">
+            <a href={localizedPath(locale, `/work/${offer.caseSlug}/`)}>{offer.title}</a>
+          </h3>
+          <p class="offer-row__text">{offer.description}</p>
           <p class="offers__estimate">
             <strong>{offer.priceLabel}</strong>
             <span>{offer.timing}</span>
@@ -30,33 +32,42 @@ const showTiming = processSteps.some((step) => isFilled(step.timing));
         </article>
       ))
     }
+    <article class="offer-row">
+      <h3 class="offer-row__title">
+        <a href={localizedPath(locale, '/work/shipcrew/')}>{t.home.agentTitle}</a>
+      </h3>
+      <p class="offer-row__text">{t.home.agentOutcome}</p>
+    </article>
   </div>
   <div class="offers__card-links">
     <Button href={localizedPath(locale, '/order/')} variant="primary">{t.nav.order}</Button>
   </div>
 </section>
 
-<section class="process page-pad" data-process aria-label={t.home.processTitle}>
-  <div class="process__intro">
-    <p class="eyebrow">{t.home.processEyebrow}</p>
-    <h2 class="process__title" data-scramble>{t.home.processTitle}</h2>
+<section class="process page-pad" data-process data-band="ink" aria-label={t.home.processTitle}>
+  <div class="process__pin" data-process-pin>
+    <div class="process__intro">
+      <p class="eyebrow">{t.home.processEyebrow}</p>
+      <h2 class="process__title" data-scramble>{t.home.processTitle}</h2>
+    </div>
+    <ol class="process__list">
+      {
+        processSteps.map((step, index) => (
+          <li class="process__step" data-process-step>
+            <p class="process__num mono">{String(index + 1).padStart(2, '0')}</p>
+            <h3 class="process__step-title">{step.title}</h3>
+            <p class="process__step-text">{step.text}</p>
+            {showTiming && isFilled(step.timing) ? (
+              <p class="process__timing mono">{step.timing}</p>
+            ) : null}
+          </li>
+        ))
+      }
+    </ol>
+    <div class="process__meter" aria-hidden="true">
+      <span data-process-bar></span>
+    </div>
   </div>
-
-  <ol class="process__list">
-    {
-      processSteps.map((step, index) => (
-        <li class="process__step">
-          <p class="process__num mono">{String(index + 1).padStart(2, '0')}</p>
-          <h3 class="process__step-title">{step.title}</h3>
-          <p class="process__step-text">{step.text}</p>
-          {showTiming && isFilled(step.timing) ? (
-            <p class="process__timing mono">{step.timing}</p>
-          ) : null}
-        </li>
-      ))
-    }
-  </ol>
-
 </section>
 
 <style>
@@ -81,39 +92,37 @@ const showTiming = processSteps.some((step) => isFilled(step.timing));
     line-height: var(--leading-tight);
   }
 
+  .offers__list {
+    border-bottom: var(--stroke) solid var(--border);
+  }
 
-  .offers__grid {
+  .offer-row {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr) auto;
     gap: var(--space-4);
+    align-items: baseline;
+    padding-block: 1.15rem;
+    border-top: var(--stroke) solid var(--border);
   }
 
-  .offers__card {
-    display: grid;
-    align-content: start;
-    gap: var(--space-3);
-    min-width: 0;
-    padding: var(--space-5);
-    border: var(--stroke) solid var(--border);
-    background: var(--bg-elevated);
-    color: inherit;
-    transition: border-color var(--dur-2) var(--ease-out);
-  }
-
-  .offers__card:hover {
-    border-color: var(--border-strong);
-  }
-
-
-  .offers__card-title {
+  .offer-row__title {
     margin: 0;
-    font-size: clamp(1.25rem, 1rem + 0.8vw, 1.65rem);
-    font-weight: 650;
+    font-size: clamp(1.25rem, 1rem + 0.8vw, 1.8rem);
     letter-spacing: var(--tracking-tight);
     line-height: var(--leading-snug);
   }
 
-  .offers__card-text {
+  .offer-row__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .offer-row__title a:hover,
+  .offer-row__title a:focus-visible {
+    color: var(--accent-strong);
+  }
+
+  .offer-row__text {
     margin: 0;
     color: var(--fg-muted);
     font-size: var(--text-sm);
@@ -123,7 +132,7 @@ const showTiming = processSteps.some((step) => isFilled(step.timing));
     margin: 0;
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
+    justify-content: flex-end;
     gap: var(--space-1) var(--space-3);
     color: var(--fg-muted);
     font-size: var(--text-sm);
@@ -136,12 +145,7 @@ const showTiming = processSteps.some((step) => isFilled(step.timing));
 
   .offers__card-links {
     margin: var(--space-5) 0 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
   }
-
-
 
   .process__list {
     margin: 0;
@@ -159,6 +163,14 @@ const showTiming = processSteps.some((step) => isFilled(step.timing));
     display: grid;
     gap: var(--space-2);
     align-content: start;
+  }
+
+  .process[data-active='true'] .process__step {
+    opacity: 0.55;
+  }
+
+  .process[data-active='true'] .process__step[data-current='true'] {
+    opacity: 1;
   }
 
   .process__num {
@@ -186,13 +198,32 @@ const showTiming = processSteps.some((step) => isFilled(step.timing));
     text-transform: uppercase;
   }
 
+  .process__meter {
+    height: 2px;
+    margin-top: var(--space-5);
+    background: var(--border);
+  }
 
-
+  .process__meter span {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transform: scaleX(0.04);
+    transform-origin: left center;
+  }
 
   @media (max-width: 900px) {
-    .offers__grid,
+    .offer-row,
     .process__list {
       grid-template-columns: 1fr;
+    }
+
+    .offers__estimate {
+      justify-content: flex-start;
+    }
+
+    .process__step {
+      opacity: 1;
     }
   }
 </style>

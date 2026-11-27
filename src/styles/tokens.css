@@ -59,9 +59,10 @@
   --dur-4: 700ms;
   --dur-preloader: 1200ms;
 
-  /* Brand accent — deep violet, AA on dark for large / buttons */
-  --accent: #7c3aed;
-  --accent-strong: #b79cff;
+  /* Brand accent #8B5CF6, plus one lighter and one darker tint */
+  --accent: #8b5cf6;
+  --accent-strong: #c4b5fd;
+  --accent-deep: #6d28d9;
   --accent-ink: #ffffff;
   --accent-plum: #3b2458;
   --focus-ring: color-mix(in srgb, var(--accent-strong) 75%, white);
@@ -105,8 +106,9 @@
   --border-strong: #aea3c4;
   --overlay: rgb(244 240 250 / 0.82);
   --shadow-soft: 0 16px 40px rgb(22 18 32 / 0.08);
-  --accent: #6d28d9;
+  --accent: #8b5cf6;
   --accent-strong: #5b21b6;
+  --accent-deep: #4c1d95;
   --accent-ink: #ffffff;
   --accent-plum: #c4b0e8;
   --cursor-fill: var(--fg);

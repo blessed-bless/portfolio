@@ -210,6 +210,11 @@ async function runItem(item: PaletteItem): Promise<void> {
   pushRecent(item.id);
   closePalette();
 
+  if (item.action === 'toy') {
+    const { openOrbitToy } = await import('./orbit-toy');
+    openOrbitToy();
+    return;
+  }
   if (item.action === 'theme') {
     toggleTheme();
     return;

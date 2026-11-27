@@ -1,0 +1,68 @@
+---
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
+
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+---
+
+<section class="who page-pad" data-band="ink" aria-labelledby="who-title">
+  <div class="who__grid">
+    <header>
+      <p class="eyebrow">{t.home.whoamiEyebrow}</p>
+      <h2 id="who-title" class="who__title" data-scramble>{t.home.whoamiTitle}</h2>
+    </header>
+    <div class="who__copy">
+      {t.home.whoami.map((paragraph) => <p data-reveal>{paragraph}</p>)}
+      <a class="who__more" href={localizedPath(locale, '/about/')}>{t.nav.about}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .who {
+    padding-block: var(--section-gap);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .who__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.1fr);
+    gap: clamp(1.5rem, 4vw, 5rem);
+    align-items: start;
+  }
+
+  .who__title {
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-xl);
+    letter-spacing: var(--tracking-tight);
+    line-height: 0.95;
+  }
+
+  .who__copy {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 42rem;
+  }
+
+  .who__copy p {
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: var(--text-md);
+    line-height: var(--leading-body);
+  }
+
+  .who__more {
+    justify-self: start;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--accent-strong);
+    font-weight: 600;
+  }
+
+  @media (max-width: 800px) {
+    .who__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

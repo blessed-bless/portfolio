@@ -25,8 +25,8 @@ description: "Task list for the portfolio redesign"
 
 **Purpose**: Branch identity and the typecheck the constitution requires
 
-- [ ] T001 Set repo git identity to Bogdan Shcherbinin and create `feat/portfolio-redesign` from `wip/codex-local`
-- [ ] T002 Add `@astrojs/check` and `typescript` as devDependencies and an `astro check` script in `package.json`
+- [x] T001 Set repo git identity to Bogdan Shcherbinin and create `feat/portfolio-redesign` from `wip/codex-local`
+- [x] T002 Add `@astrojs/check` and `typescript` as devDependencies and an `astro check` script in `package.json`
 
 ---
 
@@ -34,10 +34,10 @@ description: "Task list for the portfolio redesign"
 
 **Purpose**: Copy and motion flags every story shares
 
-- [ ] T003 Add the new `UiDict` fields in `src/i18n/types.ts`, `src/i18n/ru.ts`, and `src/i18n/en.ts` (headline, agent row, stats labels, toy, full-index)
-- [ ] T004 Set `--accent` to `#8B5CF6` with one lighter and one darker tint in `src/styles/tokens.css`, including the light theme
-- [ ] T005 Stop calling `startLenis()` from `src/scripts/boot.ts` so wheel scrolling stays native
-- [ ] T006 Extend `src/scripts/cursor.ts` so open, drag, and play labels work on a fine pointer only
+- [x] T003 Add the new `UiDict` fields in `src/i18n/types.ts`, `src/i18n/ru.ts`, and `src/i18n/en.ts` (headline, agent row, stats labels, toy, full-index)
+- [x] T004 Set `--accent` to `#8B5CF6` with one lighter and one darker tint in `src/styles/tokens.css`, including the light theme
+- [x] T005 Stop calling `startLenis()` from `src/scripts/boot.ts` so wheel scrolling stays native
+- [x] T006 Extend `src/scripts/cursor.ts` so open, drag, and play labels work on a fine pointer only
 
 **Checkpoint**: Strings, accent, native scroll, and cursor labels are in place
 
@@ -51,9 +51,9 @@ description: "Task list for the portfolio redesign"
 
 ### Implementation
 
-- [ ] T007 [US1] Mount a curved cover ring in `src/scripts/hero-ring.ts` for every `Project` from `getProjects`, using `Project.cover`, `Project.title`, and `Project.summary` (see `data-model.md` Case)
-- [ ] T008 [US1] Wire the ring, caption, grain, and still fallback in `src/components/Hero.astro`, and delete `src/scripts/hero-scene.ts` once nothing imports it
-- [ ] T009 [US1] Point `src/pages/index.astro` and `src/pages/en/index.astro` at the redesigned hero
+- [x] T007 [US1] Mount a curved cover ring in `src/scripts/hero-ring.ts` for every `Project` from `getProjects`, using `Project.cover`, `Project.title`, and `Project.summary` (see `data-model.md` Case)
+- [x] T008 [US1] Wire the ring, caption, grain, and still fallback in `src/components/Hero.astro`, and delete `src/scripts/hero-scene.ts` once nothing imports it
+- [x] T009 [US1] Point `src/pages/index.astro` and `src/pages/en/index.astro` at the redesigned hero
 
 **Checkpoint**: Home first screen works in both locales with and without the ring
 
@@ -67,10 +67,10 @@ description: "Task list for the portfolio redesign"
 
 ### Implementation
 
-- [ ] T010 [P] [US2] Build `src/components/WorkRows.astro` from `getProjects(locale)` (`Project.slug`, `Project.title`, `Project.stack`, `Project.origin` in `data-model.md`)
-- [ ] T011 [US2] Raise grain and dispersion for `[data-lens-rich]` in `src/scripts/cover-lens.ts`
-- [ ] T012 [US2] Skip the chevron wipe when the click contains `[data-vt-cover]` in `src/scripts/page-transitions.ts`
-- [ ] T013 [US2] Render `WorkRows` on `src/pages/index.astro` and `src/pages/en/index.astro`
+- [x] T010 [P] [US2] Build `src/components/WorkRows.astro` from `getProjects(locale)` (`Project.slug`, `Project.title`, `Project.stack`, `Project.origin` in `data-model.md`)
+- [x] T011 [US2] Raise grain and dispersion for `[data-lens-rich]` in `src/scripts/cover-lens.ts`
+- [x] T012 [US2] Skip the chevron wipe when the click contains `[data-vt-cover]` in `src/scripts/page-transitions.ts`
+- [x] T013 [US2] Render `WorkRows` on `src/pages/index.astro` and `src/pages/en/index.astro`
 
 **Checkpoint**: A new case in the collection appears in the list without a layout edit
 
@@ -84,11 +84,11 @@ description: "Task list for the portfolio redesign"
 
 ### Implementation
 
-- [ ] T014 [US3] Restyle `src/components/BusinessOffers.astro` so each `serviceOffers` row keeps `<strong>{priceLabel}</strong>` (`Service offer.minPrice` and `Service offer.priceLabel` in `data-model.md`) and add the agent row with no price
-- [ ] T015 [P] [US3] Add `src/components/Stats.astro`, `src/components/Who.astro`, `src/components/StackGrid.astro`, and `src/components/ChannelStrip.astro`
-- [ ] T016 [US3] Add the round Telegram control in `src/components/Contact.astro` without removing the mailto link
-- [ ] T017 [US3] Compose the new sections in `src/pages/index.astro` and `src/pages/en/index.astro`, fetching channel posts with a failure that yields no block
-- [ ] T018 [US3] Pin the process briefly and count the stats in `src/scripts/home-motion.ts`, started from `src/scripts/boot.ts`
+- [x] T014 [US3] Restyle `src/components/BusinessOffers.astro` so each `serviceOffers` row keeps `<strong>{priceLabel}</strong>` (`Service offer.minPrice` and `Service offer.priceLabel` in `data-model.md`) and add the agent row with no price
+- [x] T015 [P] [US3] Add `src/components/Stats.astro`, `src/components/Who.astro`, `src/components/StackGrid.astro`, and `src/components/ChannelStrip.astro`
+- [x] T016 [US3] Add the round Telegram control in `src/components/Contact.astro` without removing the mailto link
+- [x] T017 [US3] Compose the new sections in `src/pages/index.astro` and `src/pages/en/index.astro`, fetching channel posts with a failure that yields no block
+- [x] T018 [US3] Pin the process briefly and count the stats in `src/scripts/home-motion.ts`, started from `src/scripts/boot.ts`
 
 **Checkpoint**: `scripts/order.test.mjs` still passes and `/order/` prices are untouched
 
@@ -102,9 +102,9 @@ description: "Task list for the portfolio redesign"
 
 ### Implementation
 
-- [ ] T019 [US4] Guard pins, reveals, and counts in `src/scripts/home-motion.ts` when reduced motion or the low tier is on
-- [ ] T020 [US4] Keep hero, work rows, and offers free of horizontal overflow at 360px in their component styles
-- [ ] T021 [US4] Pause and dispose the ring in `src/scripts/hero-ring.ts` via `observeActivity` and page swap
+- [x] T019 [US4] Guard pins, reveals, and counts in `src/scripts/home-motion.ts` when reduced motion or the low tier is on
+- [x] T020 [US4] Keep hero, work rows, and offers free of horizontal overflow at 360px in their component styles
+- [x] T021 [US4] Pause and dispose the ring in `src/scripts/hero-ring.ts` via `observeActivity` and page swap
 
 **Checkpoint**: Reduced motion shows every section immediately
 
@@ -118,10 +118,10 @@ description: "Task list for the portfolio redesign"
 
 ### Implementation
 
-- [ ] T022 [US5] Reword the Telegram sentence and the operator line in `src/data/privacy.ts`
-- [ ] T023 [P] [US5] Add the `toy` action in `src/data/command-palette.ts` and `src/scripts/command-palette.ts`, and mount `src/scripts/orbit-toy.ts` from the palette and `src/pages/404.astro`
-- [ ] T024 [US5] Delete unused `WhoAmI.astro`, `StackMarquee.astro`, `ChannelFeed.astro`, `Services.astro`, `Manifest.astro`, `Preloader.astro`, `FeaturedWork.astro`, and `src/scripts/preloader.ts`
-- [ ] T025 [US5] Remove scratch screenshots, `tmp/`, unused pingo and zerno jpg/png covers, and extend `.gitignore`
+- [x] T022 [US5] Reword the Telegram sentence and the operator line in `src/data/privacy.ts`
+- [x] T023 [P] [US5] Add the `toy` action in `src/data/command-palette.ts` and `src/scripts/command-palette.ts`, and mount `src/scripts/orbit-toy.ts` from the palette and `src/pages/404.astro`
+- [x] T024 [US5] Delete unused `WhoAmI.astro`, `StackMarquee.astro`, `ChannelFeed.astro`, `Services.astro`, `Manifest.astro`, `Preloader.astro`, `FeaturedWork.astro`, and `src/scripts/preloader.ts`
+- [x] T025 [US5] Remove scratch screenshots, `tmp/`, unused pingo and zerno jpg/png covers, and extend `.gitignore`
 
 **Checkpoint**: No dead component imports. Privacy no longer mentions a form submission or Omsk.
 
@@ -131,9 +131,9 @@ description: "Task list for the portfolio redesign"
 
 **Purpose**: Gates from the constitution and quickstart.md
 
-- [ ] T026 Run `npm run build`, `npm run check`, and `astro check`
-- [ ] T027 Browser-check home, a case, `/order/`, `/privacy/`, and 404 in both themes and both locales, including wheel scroll and reduced motion
-- [ ] T028 Capture 1440px and 390px screenshots and a desktop recording for the pull request
+- [x] T026 Run `npm run build`, `npm run check`, and `astro check`
+- [x] T027 Browser-check home, a case, `/order/`, `/privacy/`, and 404 in both themes and both locales, including wheel scroll and reduced motion
+- [x] T028 Capture 1440px and 390px screenshots and a desktop recording for the pull request
 
 ---
 

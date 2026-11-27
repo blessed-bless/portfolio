@@ -176,9 +176,13 @@ function paintLens(): void {
   const bulge = 0.025 + dist * 0.038;
   const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
   if (mount) {
+    const rich = current.hasAttribute('data-lens-rich');
     mount.setUniforms({
       u_lensBulge: bulge,
       u_angle: angle,
+      u_grainOverlay: rich ? 0.28 : 0,
+      u_dispersion: rich ? 0.28 : 0.12,
+      u_dispersionShift: rich ? 0.22 : 0.15,
       ...(!previous && { u_image: image }),
     });
   } else {

@@ -1,0 +1,70 @@
+---
+import { defaultLocale, isLocale, ui, type Locale } from '../i18n';
+
+interface Props {
+  cases: number;
+  demos: number;
+  services: number;
+}
+
+const { cases, demos, services } = Astro.props;
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const figures = [
+  { value: cases, label: t.home.statCases },
+  { value: demos, label: t.home.statDemos },
+  { value: services, label: t.home.statServices },
+];
+---
+
+<section class="stats page-pad" data-band="violet" aria-label={t.home.statCases}>
+  <dl class="stats__grid">
+    {
+      figures.map((figure) => (
+        <div class="stats__item" data-reveal>
+          <dt class="stats__label">{figure.label}</dt>
+          <dd class="stats__value" data-count={String(figure.value)}>{figure.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</section>
+
+<style>
+  .stats {
+    padding-block: var(--section-gap);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .stats__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin: 0;
+  }
+
+  .stats__item {
+    min-width: 0;
+  }
+
+  .stats__label {
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
+  .stats__value {
+    margin: var(--space-2) 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 2rem + 4vw, 6rem);
+    letter-spacing: var(--tracking-display);
+    line-height: 0.9;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 700px) {
+    .stats__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
