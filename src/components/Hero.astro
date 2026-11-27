@@ -4,6 +4,7 @@ import Button from './Button.astro';
 import { getProjects, leadCase } from '../lib/work';
 import { contactLinks } from '../data/home';
 import { featuredWorkCopy } from '../data/featured-work';
+import { coverPublicUrl } from '../lib/paths';
 import { isFilled } from '../lib/fill';
 import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
@@ -15,6 +16,7 @@ const slides = projects.map((project) => {
   const copy = featuredWorkCopy[project.slug]?.[locale];
   return {
     ...project,
+    cover: coverPublicUrl(project.cover),
     category: copy?.category ?? project.role,
     result: copy?.scenario ?? project.summary,
     action: copy?.action ?? (locale === 'en' ? 'Read the case' : 'Читать кейс'),
