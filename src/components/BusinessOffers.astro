@@ -1,16 +1,14 @@
 ---
-import { pricingFrom } from '../data/home';
+import { serviceOffers } from '../data/order';
+import Button from './Button.astro';
 import { isFilled } from '../lib/fill';
-import { defaultLocale, isLocale, ui, type Locale } from '../i18n';
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
 const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
 const t = ui(locale);
-const offers = t.offers;
+const offers = serviceOffers(locale);
 const processSteps = t.process;
-const showPricing = locale === 'ru' && pricingFrom.some((item) => isFilled(item.price));
 const showTiming = processSteps.some((step) => isFilled(step.timing));
-const caseLabel = locale === 'en' ? 'View case →' : 'Смотреть кейс →';
-const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо →';
 ---
 
 <section class="offers page-pad" id="services" data-offers aria-label={t.home.offersTitle}>
@@ -21,24 +19,20 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
 
   <div class="offers__grid">
     {
-      offers.map((offer, index) => (
+      offers.map((offer) => (
         <article class="offers__card">
-          <p class="offers__num mono">{String(index + 1).padStart(2, '0')}</p>
           <h3 class="offers__card-title">{offer.title}</h3>
-          <p class="offers__card-text">{offer.text}</p>
-          <p class="offers__card-links">
-            <a class="offers__card-link mono" href={offer.href} data-cursor="hover">
-              {index === 0 ? caseLabel : demoLabel}
-            </a>
-            {offer.secondaryHref && offer.secondaryLabel ? (
-              <a class="offers__card-link mono" href={offer.secondaryHref} data-cursor="hover">
-                {offer.secondaryLabel} →
-              </a>
-            ) : null}
+          <p class="offers__card-text">{offer.description}</p>
+          <p class="offers__estimate">
+            <strong>{offer.priceLabel}</strong>
+            <span>{offer.timing}</span>
           </p>
         </article>
       ))
     }
+  </div>
+  <div class="offers__card-links">
+    <Button href={localizedPath(locale, '/order/')} variant="primary">{t.nav.order}</Button>
   </div>
 </section>
 
@@ -63,23 +57,6 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
     }
   </ol>
 
-  {
-    showPricing ? (
-      <div class="process__pricing">
-        <p class="eyebrow">Ориентир по цене</p>
-        <ul class="process__pricing-list">
-          {pricingFrom
-            .filter((item) => isFilled(item.price))
-            .map((item) => (
-              <li>
-                <span>{item.label}</span>
-                <strong class="mono">от {item.price}</strong>
-              </li>
-            ))}
-        </ul>
-      </div>
-    ) : null
-  }
 </section>
 
 <style>
@@ -104,16 +81,10 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
     line-height: var(--leading-tight);
   }
 
-  .offers__lead {
-    margin: var(--space-3) 0 0;
-    color: var(--fg-muted);
-    font-size: var(--text-md);
-    max-width: 40ch;
-  }
 
   .offers__grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-4);
   }
 
@@ -133,11 +104,6 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
     border-color: var(--border-strong);
   }
 
-  .offers__num {
-    margin: 0;
-    color: var(--accent-strong);
-    font-size: var(--text-sm);
-  }
 
   .offers__card-title {
     margin: 0;
@@ -153,23 +119,29 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
     font-size: var(--text-sm);
   }
 
+  .offers__estimate {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
+  .offers__estimate strong {
+    color: var(--accent-strong);
+    font-size: var(--text-md);
+  }
+
   .offers__card-links {
-    margin: var(--space-2) 0 0;
+    margin: var(--space-5) 0 0;
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3);
   }
 
-  .offers__card-link {
-    color: var(--accent-strong);
-    font-size: var(--text-xs);
-    text-transform: uppercase;
-    text-decoration: none;
-  }
 
-  .offers__card-link:hover {
-    color: var(--fg);
-  }
 
   .process__list {
     margin: 0;
@@ -214,27 +186,8 @@ const demoLabel = locale === 'en' ? 'Open demo →' : 'Смотреть демо
     text-transform: uppercase;
   }
 
-  .process__pricing {
-    margin-top: var(--space-7);
-    padding-top: var(--space-5);
-    border-top: var(--stroke) solid var(--border);
-  }
 
-  .process__pricing-list {
-    margin: var(--space-4) 0 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: var(--space-3);
-    max-width: 28rem;
-  }
 
-  .process__pricing-list li {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-4);
-    font-size: var(--text-sm);
-  }
 
   @media (max-width: 900px) {
     .offers__grid,

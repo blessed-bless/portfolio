@@ -113,6 +113,9 @@ function onDocumentClick(event: MouseEvent): void {
   if (!id) return;
   if (!document.getElementById(id)) return;
 
+  if (anchor.classList.contains('skip-link')) {
+    document.getElementById(id)?.focus({ preventScroll: true });
+  }
   event.preventDefault();
   const next = `#${encodeURIComponent(id).replace(/%20/g, ' ')}`;
   if (location.hash !== `#${id}` && location.hash !== next) {

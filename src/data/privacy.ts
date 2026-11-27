@@ -16,7 +16,7 @@ export const privacyRu: PrivacyCopy = {
   description:
     'Как Кетасонкс Богдан обрабатывает персональные данные на сайте dubstepmolitva.ru.',
   heading: 'Политика обработки персональных данных',
-  updated: 'Редакция от 22.11.2026',
+  updated: 'Редакция от 24.11.2026',
   sections: [
     {
       title: 'Кто оператор',
@@ -28,8 +28,8 @@ export const privacyRu: PrivacyCopy = {
     {
       title: 'Какие данные собираю',
       body: [
-        'Из заявки на сайте: имя, контакт (Telegram, телефон или email) и текст сообщения.',
-        'Технические данные Яндекс Метрики: cookie, IP-адрес и сведения о браузере.',
+        'Если вы пишете мне в Telegram или на почту, я получаю данные, которые вы укажете в сообщении.',
+        'После согласия Яндекс Метрика получает технические данные: cookie, IP-адрес и сведения о браузере. Запись сессий через Вебвизор отключена.',
       ],
     },
     {
@@ -52,7 +52,7 @@ export const privacyRu: PrivacyCopy = {
     {
       title: 'Кому передаю',
       body: [
-        'Telegram — заявка открывает чат со мной в Telegram; переписка хранится на серверах Telegram.',
+        'При переходе по ссылке Telegram открывается личный чат. Переписка хранится на серверах Telegram.',
         'Обработка через Telegram — трансграничная передача. Отправляя заявку, вы на это соглашаетесь.',
         'ООО «Яндекс» — сервис Яндекс Метрика.',
         'Хостинг Timeweb — размещение сайта.',
@@ -62,7 +62,7 @@ export const privacyRu: PrivacyCopy = {
       title: 'Ваши права',
       body: [
         'Можно запросить доступ к данным, исправление, удаление или отозвать согласие.',
-        'Для этого напишите на bogdan@dubstepmolitva.ru.',
+        'Для этого напишите на bogdan@dubstepmolitva.ru. Согласие на аналитику можно изменить через «Настройки cookie» в подвале сайта.',
       ],
     },
   ],
@@ -73,7 +73,7 @@ export const privacyEn: PrivacyCopy = {
   description:
     'How Ketasonx Bogdan processes personal data on dubstepmolitva.ru.',
   heading: 'Personal data processing policy',
-  updated: 'Updated 22 Nov 2026',
+  updated: 'Updated 24 Nov 2026',
   sections: [
     {
       title: 'Operator',
@@ -85,8 +85,8 @@ export const privacyEn: PrivacyCopy = {
     {
       title: 'What I collect',
       body: [
-        'From a site request: name, contact (Telegram, phone, or email), and the message text.',
-        'Yandex Metrica technical data: cookies, IP address, and browser details.',
+        'If you message me on Telegram or by email, I receive the details you include in your message.',
+        'After you opt in, Yandex Metrica receives technical data such as cookies, IP address, and browser details. Session Replay is disabled.',
       ],
     },
     {
@@ -109,7 +109,7 @@ export const privacyEn: PrivacyCopy = {
     {
       title: 'Who else gets it',
       body: [
-        'Telegram — the form opens a chat with me; the conversation is stored on Telegram’s servers.',
+        'The Telegram link opens a private chat. Telegram stores the conversation on its servers.',
         'Processing via Telegram is a cross-border transfer. By sending a request, you agree to that.',
         'Yandex LLC — Yandex Metrica.',
         'Timeweb hosting — where the site runs.',
@@ -119,7 +119,7 @@ export const privacyEn: PrivacyCopy = {
       title: 'Your rights',
       body: [
         'You can ask for access, correction, deletion, or withdraw consent.',
-        'Write to bogdan@dubstepmolitva.ru.',
+        'Write to bogdan@dubstepmolitva.ru. You can change your analytics choice in Cookie settings in the site footer.',
       ],
     },
   ],

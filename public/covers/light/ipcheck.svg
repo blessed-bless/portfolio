@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" class="project-cover" width="1600" height="1000" viewBox="0 0 1600 1000" color="var(--cover-line, #6D28D9)" focusable="false" aria-hidden="true">
   <rect width="1600" height="1000" fill="var(--cover-bg, #EDE5FA)"/>
   <path d="M72 206V72H222 M1378 928h150V794 M72 856H1528" stroke="currentColor" stroke-width="1.5" fill="none" opacity=".5"/>
-  <g data-cover-art="" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <g data-cover-art="" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
     <path d="M513 512H656 M944 512H1008V356H1090 M1008 512H1090 M1008 512V668H1090"/>
     <rect x="228" y="426" width="285" height="172" rx="10"/>
     <path d="M228 463H513 M264 517l20-16m-20 16 20 16m55-16h128m-128 28h78"/>
@@ -13,7 +13,7 @@
     <circle cx="800" cy="512" r="58" opacity=".65"/>
     <path d="M800 368V656 M656 512H944" opacity=".42"/>
     <path d="M800 512 902 410A144 144 0 0 1 944 512Z" fill="#8B5CF6" fill-opacity=".2" stroke="none"/>
-    <path d="M800 512 902 410" stroke="#8B5CF6" stroke-width="2"/>
+    <path d="M800 512 902 410" stroke="#8B5CF6" stroke-width="5"/>
     <circle cx="800" cy="512" r="12" fill="#8B5CF6" stroke="none"/>
     <circle cx="855" cy="457" r="7" fill="var(--cover-ink, #32185C)" stroke="none"/>
     <circle cx="722" cy="570" r="6" fill="var(--cover-ink, #32185C)" stroke="none"/>

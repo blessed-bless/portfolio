@@ -2,22 +2,18 @@
 :root {
   --ease-vt: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-vt-wipe: cubic-bezier(0.65, 0, 0.35, 1);
-  --dur-vt-out: 240ms;
-  --dur-vt-in: 280ms;
+  --dur-vt-out: 140ms;
+  --dur-vt-in: 180ms;
   --dur-vt-cover: 420ms;
-  --dur-vt-wipe: 500ms;
+  --dur-vt-wipe: 380ms;
 }
 
 html[data-vt-mode='high'] {
-  --dur-vt-wipe: 500ms;
+  --dur-vt-wipe: 380ms;
 }
 
 html[data-vt-mode='mid'] {
-  --dur-vt-wipe: 280ms;
-}
-
-html[data-vt-mode='fade'] {
-  --dur-vt-wipe: 160ms;
+  --dur-vt-wipe: 260ms;
 }
 
 /* Accent blade. Name is applied only while a clip wipe is armed so idle navigations stay a crossfade. */
@@ -128,14 +124,14 @@ html[data-vt-mode='mid']::view-transition-new(vt-wipe) {
 @keyframes vt-out-up {
   to {
     opacity: 0;
-    transform: translateY(-14px);
+    transform: translateY(-4px);
   }
 }
 
 @keyframes vt-in-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(6px);
   }
 }
 
@@ -196,11 +192,11 @@ html[data-vt-mode='mid']::view-transition-new(vt-wipe) {
 
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root) {
-    animation: vt-crossfade-out 160ms linear both;
+    animation: vt-crossfade-out 120ms linear both;
   }
 
   ::view-transition-new(root) {
-    animation: vt-crossfade-in 160ms linear both;
+    animation: vt-crossfade-in 120ms linear both;
   }
 
   ::view-transition-group(work-cover-priemnaya),
@@ -225,12 +221,12 @@ html[data-vt-mode='mid']::view-transition-new(vt-wipe) {
 
 html[data-perf='low'] ::view-transition-old(root),
 html[data-vt-mode='fade']::view-transition-old(root) {
-  animation: vt-crossfade-out 160ms linear both;
+  animation: vt-crossfade-out 120ms linear both;
 }
 
 html[data-perf='low'] ::view-transition-new(root),
 html[data-vt-mode='fade']::view-transition-new(root) {
-  animation: vt-crossfade-in 160ms linear both;
+  animation: vt-crossfade-in 120ms linear both;
 }
 
 html[data-perf='low'] ::view-transition-group(work-cover-priemnaya),

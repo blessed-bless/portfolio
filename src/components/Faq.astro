@@ -25,7 +25,6 @@ const faqLd =
   items.length > 0 ? (
     <section class="faq page-pad" id="faq" data-faq aria-label={t.faq.title}>
       <div class="faq__intro">
-        <p class="eyebrow">{t.faq.eyebrow}</p>
         <h2 class="faq__title">{t.faq.title}</h2>
       </div>
       <div class="faq__list">
@@ -52,7 +51,7 @@ const faqLd =
   }
 
   .faq__title {
-    margin: var(--space-3) 0 0;
+    margin: 0;
     font-size: var(--text-xl);
     font-weight: 700;
     letter-spacing: var(--tracking-tight);

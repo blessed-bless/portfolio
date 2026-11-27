@@ -6,20 +6,21 @@ const t = ui(locale);
 const privacyHref = localizedPath(locale, '/privacy/');
 ---
 
-<div class="cookie-banner" data-cookie-banner hidden role="status">
+<div class="cookie-banner" data-cookie-banner hidden role="region" aria-label={t.cookie.settings}>
   <p class="cookie-banner__text">
     {t.cookie.text}{' '}
     <a class="cookie-banner__link" href={privacyHref} data-cursor="hover">{t.cookie.more}</a>
   </p>
-  <button type="button" class="cookie-banner__ok" data-cookie-ok data-cursor="hover">
-    {t.cookie.ok}
-  </button>
+  <div class="cookie-banner__actions">
+    <button type="button" class="cookie-banner__choice" data-cookie-decline>{t.cookie.reject}</button>
+    <button type="button" class="cookie-banner__choice" data-cookie-allow>{t.cookie.ok}</button>
+  </div>
 </div>
 
 <style is:global>
   /* Space token for FABs only — banner is position:fixed, so no shell padding (CLS). */
   html[data-show-cookie='1'] {
-    --cookie-notice-space: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    --cookie-notice-space: calc(9rem + env(safe-area-inset-bottom, 0px));
   }
 </style>
 
@@ -33,8 +34,7 @@ const privacyHref = localizedPath(locale, '/privacy/');
     top: auto;
     width: min(calc(100% - (var(--page-pad) * 2)), 28rem);
     height: auto;
-    display: flex;
-    align-items: center;
+    display: grid;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
     border: var(--stroke) solid var(--border-strong);
@@ -65,13 +65,13 @@ const privacyHref = localizedPath(locale, '/privacy/');
     color: var(--accent-strong);
   }
 
-  .cookie-banner__ok {
+  .cookie-banner__choice {
     flex: 0 0 auto;
     appearance: none;
     border: var(--stroke) solid var(--border-strong);
     background: transparent;
     color: var(--fg);
-    min-height: 2.5rem;
+    min-height: 44px;
     padding: 0.45rem 0.9rem;
     font: inherit;
     font-weight: 600;
@@ -79,8 +79,14 @@ const privacyHref = localizedPath(locale, '/privacy/');
     cursor: pointer;
   }
 
-  .cookie-banner__ok:hover {
+  .cookie-banner__choice:hover {
     border-color: var(--fg);
+  }
+
+  .cookie-banner__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
   }
 
   @media (max-width: 520px) {

@@ -11,6 +11,7 @@ export type UiDict = {
     about: string;
     notes: string;
     contact: string;
+    order: string;
     uses: string;
   };
   header: {
@@ -34,25 +35,12 @@ export type UiDict = {
     lessMotion: string;
     lessMotionOn: string;
   };
-  leadForm: {
-    nameLabel: string;
-    namePlaceholder: string;
-    contactLabel: string;
-    contactPlaceholder: string;
-    messageLabel: string;
-    messagePlaceholder: string;
-    consentPrefix: string;
-    consentLink: string;
-    consentRequired: string;
-    submit: string;
-    sending: string;
-    success: string;
-    error: string;
-  };
   cookie: {
     text: string;
     more: string;
     ok: string;
+    reject: string;
+    settings: string;
   };
   personName: string;
   personAlt: string;
@@ -65,11 +53,11 @@ export type UiDict = {
     title: string;
     description: string;
     heroHeadline: string;
+    heroHeadlineAccent: string;
     heroSubtitle: string;
     heroCta: string;
-    heroDemo: string;
+    heroServices: string;
     heroWork: string;
-    featuredEyebrow: string;
     featuredTitle: string;
     offersEyebrow: string;
     offersTitle: string;
@@ -172,7 +160,6 @@ export type UiDict = {
   }>;
   process: Array<{ title: string; text: string; timing: string }>;
   faq: {
-    eyebrow: string;
     title: string;
     items: Array<{ question: string; answer: string }>;
   };

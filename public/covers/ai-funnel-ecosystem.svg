@@ -12,7 +12,7 @@
     <circle cx="489" cy="499" r="5" fill="#E9E3FF" stroke="none"/>
     <circle cx="518" cy="499" r="5" fill="#E9E3FF" stroke="none"/>
     <circle cx="547" cy="499" r="5" fill="#E9E3FF" stroke="none"/>
-    <path d="M566 614H849V326H980 M849 493H980 M849 659H980" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" />
+    <path d="M566 614H849V326H980 M849 493H980 M849 614V659H980" fill="none" stroke="currentColor" vector-effect="non-scaling-stroke" />
     <circle cx="849" cy="614" r="9" fill="var(--cover-ink, #E9E3FF)" stroke="none"/>
     <circle cx="849" cy="493" r="9" fill="var(--cover-ink, #E9E3FF)" stroke="none"/>
     <rect x="980" y="270" width="330" height="112" rx="9" fill="var(--cover-bg, #16131F)" stroke="currentColor" vector-effect="non-scaling-stroke" />

@@ -1,8 +1,7 @@
-import { initPerfProfile, onPerfChange, perfAllows } from './perf';
+import { getPerfTier, initPerfProfile, isLessMotionPreferred, onPerfChange, perfAllows } from './perf';
 import { applyTheme, resolveInitialTheme } from './theme';
 
 let cursorTeardown: (() => void) | null = null;
-let resizeTimer = 0;
 let chromeBound = false;
 let stopLenisFn: (() => void) | null = null;
 let stopMagnetic: (() => void) | null = null;
@@ -10,6 +9,13 @@ let magneticGen = 0;
 
 function bootMagnetic(): void {
   const gen = ++magneticGen;
+  if (isLessMotionPreferred() || getPerfTier() === 'low' ||
+      !matchMedia('(min-width: 901px) and (pointer: fine)').matches) {
+    stopMagnetic?.();
+    stopMagnetic = null;
+    document.documentElement.dataset.magnetic = '0';
+    return;
+  }
   void import('./magnetic').then(({ mountMagneticMotion }) => {
     if (gen !== magneticGen) return;
     stopMagnetic?.();
@@ -60,27 +66,6 @@ async function bootChrome(): Promise<void> {
   await ensureCursor();
 }
 
-function bindResizeRefresh(): void {
-  window.addEventListener(
-    'resize',
-    () => {
-      window.clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(() => {
-        void import('./scroll-sync')
-          .then(({ ensureScrollTrigger }) => {
-            try {
-              ensureScrollTrigger().refresh();
-            } catch {
-              /* ok */
-            }
-          })
-          .catch(() => undefined);
-      }, 180);
-    },
-    { passive: true },
-  );
-}
-
 initPerfProfile();
 
 async function bootChromeAndHash(): Promise<void> {
@@ -91,14 +76,17 @@ async function bootChromeAndHash(): Promise<void> {
 
 function mountPrivacyChrome(): void {
   void import('./cookie-notice').then(({ mountCookieNotice }) => mountCookieNotice());
-  void import('./lead-form').then(({ mountLeadForms }) => mountLeadForms());
+}
+
+function mountPageCoverLens(): void {
+  if (!document.querySelector('[data-cover-lens]')) return;
+  void import('./cover-lens').then(({ mountCoverLens }) => mountCoverLens());
 }
 
 void import('./raf-hub').then(({ bindVisibilityPause }) => bindVisibilityPause());
-void import('./metrika').then(({ mountMetrika }) => mountMetrika());
 void import('./dev-eggs').then(({ mountDevEggs }) => mountDevEggs());
 void import('./page-transitions').then(({ mountPageTransitions }) => mountPageTransitions());
-void import('./cover-lens').then(({ mountCoverLens }) => mountCoverLens());
+mountPageCoverLens();
 void import('./heading-motion').then(({ mountHeadingMotion }) => mountHeadingMotion());
 bootMagnetic();
 void import('./hash-scroll').then(({ mountHashScroll }) => mountHashScroll());
@@ -107,7 +95,6 @@ void bootChromeAndHash();
 
 if (!chromeBound) {
   chromeBound = true;
-  bindResizeRefresh();
   onPerfChange(() => {
     void bootChrome();
     bootMagnetic();
@@ -117,6 +104,7 @@ if (!chromeBound) {
 document.addEventListener('astro:page-load', () => {
   void bootChromeAndHash();
   mountPrivacyChrome();
+  mountPageCoverLens();
   bootMagnetic();
 });
 document.addEventListener('astro:before-swap', () => {

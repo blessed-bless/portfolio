@@ -1,4 +1,5 @@
-import { businessOffers, contactLinks, telegramChannel } from '../data/home';
+import { serviceOffers } from '../data/order';
+import { contactLinks, telegramChannel } from '../data/home';
 import { isFilled } from './fill';
 import {
   personAlternateName,
@@ -12,7 +13,7 @@ import {
   siteUrl,
 } from './site';
 import { withTrailingSlash } from './paths';
-import { ui } from '../i18n';
+import type { Locale } from '../i18n';
 
 export type ServiceOfferSeed = {
   name: string;
@@ -118,23 +119,14 @@ export function breadcrumbJsonLd(
   };
 }
 
-/** Prices from visible FAQ (“Перед заказом”); names/text from home offers. */
-const offerPrices = [
-  { minPrice: 30000, priceLabelRu: 'от 30 000 ₽', priceLabelEn: 'from 30,000 ₽' },
-  { minPrice: 50000, priceLabelRu: 'от 50 000 ₽', priceLabelEn: 'from 50,000 ₽' },
-  { minPrice: 25000, priceLabelRu: 'от 25 000 ₽', priceLabelEn: 'from 25,000 ₽' },
-] as const;
+function homeServiceOffers(locale: Locale): ServiceOfferSeed[] {
+  return serviceOffers(locale).map(({ title, description, minPrice, priceLabel }) => ({
+    name: title,
+    description,
+    minPrice,
+    priceLabel,
+  }));
+}
 
-export const homeServiceOffersRu: ServiceOfferSeed[] = businessOffers.map((offer, index) => ({
-  name: offer.title,
-  description: offer.text,
-  minPrice: offerPrices[index]!.minPrice,
-  priceLabel: offerPrices[index]!.priceLabelRu,
-}));
-
-export const homeServiceOffersEn: ServiceOfferSeed[] = ui('en').offers.map((offer, index) => ({
-  name: offer.title,
-  description: offer.text,
-  minPrice: offerPrices[index]!.minPrice,
-  priceLabel: offerPrices[index]!.priceLabelEn,
-}));
+export const homeServiceOffersRu = homeServiceOffers('ru');
+export const homeServiceOffersEn = homeServiceOffers('en');

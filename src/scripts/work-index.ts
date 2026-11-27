@@ -1,12 +1,12 @@
 import { cloneCoverWithoutVt } from './cover-vt';
-import { getPerfTier } from './perf';
+import { getPerfTier, isLessMotionPreferred } from './perf';
 import { subscribeTicker } from './raf-hub';
 
 type ViewMode = 'list' | 'grid';
 
 function prefersReducedMotion(): boolean {
   return (
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches || getPerfTier() === 'low'
+    isLessMotionPreferred() || getPerfTier() === 'low'
   );
 }
 
@@ -44,20 +44,17 @@ export function mountWorkIndex(root: HTMLElement): () => void {
   if (!list) return () => undefined;
 
   let { view, tag } = readParams();
-  const reduce = prefersReducedMotion();
   const coarse = window.matchMedia('(pointer: coarse)').matches;
   let flipReady: Awaited<ReturnType<typeof loadFlip>> | null = null;
 
   const ensureFlip = async () => {
-    if (reduce) return null;
+    if (prefersReducedMotion()) return null;
     flipReady ??= await loadFlip();
     return flipReady;
   };
 
   const mouse = { x: 0, y: 0 };
   const pos = { x: 0, y: 0 };
-  const prev = { x: 0, y: 0 };
-  let skew = 0;
   let visible = false;
 
   const syncChrome = (): void => {
@@ -70,10 +67,13 @@ export function mountWorkIndex(root: HTMLElement): () => void {
     });
   };
 
-  const applyFilter = (animate: boolean): void => {
-    void (async () => {
-      const lib = animate ? await ensureFlip() : null;
-      const state = lib ? lib.Flip.getState(items) : null;
+  let layoutRevision = 0;
+  const updateLayout = (animate: boolean): void => {
+    const revision = ++layoutRevision;
+    const render = (lib: Awaited<ReturnType<typeof loadFlip>> | null): void => {
+      if (revision !== layoutRevision || !root.isConnected) return;
+      const state = lib?.Flip.getState(items);
+      syncChrome();
       items.forEach((item) => {
         const tags = (item.dataset.tags || '').split(',').filter(Boolean);
         const show = tag === 'all' || tags.includes(tag);
@@ -82,43 +82,34 @@ export function mountWorkIndex(root: HTMLElement): () => void {
       });
       if (lib && state) {
         lib.Flip.from(state, {
-          duration: 0.45,
+          duration: 0.36,
           ease: 'power2.out',
-          absolute: false,
           nested: true,
-          onEnter: (elements) =>
-            lib.gsap.fromTo(elements, { opacity: 0 }, { opacity: 1, duration: 0.3 }),
-          onLeave: (elements) => lib.gsap.to(elements, { opacity: 0, duration: 0.2 }),
+          onEnter: (elements) => lib.gsap.fromTo(elements, { opacity: 0 }, { opacity: 1, duration: 0.24 }),
         });
       }
-    })();
+    };
+    if (!animate || prefersReducedMotion()) render(null);
+    else void ensureFlip().then(render, (error) => {
+      console.warn('Portfolio layout animation is unavailable', error);
+      render(null);
+    });
   };
 
-  const setView = (next: ViewMode, animate = true): void => {
+  const setView = (next: ViewMode): void => {
+    if (view === next) return;
     view = next;
     writeParams(view, tag);
-    syncChrome();
-    if (!animate || reduce) {
-      root.dataset.view = view;
-      return;
-    }
-    void (async () => {
-      const lib = await ensureFlip();
-      if (!lib) {
-        root.dataset.view = view;
-        return;
-      }
-      const state = lib.Flip.getState(items);
-      root.dataset.view = view;
-      lib.Flip.from(state, { duration: 0.4, ease: 'power2.out' });
-    })();
+    hideFollower();
+    updateLayout(true);
   };
 
   const setTag = (next: string): void => {
+    if (tag === next) return;
     tag = next;
     writeParams(view, tag);
-    syncChrome();
-    applyFilter(true);
+    hideFollower();
+    updateLayout(true);
   };
 
   const hideFollower = (): void => {
@@ -127,19 +118,15 @@ export function mountWorkIndex(root: HTMLElement): () => void {
   };
 
   const showFollower = (row: HTMLElement, event?: Event): void => {
-    if (!follower || view !== 'list' || coarse || reduce) return;
+    if (!follower || view !== 'list' || coarse || prefersReducedMotion()) return;
     const cover = row.querySelector('.project-cover-wrap') ?? row.querySelector('.project-cover');
     if (media && cover) media.replaceChildren(cloneCoverWithoutVt(cover));
-    if (event && 'clientX' in event) {
-      const pointer = event as PointerEvent;
-      mouse.x = pointer.clientX;
-      mouse.y = pointer.clientY;
-      pos.x = pointer.clientX;
-      pos.y = pointer.clientY;
-      prev.x = pointer.clientX;
-      prev.y = pointer.clientY;
-      follower.style.transform = `translate3d(${pos.x + 28}px, ${pos.y - 40}px, 0)`;
-    }
+    const rect = row.getBoundingClientRect();
+    mouse.x = event instanceof PointerEvent ? event.clientX : rect.right;
+    mouse.y = event instanceof PointerEvent ? event.clientY : rect.top;
+    pos.x = mouse.x;
+    pos.y = mouse.y;
+    placeFollower(pos.x, pos.y);
     follower.dataset.visible = 'true';
     visible = true;
   };
@@ -149,20 +136,30 @@ export function mountWorkIndex(root: HTMLElement): () => void {
     mouse.y = event.clientY;
   };
 
+  const placeFollower = (x: number, y: number): void => {
+    if (!follower) return;
+    const gap = 16;
+    const width = follower.offsetWidth;
+    const height = follower.offsetHeight;
+    const left = Math.max(gap, Math.min(window.innerWidth - width - gap, x + 28));
+    const top = Math.max(gap, Math.min(window.innerHeight - height - gap, y - 40));
+    follower.style.transform = `translate3d(${left}px, ${top}px, 0)`;
+  };
+
   const smoothFollow = getPerfTier() === 'high';
   const tick = (): void => {
     if (!visible || !follower) return;
-    if (!smoothFollow) {
-      follower.style.transform = `translate3d(${mouse.x + 28}px, ${mouse.y - 40}px, 0)`;
+    if (prefersReducedMotion()) {
+      hideFollower();
       return;
     }
-    pos.x += (mouse.x - pos.x) * 0.16;
-    pos.y += (mouse.y - pos.y) * 0.16;
-    const vx = pos.x - prev.x;
-    prev.x = pos.x;
-    prev.y = pos.y;
-    skew += (vx * 0.35 - skew) * 0.18;
-    follower.style.transform = `translate3d(${pos.x + 28}px, ${pos.y - 40}px, 0) skewX(${skew}deg)`;
+    if (!smoothFollow) {
+      placeFollower(mouse.x, mouse.y);
+      return;
+    }
+    pos.x += (mouse.x - pos.x) * 0.2;
+    pos.y += (mouse.y - pos.y) * 0.2;
+    placeFollower(pos.x, pos.y);
   };
 
   viewButtons.forEach((button) => {
@@ -188,10 +185,10 @@ export function mountWorkIndex(root: HTMLElement): () => void {
   window.addEventListener('pointermove', onMove, { passive: true });
   const unsubTicker = subscribeTicker(tick);
 
-  syncChrome();
-  applyFilter(false);
+  updateLayout(false);
 
   return () => {
+    layoutRevision += 1;
     unsubTicker();
     window.removeEventListener('pointermove', onMove);
     hideFollower();

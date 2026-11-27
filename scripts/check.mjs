@@ -56,7 +56,7 @@ function collectInternalHrefs(html) {
     const href = match[2];
     if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) continue;
     if (/^https?:\/\//i.test(href) || href.startsWith('//')) continue;
-    hrefs.push(href.split('#')[0].split('?')[0]);
+    hrefs.push(href);
   }
   return hrefs;
 }
@@ -165,19 +165,23 @@ console.log(`✓ no Cyrillic in ${enFiles.length} EN pages (+ cover SVGs)`);
 const broken = [];
 for (const file of htmlFiles) {
   const html = await readFile(file, 'utf8');
-  const hrefs = collectInternalHrefs(html);
-  for (const href of hrefs) {
-    if (href.endsWith('.xml') || href.endsWith('.txt') || href.endsWith('.webmanifest') || href.endsWith('.svg') || href.endsWith('.png') || href.endsWith('.ico')) {
-      const asset = path.join(dist, href.replace(/^\//, ''));
+  const from = path.relative(dist, file).split(path.sep).join('/');
+  const pagePath = `/${from}`.replace(/\/index\.html$/, '/');
+  const pageUrl = new URL(pagePath, 'https://portfolio.invalid');
+
+  for (const href of collectInternalHrefs(html)) {
+    const targetPath = new URL(href, pageUrl).pathname;
+    if (/\.(?:xml|txt|webmanifest|svg|png|ico)$/.test(targetPath)) {
+      const asset = path.join(dist, targetPath.replace(/^\//, ''));
       try {
         await stat(asset);
       } catch {
-        broken.push({ from: path.relative(dist, file), href });
+        broken.push({ from, href });
       }
       continue;
     }
-    if (!(await pathExists(href))) {
-      broken.push({ from: path.relative(dist, file), href });
+    if (!(await pathExists(targetPath))) {
+      broken.push({ from, href });
     }
   }
 }

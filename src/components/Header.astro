@@ -1,6 +1,5 @@
 ---
 import ThemeToggle from './ThemeToggle.astro';
-import Button from './Button.astro';
 import BrandMark from './BrandMark.astro';
 import { contactLinks, telegramChannel } from '../data/home';
 import { isFilled } from '../lib/fill';
@@ -31,7 +30,7 @@ const links = [
   { href: localizedPath(locale, '/work/'), label: t.nav.work },
   { href: localizedPath(locale, '/about/'), label: t.nav.about },
   ...(showNotes ? [{ href: localizedPath(locale, '/notes/'), label: t.nav.notes }] : []),
-  { href: `${localizedPath(locale, '/')}#contact`, label: t.nav.contact },
+  { href: localizedPath(locale, '/order/'), label: t.nav.order },
 ];
 
 function isActive(href: string): boolean {
@@ -83,23 +82,6 @@ function isActive(href: string): boolean {
       >
         {otherLocale.toUpperCase()}
       </a>
-      <a
-        class="site-header__channel"
-        href={telegramChannel.href}
-        target="_blank"
-        rel="noopener noreferrer"
-        data-cursor="hover"
-        data-tg-channel
-        aria-label={t.header.channel}
-        title={t.header.channel}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            fill="currentColor"
-            d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12a12 12 0 0 0 12-12A12 12 0 0 0 12 0zm4.962 7.224c.1-.002.321.023.465.14a.5.5 0 0 1 .171.325c.016.093.036.306.02.472c-.18 1.898-.962 6.502-1.36 8.627c-.168.9-.499 1.201-.82 1.23c-.696.065-1.225-.46-1.9-.902c-1.056-.693-1.653-1.124-2.678-1.8c-1.185-.78-.417-1.21.258-1.91c.177-.184 3.247-2.977 3.307-3.23c.007-.032.014-.15-.056-.212s-.174-.041-.249-.024q-.159.037-5.061 3.345q-.72.495-1.302.48c-.428-.008-1.252-.241-1.865-.44c-.752-.245-1.349-.374-1.297-.789q.04-.324.893-.663q5.247-2.286 6.998-3.014c3.332-1.386 4.025-1.627 4.476-1.635"
-          ></path>
-        </svg>
-      </a>
       <button
         type="button"
         class="site-header__cmdk mono"
@@ -122,7 +104,11 @@ function isActive(href: string): boolean {
         aria-controls="site-nav-panel"
         aria-label={t.header.openMenu}
       >
-        <span class="site-header__menu-icon" aria-hidden="true"></span>
+        <span class="site-header__menu-icon" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
       </button>
     </div>
   </div>
@@ -132,6 +118,7 @@ function isActive(href: string): boolean {
     class="site-header__panel"
     data-nav-panel
     hidden
+    inert
     aria-hidden="true"
     role="dialog"
     aria-modal="true"
@@ -173,13 +160,6 @@ function isActive(href: string): boolean {
         {t.header.channel}
       </a>
       {
-        telegram ? (
-          <a class="site-header__panel-link" href={telegram} data-cursor="hover">
-            Telegram
-          </a>
-        ) : null
-      }
-      {
         email ? (
           <a class="site-header__panel-link" href={`mailto:${email}`} data-cursor="hover">
             {email}
@@ -188,9 +168,9 @@ function isActive(href: string): boolean {
       }
       {
         telegram ? (
-          <Button href={telegram} variant="primary">
-            {t.header.discuss}
-          </Button>
+          <a class="site-header__panel-link" href={telegram} data-cursor="hover" data-telegram-handoff>
+            {locale === 'en' ? 'Message Bogdan on Telegram' : 'Написать Богдану в Telegram'}
+          </a>
         ) : null
       }
     </div>
@@ -334,24 +314,6 @@ function isActive(href: string): boolean {
     border-color: var(--border-strong);
   }
 
-  .site-header__channel {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
-    min-width: 44px;
-    padding: 0;
-    border: var(--stroke) solid var(--border);
-    background: var(--bg-elevated);
-    color: var(--fg-muted);
-    text-decoration: none;
-  }
-
-  .site-header__channel:hover,
-  .site-header__channel:focus-visible {
-    color: var(--fg);
-    border-color: var(--border-strong);
-  }
 
   .site-header__cmdk {
     display: inline-flex;
@@ -387,36 +349,42 @@ function isActive(href: string): boolean {
   }
 
   .site-header__menu-icon {
+    position: relative;
     display: block;
     width: 18px;
-    height: 2px;
-    background: currentColor;
-    box-shadow: 0 -6px 0 currentColor, 0 6px 0 currentColor;
+    height: 18px;
   }
 
-  .site-header[data-nav-open='true'] .site-header__menu-icon {
-    height: 0;
-    box-shadow: none;
-    background: transparent;
-    position: relative;
-  }
-
-  .site-header[data-nav-open='true'] .site-header__menu-icon::before,
-  .site-header[data-nav-open='true'] .site-header__menu-icon::after {
-    content: '';
+  .site-header__menu-icon > span {
     position: absolute;
-    left: 0;
-    width: 18px;
+    inset: 8px 0 auto;
     height: 2px;
     background: currentColor;
+    transition: transform var(--dur-2) var(--ease-out), opacity var(--dur-1) var(--ease-out);
   }
 
-  .site-header[data-nav-open='true'] .site-header__menu-icon::before {
+  .site-header__menu-icon > span:first-child {
+    transform: translateY(-6px);
+  }
+
+  .site-header__menu-icon > span:last-child {
+    transform: translateY(6px);
+  }
+
+  .site-header[data-nav-open='true'] .site-header__menu-icon > span:first-child {
     transform: rotate(45deg);
   }
 
-  .site-header[data-nav-open='true'] .site-header__menu-icon::after {
+  .site-header[data-nav-open='true'] .site-header__menu-icon > span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .site-header[data-nav-open='true'] .site-header__menu-icon > span:last-child {
     transform: rotate(-45deg);
+  }
+
+  :global(html[data-perf='low']) .site-header__menu-icon > span {
+    transition: none;
   }
 
   .site-header__panel {

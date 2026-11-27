@@ -3,8 +3,8 @@
   <path d="M72 206V72H222 M1378 928h150V794 M72 856H1528" stroke="currentColor" stroke-width="1.5" fill="none" opacity=".5"/>
   <g data-cover-art="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
     <!-- Booking sheet -->
-    <rect x="380" y="250" width="840" height="560" rx="10" fill="var(--cover-bg, #16131F)" stroke="currentColor" vector-effect="non-scaling-stroke"/>
-    <path d="M420 320 H1180" fill="none" stroke="currentColor" opacity=".35" vector-effect="non-scaling-stroke"/>
+    <rect x="360" y="250" width="940" height="560" rx="10" fill="var(--cover-bg, #16131F)" stroke="currentColor" vector-effect="non-scaling-stroke"/>
+    <path d="M420 320 H1260" fill="none" stroke="currentColor" opacity=".35" vector-effect="non-scaling-stroke"/>
     <rect x="420" y="280" width="220" height="22" rx="4" fill="currentColor" opacity=".55" stroke="none"/>
     <rect x="980" y="284" width="160" height="14" rx="3" fill="none" stroke="currentColor" opacity=".45" vector-effect="non-scaling-stroke"/>
     <!-- Progress -->
@@ -24,6 +24,6 @@
     <rect x="510" y="638" width="170" height="16" rx="3" fill="currentColor" opacity=".45" stroke="none"/>
     <rect x="510" y="666" width="240" height="12" rx="3" fill="currentColor" opacity=".28" stroke="none"/>
     <!-- CTA -->
-    <rect x="980" y="730" width="180" height="48" rx="6" fill="#8B5CF6" stroke="none"/>
+    <rect x="1080" y="730" width="180" height="48" rx="6" fill="#8B5CF6" stroke="none"/>
   </g>
 </svg>

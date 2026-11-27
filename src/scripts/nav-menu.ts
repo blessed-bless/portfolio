@@ -1,88 +1,68 @@
+import { getPerfTier, isLessMotionPreferred } from './perf';
+
 export function mountMobileNav(root: HTMLElement): () => void {
   const toggle = root.querySelector<HTMLButtonElement>('[data-nav-toggle]');
   const panel = root.querySelector<HTMLElement>('[data-nav-panel]');
-  const links = Array.from(panel?.querySelectorAll<HTMLElement>('a') ?? []);
   if (!toggle || !panel) return () => undefined;
 
+  const links = Array.from(panel.querySelectorAll<HTMLAnchorElement>('a'));
+  const controls = Array.from(panel.querySelectorAll<HTMLElement>('a[href], button:not(:disabled)'));
+  const mobile = matchMedia('(max-width: 768px)');
   let open = false;
-  let lastFocus: HTMLElement | null = null;
-  let tween: { kill: () => void } | null = null;
+  let animation: Animation | null = null;
 
-  const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  const setOpen = async (next: boolean): Promise<void> => {
+  const setOpen = (next: boolean): void => {
     if (next === open) return;
+
+    const opacity = panel.hidden ? 0 : Number(getComputedStyle(panel).opacity);
+    animation?.cancel();
+    animation = null;
     open = next;
+
     toggle.setAttribute('aria-expanded', String(open));
-    const openLabel = toggle.dataset.labelOpen || 'Open menu';
-    const closeLabel = toggle.dataset.labelClose || 'Close menu';
-    toggle.setAttribute('aria-label', open ? closeLabel : openLabel);
-    root.dataset.navOpen = open ? 'true' : 'false';
+    toggle.setAttribute('aria-label', open ? toggle.dataset.labelClose || 'Close menu' : toggle.dataset.labelOpen || 'Open menu');
+    root.dataset.navOpen = String(open);
     document.body.classList.toggle('nav-lock', open);
 
-    if (open) {
-      lastFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      panel.hidden = false;
-      panel.setAttribute('aria-hidden', 'false');
-      const items = panel.querySelectorAll<HTMLElement>('[data-nav-item]');
-      if (reduce()) {
-        items.forEach((item) => {
-          item.style.opacity = '1';
-          item.style.transform = 'none';
-        });
-        links[0]?.focus();
-        return;
-      }
-      const gsap = (await import('gsap')).default;
-      tween?.kill();
-      gsap.set(items, { opacity: 0, y: 18 });
-      tween = gsap.to(items, {
-        opacity: 1,
-        y: 0,
-        duration: 0.42,
-        stagger: 0.05,
-        ease: 'power2.out',
-        onComplete: () => links[0]?.focus(),
-      });
+    if (!open && mobile.matches) toggle.focus({ preventScroll: true });
+    panel.inert = !open;
+    panel.setAttribute('aria-hidden', String(!open));
+
+    if (isLessMotionPreferred() || getPerfTier() === 'low') {
+      panel.hidden = !open;
+      if (open) controls[0]?.focus({ preventScroll: true });
       return;
     }
 
-    panel.setAttribute('aria-hidden', 'true');
-    if (reduce()) {
-      panel.hidden = true;
-      lastFocus?.focus();
-      return;
-    }
-    const gsap = (await import('gsap')).default;
-    const items = panel.querySelectorAll<HTMLElement>('[data-nav-item]');
-    tween?.kill();
-    tween = gsap.to(items, {
-      opacity: 0,
-      y: 10,
-      duration: 0.18,
-      stagger: 0.02,
-      ease: 'power1.in',
-      onComplete: () => {
-        panel.hidden = true;
-        lastFocus?.focus();
-      },
+    panel.hidden = false;
+    const fade = panel.animate([{ opacity }, { opacity: open ? 1 : 0 }], {
+      duration: open ? 180 : 120,
+      easing: getComputedStyle(panel).getPropertyValue('--ease-out').trim(),
     });
+    animation = fade;
+    fade.onfinish = () => {
+      animation = null;
+      panel.hidden = !open;
+    };
+    if (open) controls[0]?.focus({ preventScroll: true });
   };
 
-  const onToggle = (): void => {
-    void setOpen(!open);
+  const onToggle = (): void => setOpen(!open);
+  const close = (): void => setOpen(false);
+  const onResize = (): void => {
+    if (!mobile.matches) close();
   };
 
   const onKey = (event: KeyboardEvent): void => {
-    if (!open) return;
+    if (!open || document.documentElement.dataset.cmdkOpen === 'true') return;
     if (event.key === 'Escape') {
       event.preventDefault();
-      void setOpen(false);
+      close();
       return;
     }
-    if (event.key !== 'Tab' || links.length === 0) return;
-    const first = links[0];
-    const last = links[links.length - 1];
+    if (event.key !== 'Tab' || controls.length === 0) return;
+    const first = controls[0];
+    const last = controls[controls.length - 1];
     const active = document.activeElement;
     if (event.shiftKey && active === first) {
       event.preventDefault();
@@ -93,19 +73,17 @@ export function mountMobileNav(root: HTMLElement): () => void {
     }
   };
 
-  const onLink = (): void => {
-    void setOpen(false);
-  };
-
   toggle.addEventListener('click', onToggle);
   document.addEventListener('keydown', onKey);
-  links.forEach((link) => link.addEventListener('click', onLink));
+  mobile.addEventListener('change', onResize);
+  links.forEach((link) => link.addEventListener('click', close));
 
   return () => {
     toggle.removeEventListener('click', onToggle);
     document.removeEventListener('keydown', onKey);
-    links.forEach((link) => link.removeEventListener('click', onLink));
+    mobile.removeEventListener('change', onResize);
+    links.forEach((link) => link.removeEventListener('click', close));
     document.body.classList.remove('nav-lock');
-    tween?.kill();
+    animation?.cancel();
   };
 }

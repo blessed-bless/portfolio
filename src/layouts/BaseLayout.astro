@@ -4,7 +4,6 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CookieNotice from '../components/CookieNotice.astro';
 import SiteCursor from '../components/SiteCursor.astro';
-import Metrika from '../components/Metrika.astro';
 import CommandPalette from '../components/CommandPalette.astro';
 import { defaultDescription, siteName, siteNameEn, siteUrl } from '../lib/site';
 import { isFilled } from '../lib/fill';
@@ -12,7 +11,7 @@ import { hasPublishedNotes } from '../lib/notes';
 import { withTrailingSlash } from '../lib/paths';
 import { defaultLocale, isLocale, localizedPath, stripLocalePrefix, ui, type Locale } from '../i18n';
 import onestWoff2 from '@fontsource-variable/onest/files/onest-cyrillic-wght-normal.woff2?url';
-import unboundedWoff2 from '@fontsource/unbounded/files/unbounded-cyrillic-700-normal.woff2?url';
+import onestLatinWoff2 from '@fontsource-variable/onest/files/onest-latin-wght-normal.woff2?url';
 import '../styles/global.css';
 
 interface Props {
@@ -94,8 +93,7 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
     {showNotesRss ? (
       <link rel="alternate" type="application/rss+xml" title="Заметки" href="/rss.xml" />
     ) : null}
-    <link rel="preload" href={onestWoff2} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={unboundedWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={locale === 'en' ? onestLatinWoff2 : onestWoff2} as="font" type="font/woff2" crossorigin />
     <script is:inline>
       (() => {
         const themeColors = { dark: '#0d0b12', light: '#f4f0fa' };
@@ -118,14 +116,6 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
         } catch (_) {
           document.documentElement.dataset.theme = 'dark';
           paintThemeColor('dark');
-        }
-
-        try {
-          if (localStorage.getItem('portfolio-cookie-ok') !== '1') {
-            document.documentElement.dataset.showCookie = '1';
-          }
-        } catch (_) {
-          document.documentElement.dataset.showCookie = '1';
         }
 
         // Early data-perf stamp (before paint) — refined by perf.ts after boot.
@@ -179,13 +169,12 @@ const ogLocale = locale === 'en' ? 'en_US' : 'ru_RU';
   </head>
   <body class:list={[{ 'print-case': printCase }]}>
     <div id="vt-wipe" data-vt-wipe aria-hidden="true"></div>
-    <Metrika />
     <a class="skip-link" href="#main">{t.skipToContent}</a>
     <SiteCursor />
     <CommandPalette />
     <div class="site-shell">
       <Header />
-      <main class="site-main" id="main">
+      <main class="site-main" id="main" tabindex="-1">
         <slot />
       </main>
       <Footer />

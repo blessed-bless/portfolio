@@ -8,6 +8,7 @@ let fallbackCovered = false;
 
 type PrepEvent = Event & {
   loader: () => Promise<void>;
+  to: URL;
   signal?: AbortSignal;
 };
 
@@ -15,10 +16,13 @@ type SwapEvent = Event & {
   viewTransition?: { finished: Promise<unknown> };
 };
 
-const WIPE_MS: Record<'high' | 'mid' | 'fade', number> = {
-  high: 500,
-  mid: 280,
-  fade: 160,
+type TransitionMode = 'high' | 'mid' | 'quick' | 'fade';
+
+const WIPE_MS: Record<TransitionMode, number> = {
+  high: 380,
+  mid: 260,
+  quick: 180,
+  fade: 120,
 };
 
 /** Growing brand-chevron reveal. Last frame covers the viewport. */
@@ -39,10 +43,16 @@ function supportsViewTransitions(): boolean {
   return typeof document !== 'undefined' && 'startViewTransition' in document;
 }
 
-function resolveVtMode(): 'high' | 'mid' | 'fade' {
+function resolveVtMode(destination: URL): TransitionMode {
+  const orderPath = /^\/(?:en\/)?order\/?$/;
   if (prefersReducedMotion()) return 'fade';
-  if (getPerfTier() === 'mid') return 'mid';
-  return 'high';
+  if (destination.hash || orderPath.test(destination.pathname) || orderPath.test(location.pathname) ||
+      matchMedia('(max-width: 900px)').matches) return 'quick';
+  return getPerfTier() === 'mid' ? 'mid' : 'high';
+}
+
+function usesWipe(mode: TransitionMode): boolean {
+  return mode === 'high' || mode === 'mid';
 }
 
 function wipeEl(): HTMLElement | null {
@@ -76,9 +86,11 @@ function clearTitleAnim(): void {
 
 async function animateIncomingTitle(): Promise<void> {
   clearTitleAnim();
-  if (prefersReducedMotion() || getPerfTier() !== 'high') return;
+  if (prefersReducedMotion() || getPerfTier() !== 'high' || location.hash ||
+      matchMedia('(max-width: 900px)').matches) return;
 
-  const title = document.querySelector<HTMLElement>('[data-page-title]');
+  const gen = wipeGen;
+  const title = document.querySelector<HTMLElement>('[data-page-title]:not([data-hero-line])');
   if (!title) return;
 
   try {
@@ -87,13 +99,15 @@ async function animateIncomingTitle(): Promise<void> {
     const { promoteToGsapTicker } = await import('./raf-hub');
     gsap.registerPlugin(SplitText);
     await promoteToGsapTicker();
+    if (gen !== wipeGen || !title.isConnected || prefersReducedMotion()) return;
 
-    splitRef = SplitText.create(title, {
+    const split = SplitText.create(title, {
       type: 'lines',
       linesClass: 'page-title-line',
-      aria: 'none',
+      aria: 'auto',
     });
-    const lines = (splitRef as { lines: HTMLElement[] }).lines;
+    splitRef = split;
+    const { lines } = split;
     if (!lines.length) {
       clearTitleAnim();
       return;
@@ -109,20 +123,11 @@ async function animateIncomingTitle(): Promise<void> {
       delay: supportsViewTransitions() ? 0.05 : 0,
     });
   } catch {
-    clearTitleAnim();
+    if (gen === wipeGen) clearTitleAnim();
   }
 }
 
-async function refreshScrollTools(): Promise<void> {
-  try {
-    const { ensureScrollTrigger } = await import('./scroll-sync');
-    ensureScrollTrigger().refresh();
-  } catch {
-    /* ScrollTrigger may be unused on this page */
-  }
-}
-
-async function playFallbackCover(ms: number): Promise<void> {
+async function playFallbackCover(ms: number, gen: number): Promise<void> {
   const wipe = wipeEl();
   if (!wipe) return;
   wipe.style.visibility = 'visible';
@@ -133,10 +138,10 @@ async function playFallbackCover(ms: number): Promise<void> {
   );
   try {
     await anim.finished;
-    fallbackCovered = true;
+    if (gen === wipeGen) fallbackCovered = true;
   } catch {
     anim.cancel();
-    disarmWipe();
+    if (gen === wipeGen) disarmWipe();
   }
 }
 
@@ -150,13 +155,17 @@ function revealFallback(ms: number): void {
     [{ opacity: 1 }, { opacity: 0 }],
     { duration: ms, easing: 'linear', fill: 'forwards' },
   );
-  anim.finished.finally(() => disarmWipe());
+  const gen = wipeGen;
+  void anim.finished.then(
+    () => { if (gen === wipeGen) disarmWipe(); },
+    () => { if (gen === wipeGen) disarmWipe(); },
+  );
 }
 
 function onBeforePreparation(event: Event): void {
   const ev = event as PrepEvent;
   const gen = ++wipeGen;
-  const mode = resolveVtMode();
+  const mode = resolveVtMode(ev.to);
   document.documentElement.dataset.vtMode = mode;
   disarmWipe();
 
@@ -165,8 +174,8 @@ function onBeforePreparation(event: Event): void {
     ev.loader = async () => {
       await original();
       if (gen !== wipeGen || ev.signal?.aborted || ev.defaultPrevented) return;
-      if (mode === 'fade') return;
-      await playFallbackCover(WIPE_MS[mode]);
+      if (!usesWipe(mode)) return;
+      await playFallbackCover(WIPE_MS[mode], gen);
     };
     return;
   }
@@ -175,7 +184,7 @@ function onBeforePreparation(event: Event): void {
   ev.loader = async () => {
     await original();
     if (gen !== wipeGen || ev.signal?.aborted || ev.defaultPrevented) return;
-    if (mode === 'fade') return;
+    if (!usesWipe(mode)) return;
     armWipe();
   };
 }
@@ -184,28 +193,22 @@ function onBeforeSwap(event: Event): void {
   clearTitleAnim();
   const gen = wipeGen;
   const vt = (event as SwapEvent).viewTransition;
-  const mode = resolveVtMode();
+  const mode = document.documentElement.dataset.vtMode as TransitionMode | undefined;
   const settle = (): void => {
     if (gen !== wipeGen) return;
     disarmWipe();
     delete document.documentElement.dataset.vtMode;
   };
   if (vt?.finished) {
-    vt.finished.finally(settle);
+    void vt.finished.then(settle, settle);
     return;
   }
-  window.setTimeout(settle, WIPE_MS[mode] + 60);
+  window.setTimeout(settle, WIPE_MS[mode ?? 'quick'] + 60);
 }
 
 function onPageLoad(): void {
-  if (fallbackCovered) {
-    const mode = resolveVtMode();
-    revealFallback(mode === 'fade' ? 160 : 180);
-  }
+  if (fallbackCovered) revealFallback(150);
   void animateIncomingTitle();
-  window.requestAnimationFrame(() => {
-    void refreshScrollTools();
-  });
 }
 
 /** Bind once — safe across View Transitions. */
