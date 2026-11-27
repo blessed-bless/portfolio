@@ -271,12 +271,12 @@ html[data-theme='light'] .astro-code span[style*='--shiki-light: #E36209'] {
 }
 
 @media (min-width: 901px) and (pointer: fine) {
-  html[data-perf='mid'] [data-cover-lens].is-tilt {
+  [data-cover-lens].is-tilt {
     transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
     transition: transform 160ms var(--ease-out);
   }
 
-  html[data-perf='mid'] [data-cover-lens].is-tilt::after {
+  [data-cover-lens].is-tilt::after {
     content: '';
     position: absolute;
     inset: 0;

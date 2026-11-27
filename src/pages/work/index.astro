@@ -71,7 +71,7 @@ const tagLabels: Record<string, string> = {
               data-cursor={project.hasPage ? 'hover' : undefined}
               data-cursor-open={project.hasPage ? '' : undefined}
             >
-              <span class="work-index__cover-wrap" data-cover-lens aria-hidden="true">
+              <span class="work-index__cover-wrap" data-cover-lens data-cover-tilt aria-hidden="true">
                 <ProjectCover
                   src={project.cover}
                   transitionName={project.hasPage ? `work-cover-${project.slug}` : undefined}

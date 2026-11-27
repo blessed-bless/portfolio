@@ -32,8 +32,10 @@ function lensAllowed(): boolean {
   return fineDesktop() && getPerfTier() === 'high' && !failed;
 }
 
-function tiltAllowed(): boolean {
-  return fineDesktop() && getPerfTier() === 'mid';
+function tiltAllowed(target: HTMLElement): boolean {
+  if (!fineDesktop()) return false;
+  const tier = getPerfTier();
+  return tier === 'mid' || (tier === 'high' && target.hasAttribute('data-cover-tilt'));
 }
 
 function isShown(el: HTMLElement): boolean {
@@ -204,7 +206,7 @@ function paintTilt(): void {
 
 function show(target: HTMLElement): void {
   if (!isShown(target)) return;
-  if (tiltAllowed()) {
+  if (tiltAllowed(target)) {
     if (current && current !== target) current.classList.remove('is-tilt');
     current = target;
     current.classList.add('is-tilt');
