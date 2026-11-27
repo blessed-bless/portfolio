@@ -25,7 +25,8 @@ export type PaletteItem = {
     | 'open-pingo'
     | 'locale'
     | 'resume'
-    | 'less-motion';
+    | 'less-motion'
+    | 'toy';
 };
 
 export function buildPaletteItems(projects: Project[], t: UiDict): PaletteItem[] {
@@ -81,6 +82,13 @@ export function buildPaletteItems(projects: Project[], t: UiDict): PaletteItem[]
     }));
 
   const actions: PaletteItem[] = [
+    {
+      id: 'action-toy',
+      type: 'action',
+      title: t.cmdk.toy,
+      keywords: 'toy play spin easter egg метка',
+      action: 'toy',
+    },
     {
       id: 'action-theme',
       type: 'action',

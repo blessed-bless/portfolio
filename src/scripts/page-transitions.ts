@@ -1,6 +1,7 @@
 import { getPerfTier, isLessMotionPreferred } from './perf';
 
 let bound = false;
+let coverNav = false;
 let titleTween: { kill: () => void } | null = null;
 let splitRef: { revert: () => void } | null = null;
 let wipeGen = 0;
@@ -45,6 +46,7 @@ function supportsViewTransitions(): boolean {
 
 function resolveVtMode(destination: URL): TransitionMode {
   const orderPath = /^\/(?:en\/)?order\/?$/;
+  if (coverNav && !prefersReducedMotion()) return 'fade';
   if (prefersReducedMotion()) return 'fade';
   if (destination.hash || orderPath.test(destination.pathname) || orderPath.test(location.pathname) ||
       matchMedia('(max-width: 900px)').matches) return 'quick';
@@ -190,6 +192,7 @@ function onBeforePreparation(event: Event): void {
 }
 
 function onBeforeSwap(event: Event): void {
+  coverNav = false;
   clearTitleAnim();
   const gen = wipeGen;
   const vt = (event as SwapEvent).viewTransition;
@@ -216,6 +219,16 @@ export function mountPageTransitions(): void {
   if (bound) return;
   bound = true;
 
+  document.addEventListener('click', (event) => {
+    const node = event.target;
+    if (!(node instanceof Element)) {
+      coverNav = false;
+      return;
+    }
+    const link = node.closest('a');
+    coverNav = Boolean(link?.querySelector('[data-vt-cover]')) || document.documentElement.dataset.pendingCover === '1';
+    delete document.documentElement.dataset.pendingCover;
+  }, true);
   document.addEventListener('astro:before-preparation', onBeforePreparation);
   document.addEventListener('astro:before-swap', onBeforeSwap);
   document.addEventListener('astro:page-load', onPageLoad);

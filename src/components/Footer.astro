@@ -1,12 +1,15 @@
 ---
 import BrandMark from './BrandMark.astro';
-import { telegramChannel } from '../data/home';
+import { contactLinks, telegramChannel } from '../data/home';
+import { isFilled } from '../lib/fill';
 import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
 const year = new Date().getFullYear();
 const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
 const t = ui(locale);
 const credit = t.footer.credit.replace('{year}', String(year));
+const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
+const email = isFilled(contactLinks.email) ? contactLinks.email : null;
 ---
 
 <footer class="site-footer page-pad" data-site-footer>
@@ -23,6 +26,22 @@ const credit = t.footer.credit.replace('{year}', String(year));
       <a class="site-footer__link" href={localizedPath(locale, '/uses/')} data-cursor="hover">
         {t.footer.uses}
       </a>
+      <span class="site-footer__sep" aria-hidden="true">·</span>
+      {
+        telegram ? (
+          <a class="site-footer__link" href={telegram} data-cursor="hover" data-telegram-handoff>
+            Telegram
+          </a>
+        ) : null
+      }
+      {
+        email ? (
+          <>
+            <span class="site-footer__sep" aria-hidden="true">·</span>
+            <a class="site-footer__link" href={`mailto:${email}`} data-cursor="hover">{email}</a>
+          </>
+        ) : null
+      }
       <span class="site-footer__sep" aria-hidden="true">·</span>
       <a
         class="site-footer__link"
@@ -314,6 +333,12 @@ const credit = t.footer.credit.replace('{year}', String(year));
   }
 
   @media (max-width: 720px) {
+    .site-footer__nav {
+      flex-wrap: wrap;
+      white-space: normal;
+      justify-content: flex-start;
+    }
+
     .site-footer__inner {
       grid-template-columns: 1fr;
       grid-template-areas:

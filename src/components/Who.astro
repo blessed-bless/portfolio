@@ -1,0 +1,85 @@
+---
+import { Image } from 'astro:assets';
+import portrait from '../assets/portrait.png';
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
+
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+---
+
+<section class="who page-pad" data-band="ink" aria-labelledby="who-title">
+  <div class="who__grid">
+    <figure class="who__photo">
+      <Image
+        src={portrait}
+        alt={t.personAlt}
+        widths={[320, 640]}
+        sizes="(max-width: 800px) 72vw, 280px"
+        width={320}
+        height={Math.round((320 * portrait.height) / portrait.width)}
+        quality={82}
+      />
+    </figure>
+    <div class="who__copy">
+      <p class="eyebrow">{t.home.whoamiEyebrow}</p>
+      <h2 id="who-title" class="who__title" data-scramble>{t.home.whoamiTitle}</h2>
+      {t.home.whoami.map((paragraph) => <p>{paragraph}</p>)}
+      <a class="who__more" href={localizedPath(locale, '/about/')}>{t.nav.about}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .who {
+    padding-block: clamp(3rem, 6vw, 5.5rem);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .who__grid {
+    display: grid;
+    grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr);
+    gap: clamp(1.25rem, 4vw, 4rem);
+    align-items: start;
+  }
+
+  .who__photo {
+    margin: 0;
+  }
+
+  .who__photo :global(img) {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: grayscale(0.15);
+  }
+
+  .who__title {
+    margin: var(--space-3) 0 var(--space-4);
+    font-size: clamp(2.4rem, 1.4rem + 3vw, 4.5rem);
+    letter-spacing: var(--tracking-tight);
+    line-height: 0.92;
+  }
+
+  .who__copy p {
+    margin: 0 0 var(--space-3);
+    max-width: 42rem;
+    color: var(--fg-muted);
+    font-size: var(--text-md);
+    line-height: var(--leading-body);
+  }
+
+  .who__more {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--accent-strong);
+    font-weight: 600;
+  }
+
+  @media (max-width: 800px) {
+    .who__grid {
+      grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+  }
+</style>

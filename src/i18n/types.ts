@@ -78,6 +78,14 @@ export type UiDict = {
     carouselPrev: string;
     carouselNext: string;
     carouselHint: string;
+    workFull: string;
+    workRowsLabel: string;
+    statCases: string;
+    statDemos: string;
+    statServices: string;
+    agentTitle: string;
+    agentOutcome: string;
+    rollCta: string;
     channelEyebrow: string;
     channelTitle: string;
     channelMore: string;
@@ -142,6 +150,13 @@ export type UiDict = {
     resume: string;
     lessMotion: string;
     lessMotionOn: string;
+    toy: string;
+  };
+  toy: {
+    title: string;
+    hint: string;
+    close: string;
+    play: string;
   };
   demo: {
     ariaLabel: string;

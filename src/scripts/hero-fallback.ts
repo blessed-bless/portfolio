@@ -6,11 +6,6 @@ export function isWeakGpu(): boolean {
     const gl = probe.getContext('webgl2') || probe.getContext('webgl');
     if (!gl) return true;
     try {
-      const info = gl.getExtension('WEBGL_debug_renderer_info');
-      if (info) {
-        const renderer = String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL) || '');
-        if (/SwiftShader|llvmpipe|Softwar|Microsoft Basic/i.test(renderer)) return true;
-      }
       const mobile = /Mobi|Android/i.test(navigator.userAgent);
       return mobile && (navigator.hardwareConcurrency || 8) <= 4;
     } finally {

@@ -40,7 +40,7 @@ export function applyTheme(mode: ThemeMode): void {
 }
 
 export function resolveInitialTheme(): ThemeMode {
-  return readStoredTheme() ?? systemTheme();
+  return readStoredTheme() ?? 'dark';
 }
 
 export function toggleTheme(): ThemeMode {

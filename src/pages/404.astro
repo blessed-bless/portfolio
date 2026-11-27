@@ -25,6 +25,7 @@ import Button from '../components/Button.astro';
     <div class="not-found__actions">
       <Button href="/" variant="primary">На главную</Button>
       <Button href="/work/" variant="ghost">Работы</Button>
+      <button type="button" class="not-found__play" data-orbit-open data-cursor="play">Покрутить</button>
     </div>
   </section>
 </BaseLayout>
@@ -52,8 +53,18 @@ import Button from '../components/Button.astro';
     disposeMark = handle ? () => handle.dispose() : null;
   }
 
+  function bindToy(): void {
+    const play = document.querySelector<HTMLButtonElement>('[data-orbit-open]');
+    if (!play || play.dataset.bound === 'true') return;
+    play.dataset.bound = 'true';
+    play.addEventListener('click', () => {
+      void import('../scripts/orbit-toy').then(({ openOrbitToy }) => openOrbitToy());
+    });
+  }
+
   document.addEventListener('astro:page-load', () => {
     void bootLiquidMetal();
+    bindToy();
   });
   document.addEventListener('astro:before-swap', () => {
     bootToken += 1;
@@ -121,7 +132,18 @@ import Button from '../components/Button.astro';
   .not-found__actions {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: var(--space-3);
     margin-top: var(--space-3);
+  }
+
+  .not-found__play {
+    min-height: 44px;
+    padding: 0 1rem;
+    border: var(--stroke) solid var(--border-strong);
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
+    cursor: pointer;
   }
 </style>

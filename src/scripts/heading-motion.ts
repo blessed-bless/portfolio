@@ -7,8 +7,7 @@ let bound = false;
 
 function headingMode(): HeadingMode {
   if (isLessMotionPreferred() || getPerfTier() === 'low' || matchMedia('(max-width: 900px)').matches) return 'off';
-  if (getPerfTier() === 'mid') return 'lines';
-  return 'scramble';
+  return 'lines';
 }
 
 function charset(): string {
