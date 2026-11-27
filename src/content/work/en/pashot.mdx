@@ -1,0 +1,72 @@
+---
+title: Pashot
+slug: pashot
+year: '2026'
+role: Frontend
+stack:
+  - Astro
+  - TypeScript
+status: concept
+origin: demo
+cover: ../../assets/covers/pashot.svg
+summary: >-
+  A one-page site for the Pashot cafe in Anapa: a menu with category tabs and a
+  price filter, a photo gallery, a map, and contacts.
+links:
+  demo: /demo/pashot/
+order: 11
+tags:
+  - TypeScript
+  - Web
+hasPage: true
+featured: true
+carousel: true
+---
+
+import hero390 from '../../../assets/screenshots/pashot-hero-390.png';
+import hero1440 from '../../../assets/screenshots/pashot-hero-1440.png';
+import menu390 from '../../../assets/screenshots/pashot-menu-390.png';
+import menu1440 from '../../../assets/screenshots/pashot-menu-1440.png';
+import Button from '../../../components/Button.astro';
+
+<p class="case-lead-cta">
+  <Button href="/demo/pashot/" variant="primary">{'Open demo'}</Button>
+</p>
+
+<p class="case-note">Unofficial site. A portfolio concept; the cafe allowed the materials to be used.</p>
+
+<Figure src={hero390} alt="Pashot mobile hero with the name, address, and a pasta photo" caption="390 — first screen and the note that this is not the official site." />
+
+## Problem
+
+The cafe already had a basic site. I rebuilt the page by hand, with my own components: menu, photos, map, contacts. It is one scroll, not a separate catalog.
+
+## Solution
+
+- **Menu.** Tabs for the main menu and drinks, then a price filter inside each.
+- **Gallery.** A photo grid and a lightbox.
+- **Map and contacts.** The address, hours, and phone.
+- **Phone first.** Layout starts at a narrow width. Scroll is the browser's own, with no scroll-jacking.
+- **Logo.** Sofia Sans Condensed, the font file hosted with the page.
+- **Images.** AVIF and WebP through `astro:assets`.
+
+## Numbers
+
+| | Lighthouse mobile |
+| --- | --- |
+| Performance | 96 |
+| Accessibility | 100 |
+| LCP | 2.6 s |
+| CLS | 0.03 |
+
+Measured on a static preview of `/demo/pashot/`, mobile, simulated throttling. 27 November 2026.
+
+## Screens
+
+<Figure src={hero1440} alt="Pashot desktop hero with a pasta photo and a menu button" caption="1440 — first screen." />
+<Figure src={menu390} alt="Mobile menu with category tabs and the 200 ruble filter" caption="390 — menu and price filter." />
+<Figure src={menu1440} alt="Desktop menu with dish cards and prices" caption="1440 — menu." />
+
+## What was verified
+
+Shipped as static files inside the portfolio, marked as a concept. The cafe allowed the materials on the condition that the page is not presented as their official site. No quotes, revenue, or outcome claims — those were not measured.
