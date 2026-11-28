@@ -7,12 +7,31 @@ const t = ui(locale);
 const fleet = (await getProjects(locale)).find((project) => project.slug === 'fleetkit');
 const github = fleet?.links.github;
 const caseHref = localizedPath(locale, '/work/fleetkit/');
+const nodes = [
+  { id: 'queue', label: t.home.fleetQueue, status: 'queued' },
+  { id: 'worker', label: t.home.fleetWorker, status: 'processing' },
+  { id: 'retry', label: t.home.fleetRetry, status: 'failed' },
+  { id: 'dlq', label: t.home.fleetDlq, status: '' },
+];
 ---
 
 {
   fleet ? (
-    <section class="dev page-pad" data-dev data-band="ink" aria-labelledby="dev-title">
+    <section class="dev page-pad" data-dev data-band="ink" aria-labelledby="dev-title" data-fleet-logs={JSON.stringify(t.home.fleetLogs)}>
       <h2 id="dev-title" class="dev__title" data-scramble>{t.home.devTitle}</h2>
+      <div class="dev__track" data-fleet-track>
+        <ol class="dev__nodes">
+          {nodes.map((node) => (
+            <li data-fleet-node={node.id}>
+              <span class="dev__node">{node.label}</span>
+              {node.status ? <span class="mono dev__status">{node.status}</span> : null}
+            </li>
+          ))}
+        </ol>
+        <span class="dev__marker" data-fleet-marker hidden></span>
+      </div>
+      <button type="button" class="dev__run" data-fleet-run>{t.home.fleetFail}</button>
+      <p class="dev__log" data-fleet-log aria-live="polite"></p>
       <div class="dev__row">
         <p class="dev__name">{fleet.title}</p>
         <ul class="dev__states mono" aria-label={t.home.devStates}>
@@ -31,18 +50,172 @@ const caseHref = localizedPath(locale, '/work/fleetkit/');
   ) : null
 }
 
+<script>
+  import { getPerfTier, isLessMotionPreferred } from '../scripts/perf';
+
+  function instant(): boolean {
+    return (
+      getPerfTier() === 'low' ||
+      isLessMotionPreferred() ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+  }
+
+  function bind(root: HTMLElement): void {
+    if (root.dataset.bound === 'true') return;
+    root.dataset.bound = 'true';
+    const marker = root.querySelector<HTMLElement>('[data-fleet-marker]');
+    const log = root.querySelector<HTMLElement>('[data-fleet-log]');
+    const button = root.querySelector<HTMLButtonElement>('[data-fleet-run]');
+    const nodes = [...root.querySelectorAll<HTMLElement>('[data-fleet-node]')];
+    const lines = JSON.parse(root.dataset.fleetLogs || '[]') as string[];
+    if (!marker || !log || !button || lines.length < 4) return;
+
+    let tween: { kill: () => void } | null = null;
+    const place = (index: number): void => {
+      const node = nodes[index];
+      const track = root.querySelector<HTMLElement>('[data-fleet-track]');
+      if (!node || !track) return;
+      const box = track.getBoundingClientRect();
+      const item = node.getBoundingClientRect();
+      marker.hidden = false;
+      marker.style.transform = `translate(${item.left - box.left + item.width / 2 - 7}px, ${item.top - box.top + 8}px)`;
+    };
+
+    const showAll = (): void => {
+      tween?.kill();
+      tween = null;
+      place(nodes.length - 1);
+      log.textContent = lines.join(' ');
+      button.disabled = false;
+    };
+
+    const run = async (): Promise<void> => {
+      if (instant()) {
+        showAll();
+        return;
+      }
+      button.disabled = true;
+      log.textContent = '';
+      const gsap = (await import('gsap')).default;
+      if (!root.isConnected) return;
+      if (instant()) {
+        showAll();
+        return;
+      }
+      place(0);
+      log.textContent = lines[0] ?? '';
+      const state = { index: 0 };
+      tween = gsap.to(state, {
+        index: 3,
+        duration: 2.4,
+        ease: 'none',
+        onUpdate: () => {
+          const step = Math.min(3, Math.floor(state.index + 0.001));
+          place(step);
+          log.textContent = lines.slice(0, step + 1).join(' ');
+        },
+        onComplete: () => {
+          place(3);
+          log.textContent = lines.join(' ');
+          button.disabled = false;
+        },
+      });
+    };
+
+    button.addEventListener('click', () => {
+      void run();
+    });
+    const snap = (): void => {
+      if (instant()) showAll();
+    };
+    window.addEventListener('portfolio:perf', snap);
+    window.addEventListener('portfolio:less-motion', snap);
+  }
+
+  function start(): void {
+    document.querySelectorAll<HTMLElement>('[data-dev]').forEach(bind);
+  }
+  start();
+  document.addEventListener('astro:page-load', start);
+</script>
+
 <style>
   .dev {
     padding-block: var(--section-gap);
     border-top: var(--stroke) solid var(--border);
+    display: grid;
+    gap: var(--space-4);
   }
 
   .dev__title {
-    margin: 0 0 var(--space-6);
+    margin: 0;
     font-size: var(--text-xl);
     font-weight: 700;
     letter-spacing: var(--tracking-tight);
     line-height: var(--leading-tight);
+  }
+
+  .dev__track {
+    position: relative;
+    min-width: 0;
+  }
+
+  .dev__nodes {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .dev__nodes li {
+    min-width: 0;
+    padding: var(--space-4) var(--space-3);
+    border: var(--stroke) solid var(--border-strong);
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .dev__node {
+    font-weight: 650;
+  }
+
+  .dev__status {
+    color: var(--fg-muted);
+    font-size: var(--text-xs);
+  }
+
+  .dev__marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    pointer-events: none;
+  }
+
+  .dev__run {
+    justify-self: start;
+    min-height: 44px;
+    padding: 0.4rem 0.9rem;
+    border: var(--stroke) solid var(--accent);
+    background: transparent;
+    color: var(--fg);
+    cursor: pointer;
+  }
+
+  .dev__run:disabled {
+    opacity: 0.6;
+  }
+
+  .dev__log {
+    margin: 0;
+    min-height: 1.5em;
+    color: var(--fg-muted);
   }
 
   .dev__row {
@@ -93,6 +266,10 @@ const caseHref = localizedPath(locale, '/work/fleetkit/');
   }
 
   @media (max-width: 800px) {
+    .dev__nodes {
+      grid-template-columns: 1fr 1fr;
+    }
+
     .dev__links {
       margin-left: 0;
     }
