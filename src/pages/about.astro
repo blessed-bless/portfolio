@@ -2,6 +2,8 @@
 import { Picture } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Button from '../components/Button.astro';
+import KetasonxWord from '../components/KetasonxWord.astro';
+import AboutMark from '../components/AboutMark.astro';
 import {
   aboutHire,
   aboutIntro,
@@ -34,6 +36,8 @@ const photoSizes = '(max-width: 900px) min(22rem, 100vw), min(28vw, 22rem)';
   <article class="about page-pad">
     <header class="about__hero">
       <p class="eyebrow">Обо мне</p>
+      <KetasonxWord />
+      <AboutMark />
       <h1 class="about__title" data-page-title>{personName}</h1>
       <div class="about__lead">
         {aboutIntro.map((paragraph) => <p>{paragraph}</p>)}

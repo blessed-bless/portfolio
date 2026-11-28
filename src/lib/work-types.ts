@@ -1,4 +1,22 @@
 export type WorkTag = 'Python' | 'TypeScript' | 'JavaScript' | 'Bots' | 'Infra' | 'Web';
+
+/**
+ * Catalogue filters. A case with several tags appears in every matching category.
+ * JavaScript and TypeScript do not map on their own.
+ */
+export const workCategoryTags = {
+  sites: ['Web'],
+  telegram: ['Bots'],
+  backend: ['Python', 'Infra'],
+} as const satisfies Record<string, readonly WorkTag[]>;
+
+export type WorkCategoryId = keyof typeof workCategoryTags;
+
+export const workCategoryIds = ['sites', 'telegram', 'backend'] as const;
+
+export function categoriesForTags(tags: readonly WorkTag[]): WorkCategoryId[] {
+  return workCategoryIds.filter((id) => workCategoryTags[id].some((tag) => tags.includes(tag)));
+}
 export type WorkStatus =
   | 'в разработке'
   | 'готов'

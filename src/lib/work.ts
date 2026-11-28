@@ -3,6 +3,22 @@ import type { Locale } from '../i18n';
 import { defaultLocale } from '../i18n';
 import type { Project, WorkOrigin } from './work-types';
 
+const pageDemoSlugs = new Set([
+  'priemnaya',
+  'smena',
+  'fleetkit',
+  'crawlnet',
+  'ai-funnel-ecosystem',
+  'shipcrew',
+]);
+
+/** In-page demo, or Pashot's static preview. Other external links stay in the links row. */
+export function caseDemoHref(project: Pick<Project, 'slug' | 'links'>): string | null {
+  if (project.slug === 'pashot') return project.links.demo ?? null;
+  if (pageDemoSlugs.has(project.slug)) return '#demo';
+  return null;
+}
+
 export type WorkEntry = CollectionEntry<'work'>;
 
 export function workEntryLocale(entry: WorkEntry): Locale {

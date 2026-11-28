@@ -23,7 +23,7 @@ const t = ui(locale);
     <div class="who__copy">
       <p class="eyebrow">{t.home.whoamiEyebrow}</p>
       <h2 id="who-title" class="who__title" data-scramble>{t.home.whoamiTitle}</h2>
-      {t.home.whoami.map((paragraph) => <p>{paragraph}</p>)}
+      {t.home.whoami.slice(0, 1).map((paragraph) => <p>{paragraph}</p>)}
       <a class="who__more" href={localizedPath(locale, '/about/')}>{t.nav.about}</a>
     </div>
   </div>

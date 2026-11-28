@@ -8,19 +8,38 @@ function showCounts(root: ParentNode): void {
   });
 }
 
+function revealProcess(scope: ParentNode): void {
+  scope.querySelectorAll<HTMLElement>('[data-process-step]').forEach((step) => {
+    step.dataset.current = 'true';
+  });
+  const bar = scope.querySelector<HTMLElement>('[data-process-bar]');
+  if (bar) bar.style.transform = 'scaleX(1)';
+}
+
 export async function mountHomeMotion(): Promise<void> {
   cleanup?.();
   cleanup = null;
 
   const root = document.querySelector<HTMLElement>('[data-home-root]');
-  if (!root) return;
-
   const reduced = isLessMotionPreferred() || getPerfTier() === 'low';
+  if (!root) {
+    if (reduced) {
+      revealProcess(document);
+      return;
+    }
+    await import('gsap');
+    const process = document.querySelector<HTMLElement>('[data-process]');
+    if (!process?.isConnected) return;
+    revealProcess(document);
+    cleanup = () => {
+      delete process.dataset.active;
+    };
+    return;
+  }
+
   if (reduced) {
     showCounts(root);
-    root.querySelectorAll<HTMLElement>('[data-process-step]').forEach((step) => {
-      step.dataset.current = 'true';
-    });
+    revealProcess(root);
     return;
   }
 
@@ -73,12 +92,7 @@ export async function mountHomeMotion(): Promise<void> {
   });
 
   const process = root.querySelector<HTMLElement>('[data-process]');
-  const steps = process ? [...process.querySelectorAll<HTMLElement>('[data-process-step]')] : [];
-  const bar = process?.querySelector<HTMLElement>('[data-process-bar]');
-  steps.forEach((step) => {
-    step.dataset.current = 'true';
-  });
-  if (bar) bar.style.transform = 'scaleX(1)';
+  revealProcess(root);
 
   cleanup = () => {
     triggers.forEach((trigger) => trigger.kill());

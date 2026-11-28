@@ -1,0 +1,186 @@
+---
+import Button from './Button.astro';
+import { featuredWorkCopy } from '../data/featured-work';
+import { getProjects } from '../lib/work';
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
+
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const smena = (await getProjects(locale)).find((project) => project.slug === 'smena');
+const href = smena
+  ? smena.links.live ?? localizedPath(locale, `/work/${smena.slug}/#demo`)
+  : localizedPath(locale, '/work/smena/#demo');
+const action = featuredWorkCopy.smena[locale].action;
+---
+
+<section
+  class="smena page-pad"
+  data-smena-preview
+  data-band="ink"
+  data-locale={locale}
+  data-booked={t.home.smenaBooked}
+  aria-labelledby="smena-title"
+>
+  <div class="smena__copy">
+    <p class="eyebrow">{t.home.offersEyebrow}</p>
+    <h2 id="smena-title" class="smena__title" data-scramble>{smena?.title ?? 'Smena'}</h2>
+    <p class="smena__lead">{t.home.smenaLead}</p>
+    <button
+      type="button"
+      class="smena__toggle"
+      data-smena-toggle
+      data-label-booked={t.home.smenaToggle}
+      data-label-free={t.home.smenaShowFree}
+      aria-pressed="false"
+    >
+      {t.home.smenaToggle}
+    </button>
+    <Button href={href} variant="primary">{action}</Button>
+  </div>
+  <div class="smena__phone" data-smena-phone data-state="free">
+    <div class="smena__screen">
+      <p class="smena__screen-title mono">{locale === 'en' ? 'Smena · today' : 'Смена · сегодня'}</p>
+      <p class="smena__state" data-smena-state>{t.home.smenaFree}</p>
+      <ul class="smena__slots">
+        <li>11:30 · {locale === 'en' ? 'booked' : 'занято'}</li>
+        <li data-smena-slot>15:00–16:30</li>
+        <li>16:30 · {locale === 'en' ? 'booked' : 'занято'}</li>
+      </ul>
+      <p class="smena__note" data-smena-note hidden>{t.home.smenaNote}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  function bind(root: HTMLElement): void {
+    if (root.dataset.bound === 'true') return;
+    root.dataset.bound = 'true';
+    const button = root.querySelector<HTMLButtonElement>('[data-smena-toggle]');
+    const phone = root.querySelector<HTMLElement>('[data-smena-phone]');
+    const state = root.querySelector<HTMLElement>('[data-smena-state]');
+    const note = root.querySelector<HTMLElement>('[data-smena-note]');
+    const slot = root.querySelector<HTMLElement>('[data-smena-slot]');
+    if (!button || !phone || !state || !note || !slot) return;
+    const freeSlot = slot.textContent || '';
+    const bookedSlot = root.dataset.locale === 'en' ? '15:00 · New client' : '15:00 · Новый клиент';
+    const freeLabel = button.dataset.labelFree || '';
+    const bookedLabel = button.dataset.labelBooked || '';
+    const freeState = state.textContent || '';
+    const bookedState = root.dataset.booked || '';
+    button.addEventListener('click', () => {
+      const next = phone.dataset.state === 'booked' ? 'free' : 'booked';
+      phone.dataset.state = next;
+      const booked = next === 'booked';
+      button.setAttribute('aria-pressed', String(booked));
+      button.textContent = booked ? freeLabel : bookedLabel;
+      state.textContent = booked ? bookedState : freeState;
+      slot.textContent = booked ? bookedSlot : freeSlot;
+      note.hidden = !booked;
+    });
+  }
+
+  function start(): void {
+    document.querySelectorAll<HTMLElement>('[data-smena-preview]').forEach(bind);
+  }
+  start();
+  document.addEventListener('astro:page-load', start);
+</script>
+
+<style>
+  .smena {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 22rem);
+    gap: clamp(1.25rem, 4vw, 4rem);
+    align-items: center;
+    padding-block: var(--section-gap);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .smena__title {
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-xl);
+    letter-spacing: var(--tracking-tight);
+    line-height: 0.95;
+  }
+
+  .smena__lead {
+    margin: var(--space-4) 0;
+    max-width: 38rem;
+    color: var(--fg-muted);
+  }
+
+  .smena__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .smena__toggle {
+    min-height: 44px;
+    padding: 0.4rem 0.9rem;
+    border: var(--stroke) solid var(--border-strong);
+    background: transparent;
+    color: var(--fg);
+    cursor: pointer;
+  }
+
+  .smena__phone {
+    justify-self: end;
+    width: min(100%, 18rem);
+    padding: 0.7rem;
+    border: var(--stroke) solid var(--border-strong);
+    border-radius: 1.6rem;
+    background: #2a2a2e;
+  }
+
+  .smena__screen {
+    min-height: 22rem;
+    padding: var(--space-4);
+    border-radius: 1.1rem;
+    background: var(--bg);
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+  }
+
+  .smena__screen-title,
+  .smena__state,
+  .smena__note {
+    margin: 0;
+  }
+
+  .smena__state {
+    color: var(--accent-strong);
+    font-weight: 650;
+  }
+
+  .smena__slots {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .smena__slots li {
+    padding: 0.7rem 0.8rem;
+    border: var(--stroke) solid var(--border);
+  }
+
+  .smena__note {
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
+  @media (max-width: 800px) {
+    .smena {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .smena__phone {
+      justify-self: start;
+    }
+  }
+</style>

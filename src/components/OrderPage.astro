@@ -2,7 +2,10 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Contact from './Contact.astro';
 import Button from './Button.astro';
+import Process from './Process.astro';
+import Faq from './Faq.astro';
 import { serviceOffers } from '../data/order';
+import { serviceOfferJsonLd } from '../lib/jsonld';
 import { defaultLocale, isLocale, localizedPath, ui } from '../i18n';
 import { getCaseEntries, workStatusLabel } from '../lib/work';
 
@@ -34,6 +37,12 @@ const copy = english ? {
 };
 const cases = await getCaseEntries(locale);
 const offers = serviceOffers(locale);
+const jsonLd = offers.map((offer) => serviceOfferJsonLd(locale, {
+  name: offer.title,
+  description: offer.description,
+  minPrice: offer.minPrice,
+  priceLabel: offer.priceLabel,
+}));
 ---
 
 <BaseLayout
@@ -41,6 +50,7 @@ const offers = serviceOffers(locale);
   description={copy.description}
   canonicalPath={localizedPath(locale, '/order/')}
   ogImage={english ? '/og/en/order.png' : '/og/order.png'}
+  jsonLd={jsonLd}
 >
   <div class="order page-pad">
     <header class="order__intro">
@@ -89,6 +99,8 @@ const offers = serviceOffers(locale);
       </div>
     </section>
   </div>
+  <Process />
+  <Faq />
   <Contact />
 </BaseLayout>
 

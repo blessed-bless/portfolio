@@ -92,6 +92,15 @@ if "sqlite" not in settings_url:
 
 **DLQ and requeue.** A job that burns through attempts goes to dead letter; requeue creates a new job with `_requeued_from_dlq` and marks the row.
 
+<Scenario
+  title="Try it"
+  steps={[
+    'Press Enqueue: the job waits, a free worker picks it up, and it reaches done.',
+    'Press Add a failing job: after the error it lands in the dead letter list.',
+    'Press Requeue: the job is waiting in the queue again.',
+  ]}
+/>
+
 ## Stack
 
 Python 3.12, FastAPI, SQLAlchemy, Postgres / SQLite, Redis, React, Docker Compose.

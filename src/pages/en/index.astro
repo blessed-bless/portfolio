@@ -1,26 +1,19 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Hero from '../../components/Hero.astro';
+import SmenaPreview from '../../components/SmenaPreview.astro';
 import WorkRows from '../../components/WorkRows.astro';
 import BusinessOffers from '../../components/BusinessOffers.astro';
-import Stats from '../../components/Stats.astro';
+import DevQueue from '../../components/DevQueue.astro';
 import Who from '../../components/Who.astro';
-import StackGrid from '../../components/StackGrid.astro';
-import Faq from '../../components/Faq.astro';
+import ChannelStrip from '../../components/ChannelStrip.astro';
 import Contact from '../../components/Contact.astro';
-import { serviceOffers } from '../../data/order';
-import { getProjects } from '../../lib/work';
-import {
-  homeServiceOffersEn,
-  personJsonLd,
-  serviceOfferJsonLd,
-  webSiteJsonLd,
-} from '../../lib/jsonld';
+import { fetchChannelPosts } from '../../lib/telegram-channel';
+import { personJsonLd, webSiteJsonLd } from '../../lib/jsonld';
 import { ui } from '../../i18n';
 
 const t = ui('en');
-const projects = await getProjects('en');
-const demoCount = projects.filter((project) => project.links.demo || project.links.live || project.links.bot).length;
+const posts = (await fetchChannelPosts(3)).filter((post) => !/[\u0400-\u04FF]/.test(post.text));
 
 const jsonLd = [
   webSiteJsonLd('en'),
@@ -28,7 +21,6 @@ const jsonLd = [
     '@context': 'https://schema.org',
     ...personJsonLd('en'),
   },
-  ...homeServiceOffersEn.map((offer) => serviceOfferJsonLd('en', offer)),
 ];
 ---
 
@@ -41,12 +33,12 @@ const jsonLd = [
 >
   <div data-home-root>
     <Hero />
+    <SmenaPreview />
     <WorkRows />
     <BusinessOffers />
-    <Stats cases={projects.length} demos={demoCount} services={serviceOffers('en').length + 1} />
+    <DevQueue />
     <Who />
-    <StackGrid />
-    <Faq />
+    {posts.length ? <ChannelStrip posts={posts} /> : null}
     <Contact />
   </div>
 </BaseLayout>

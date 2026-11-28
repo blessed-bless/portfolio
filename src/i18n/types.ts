@@ -89,6 +89,31 @@ export type UiDict = {
     channelEyebrow: string;
     channelTitle: string;
     channelMore: string;
+    workAll: string;
+    devTitle: string;
+    devQueue: string;
+    devStates: string;
+    pashotMenu: string;
+    pashotFilter: string;
+    pashotGallery: string;
+    pashotTabs: string;
+    pashotCase: string;
+    pashotDemo: string;
+    pashotAltMenu: string;
+    pashotAltFilter: string;
+    pashotAltGallery: string;
+    smenaLead: string;
+    smenaFree: string;
+    smenaBooked: string;
+    smenaNote: string;
+    smenaToggle: string;
+    smenaShowFree: string;
+    fleetFail: string;
+    fleetQueue: string;
+    fleetWorker: string;
+    fleetRetry: string;
+    fleetDlq: string;
+    fleetLogs: string[];
   };
   work: {
     title: string;
@@ -98,6 +123,11 @@ export type UiDict = {
     list: string;
     grid: string;
     tagsAll: string;
+    tagsSites: string;
+    tagsTelegram: string;
+    tagsBackend: string;
+    found: string;
+    reset: string;
     soon: string;
   };
   about: {
@@ -127,6 +157,7 @@ export type UiDict = {
     demo: string;
     github: string;
     tryDemo: string;
+    openDemo: string;
     openSite: string;
     openBot: string;
     code: string;
