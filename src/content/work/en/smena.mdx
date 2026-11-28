@@ -30,13 +30,8 @@ carousel: true
 import dayShot from '../../../assets/screenshots/smena-day.png';
 import clientShot from '../../../assets/screenshots/smena-client.png';
 import overviewShot from '../../../assets/screenshots/smena-overview.png';
-import Button from '../../../components/Button.astro';
 
 <Figure src={dayShot} alt="Barber day board with visits in the phone-width demo" caption="Day board — fictional demo data." />
-
-<p class="case-lead-cta">
-  <Button href="#demo" variant="ghost">{'Try the demo'}</Button>
-</p>
 
 ## Problem
 
@@ -54,6 +49,15 @@ A solo barber needs the working day inside Telegram: visits, breaks, clients, an
 
 <Figure src={clientShot} alt="Client card with visit history" caption="Client card: history, contact actions, notes." />
 <Figure src={overviewShot} alt="Overview screen with revenue and load for 7 days" caption="7-day overview: revenue, load, win-back list." />
+
+<Scenario
+  title="Try it"
+  steps={[
+    'In the demo, pick a free window on the day.',
+    'The visit shows up on the schedule at that time.',
+    'The free windows around the new visit are recalculated.',
+  ]}
+/>
 
 ## Architecture
 

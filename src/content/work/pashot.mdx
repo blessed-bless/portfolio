@@ -27,12 +27,7 @@ import hero390 from '../../assets/screenshots/pashot-hero-390.png';
 import hero1440 from '../../assets/screenshots/pashot-hero-1440.png';
 import menu390 from '../../assets/screenshots/pashot-menu-390.png';
 import lightbox390 from '../../assets/screenshots/pashot-lightbox-390.png';
-import Button from '../../components/Button.astro';
 import DeviceShot from '../../components/mdx/DeviceShot.astro';
-
-<p class="case-lead-cta">
-  <Button href="/demo/pashot/" variant="primary">{'Открыть демо'}</Button>
-</p>
 
 <p class="case-note">Неофициальный сайт. Концепт для портфолио, материалы используются с разрешения кафе.</p>
 
@@ -51,6 +46,15 @@ import DeviceShot from '../../components/mdx/DeviceShot.astro';
 - **Скролл.** Обычный, без перехвата колеса.
 - **Логотип.** Sofia Sans Condensed, файл шрифта лежит на том же адресе, что и страница.
 - **Картинки.** AVIF и WebP.
+
+<Scenario
+  title="Сценарий"
+  steps={[
+    'Откройте «Меню» и переключите «Основное меню» и «Напитки».',
+    'В разделе выберите цену: 200 ₽, 400 ₽ или «Другие цены».',
+    'В блоке «Фото» нажмите снимок — откроется лайтбокс.',
+  ]}
+/>
 
 ## Цифры
 
