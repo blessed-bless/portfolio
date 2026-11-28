@@ -27,12 +27,7 @@ import hero390 from '../../../assets/screenshots/pashot-hero-390.png';
 import hero1440 from '../../../assets/screenshots/pashot-hero-1440.png';
 import menu390 from '../../../assets/screenshots/pashot-menu-390.png';
 import lightbox390 from '../../../assets/screenshots/pashot-lightbox-390.png';
-import Button from '../../../components/Button.astro';
 import DeviceShot from '../../../components/mdx/DeviceShot.astro';
-
-<p class="case-lead-cta">
-  <Button href="/demo/pashot/" variant="primary">{'Open demo'}</Button>
-</p>
 
 <p class="case-note">Unofficial site. A portfolio concept; the cafe allowed the materials to be used.</p>
 
@@ -51,6 +46,15 @@ The cafe had a basic site. It needed one page with the menu, photos, and how to 
 - **Scroll.** The browser's own scroll, no scroll-jacking.
 - **Logo.** Sofia Sans Condensed, the font file hosted with the page.
 - **Images.** AVIF and WebP.
+
+<Scenario
+  title="Try it"
+  steps={[
+    'Open Menu and switch between Main menu and Drinks.',
+    'Inside a section, pick a price: 200 ₽, 400 ₽, or Other prices.',
+    'In Photos, open a picture — the lightbox shows it.',
+  ]}
+/>
 
 ## Numbers
 

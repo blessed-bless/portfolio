@@ -5,10 +5,12 @@ import Button from '../../components/Button.astro';
 import Demo from '../../components/mdx/Demo.astro';
 import Diagram from '../../components/mdx/Diagram.astro';
 import Figure from '../../components/mdx/Figure.astro';
+import Scenario from '../../components/mdx/Scenario.astro';
 import {
   caseCoverAlt,
   caseDocumentTitle,
   getCaseEntries,
+  caseDemoHref,
   getWorkEntry,
   nextCaseSlug,
   renderWork,
@@ -46,6 +48,8 @@ const nextSlug = nextCaseSlug(cases, project.slug);
 const nextEntry = nextSlug ? await getWorkEntry(nextSlug) : undefined;
 const next = nextEntry ? toProject(nextEntry) : null;
 
+const demoHref = caseDemoHref(project);
+const linkDemo = project.links.demo && project.links.demo !== demoHref ? project.links.demo : null;
 const casePath = withTrailingSlash(`/work/${project.slug}`);
 const caseUrl = new URL(casePath, siteUrl).href;
 
@@ -115,42 +119,55 @@ const jsonLd = [creativeWorkLd, breadcrumbJsonLd('ru', project.title, casePath)]
           <dd>{statusLine}</dd>
         </div>
       </dl>
-      <div class="case__links">
-        {project.slug === 'smena' && <a href="#demo" data-cursor="hover">Попробовать демо</a>}
-        {
-          project.links.live ? (
-            <a href={project.links.live} data-cursor="hover">
-              Открыть сайт
-            </a>
-          ) : null
-        }
-        {
-          project.links.github ? (
-            <a href={project.links.github} data-cursor="hover">
-              Код
-            </a>
-          ) : null
-        }
-        {
-          project.links.demo ? (
-            <a href={project.links.demo} data-cursor="hover">
-              Демо
-            </a>
-          ) : null
-        }
-        {
-          project.links.bot ? (
-            <a href={project.links.bot} data-cursor="hover">
-              Бот
-            </a>
-          ) : null
-        }
-      </div>
+      {
+        demoHref ? (
+          <div class="case__demo">
+            <Button href={demoHref} variant="primary">
+              {demoHref === '#demo' ? t.case.tryDemo : t.case.openDemo}
+            </Button>
+          </div>
+        ) : null
+      }
     </div>
 
     <div class="case__body page-pad" data-case-body>
-      <Content components={{ Diagram, Figure, Demo }} />
+      <Content components={{ Diagram, Figure, Demo, Scenario }} />
     </div>
+
+    {
+      project.links.live || project.links.github || linkDemo || project.links.bot ? (
+        <div class="case__links page-pad">
+          {
+            project.links.live ? (
+              <a href={project.links.live} data-cursor="hover">
+                Открыть сайт
+              </a>
+            ) : null
+          }
+          {
+            project.links.github ? (
+              <a href={project.links.github} data-cursor="hover">
+                Код
+              </a>
+            ) : null
+          }
+          {
+            linkDemo ? (
+              <a href={linkDemo} data-cursor="hover">
+                Демо
+              </a>
+            ) : null
+          }
+          {
+            project.links.bot ? (
+              <a href={project.links.bot} data-cursor="hover">
+                Бот
+              </a>
+            ) : null
+          }
+        </div>
+      ) : null
+    }
 
     {
       next ? (
@@ -367,7 +384,15 @@ const jsonLd = [creativeWorkLd, breadcrumbJsonLd('ru', project.title, casePath)]
     font-size: var(--text-sm);
   }
 
+  .case__demo {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
   .case__links {
+    width: min(100%, 46rem);
+    margin-inline: auto;
+    padding-block: 0 var(--space-6);
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-4);

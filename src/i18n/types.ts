@@ -98,6 +98,11 @@ export type UiDict = {
     list: string;
     grid: string;
     tagsAll: string;
+    tagsSites: string;
+    tagsTelegram: string;
+    tagsBackend: string;
+    found: string;
+    reset: string;
     soon: string;
   };
   about: {
@@ -127,6 +132,7 @@ export type UiDict = {
     demo: string;
     github: string;
     tryDemo: string;
+    openDemo: string;
     openSite: string;
     openBot: string;
     code: string;

@@ -30,13 +30,8 @@ carousel: true
 import dayShot from '../../assets/screenshots/smena-day.png';
 import clientShot from '../../assets/screenshots/smena-client.png';
 import overviewShot from '../../assets/screenshots/smena-overview.png';
-import Button from '../../components/Button.astro';
 
 <Figure src={dayShot} alt="День мастера с визитами в демоверсии на ширине телефона" caption="День с записями — демо на вымышленных данных." />
-
-<p class="case-lead-cta">
-  <Button href="#demo" variant="ghost">{'Попробовать демо'}</Button>
-</p>
 
 ## Задача
 
@@ -54,6 +49,15 @@ import Button from '../../components/Button.astro';
 
 <Figure src={clientShot} alt="Карточка клиента Алексея Морозова с историей визитов" caption="Карточка клиента: история, связь, заметки." />
 <Figure src={overviewShot} alt="Экран обзора с выручкой и загрузкой за 7 дней" caption="Обзор за 7 дней: выручка, загрузка, «пора позвать снова»." />
+
+<Scenario
+  title="Сценарий"
+  steps={[
+    'В демо выберите свободное окно на дне.',
+    'Запись появляется в расписании на это время.',
+    'Свободные окна вокруг новой записи пересчитываются.',
+  ]}
+/>
 
 ## Архитектура
 

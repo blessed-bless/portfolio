@@ -17,11 +17,15 @@ async function loadFlip() {
   return { gsap, Flip };
 }
 
-function readParams(): { view: ViewMode; tag: string } {
+const categoryIds = new Set(['sites', 'telegram', 'backend']);
+
+function readParams(): { view: ViewMode; tag: string; dirty: boolean } {
   const params = new URLSearchParams(window.location.search);
   const view = params.get('view') === 'list' ? 'list' : 'grid';
-  const tag = params.get('tag') || 'all';
-  return { view, tag };
+  const raw = params.get('tag');
+  if (!raw || raw === 'all') return { view, tag: 'all', dirty: Boolean(raw) };
+  if (categoryIds.has(raw)) return { view, tag: raw, dirty: false };
+  return { view, tag: 'all', dirty: true };
 }
 
 function writeParams(view: ViewMode, tag: string): void {
@@ -38,12 +42,15 @@ export function mountWorkIndex(root: HTMLElement): () => void {
   const items = [...root.querySelectorAll<HTMLElement>('[data-work-item]')];
   const viewButtons = [...root.querySelectorAll<HTMLButtonElement>('[data-work-view]')];
   const tagButtons = [...root.querySelectorAll<HTMLButtonElement>('[data-work-tag]')];
+  const count = root.querySelector<HTMLElement>('[data-work-count]');
+  const reset = root.querySelector<HTMLButtonElement>('[data-work-reset]');
   const follower = root.querySelector<HTMLElement>('[data-work-follower]');
   const media = follower?.querySelector<HTMLElement>('[data-work-follower-media]');
 
   if (!list) return () => undefined;
 
-  let { view, tag } = readParams();
+  let { view, tag, dirty } = readParams();
+  if (dirty) writeParams(view, tag);
   const coarse = window.matchMedia('(pointer: coarse)').matches;
   let flipReady: Awaited<ReturnType<typeof loadFlip>> | null = null;
 
@@ -65,6 +72,14 @@ export function mountWorkIndex(root: HTMLElement): () => void {
     tagButtons.forEach((button) => {
       button.setAttribute('aria-pressed', String(button.dataset.workTag === tag));
     });
+    if (reset) reset.hidden = tag === 'all';
+  };
+
+  const writeCount = (): void => {
+    if (!count) return;
+    const shown = items.filter((item) => !item.hidden).length;
+    const template = count.dataset.found || 'Found: {count}';
+    count.textContent = template.replace('{count}', String(shown));
   };
 
   let layoutRevision = 0;
@@ -80,6 +95,7 @@ export function mountWorkIndex(root: HTMLElement): () => void {
         item.hidden = !show;
         item.style.display = show ? '' : 'none';
       });
+      writeCount();
       if (lib && state) {
         lib.Flip.from(state, {
           duration: 0.36,
@@ -174,6 +190,8 @@ export function mountWorkIndex(root: HTMLElement): () => void {
       setTag(button.dataset.workTag || 'all');
     });
   });
+
+  reset?.addEventListener('click', () => setTag('all'));
 
   items.forEach((item) => {
     item.addEventListener('pointerenter', (event) => showFollower(item, event));
