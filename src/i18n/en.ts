@@ -53,8 +53,8 @@ export const en: UiDict = {
     title: 'Bogdan — Python backends, bots, and automation',
     description:
       'Sites with online booking, Telegram bots, and CRM for businesses. Python backend.',
-    heroHeadline: 'Sites, bots and booking',
-    heroHeadlineAccent: 'for your business',
+    heroHeadline: 'Websites with online booking, Telegram bots and automation',
+    heroHeadlineAccent: 'for business',
     heroSubtitle: 'Booking sites, Telegram bots, Mini Apps, and automation that gets the enquiry to you.',
     heroCta: 'Talk on Telegram',
     heroServices: 'Services and pricing',
@@ -96,6 +96,10 @@ export const en: UiDict = {
     channelEyebrow: 'Telegram',
     channelTitle: 'From the channel',
     channelMore: 'All posts',
+    workAll: 'All work',
+    devTitle: 'For developers',
+    devQueue: 'How the queue works',
+    devStates: 'Queue statuses',
   },
   work: {
     title: 'Work — Bogdan: bots, booking, infra cases',

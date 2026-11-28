@@ -89,6 +89,10 @@ export type UiDict = {
     channelEyebrow: string;
     channelTitle: string;
     channelMore: string;
+    workAll: string;
+    devTitle: string;
+    devQueue: string;
+    devStates: string;
   };
   work: {
     title: string;

@@ -61,8 +61,8 @@ export const ru: UiDict = {
     title: 'Богдан: сайты с записью, боты и CRM для бизнеса',
     description:
       'Сайты с онлайн-записью, Telegram-боты и CRM для бизнеса. Бэкенд на Python.',
-    heroHeadline: 'Сайты, боты и запись',
-    heroHeadlineAccent: 'для вашего бизнеса',
+    heroHeadline: 'Сайты с онлайн-записью, Telegram-боты и автоматизация',
+    heroHeadlineAccent: 'для бизнеса',
     heroSubtitle: 'Делаю сайты с онлайн-записью, Telegram-ботов, Mini Apps и автоматизацию заявок.',
     heroCta: 'Обсудить в Telegram',
     heroServices: 'Услуги и цены',
@@ -104,6 +104,10 @@ export const ru: UiDict = {
     channelEyebrow: 'Telegram',
     channelTitle: 'Из канала',
     channelMore: 'Все посты',
+    workAll: 'Все работы',
+    devTitle: 'Для разработчиков',
+    devQueue: 'Как устроена очередь',
+    devStates: 'Статусы очереди',
   },
   work: {
     title: 'Работы: кейсы Богдана, боты, запись, infra',
