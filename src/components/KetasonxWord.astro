@@ -1,0 +1,53 @@
+<p class="ketasonx" data-ketasonx aria-label="KETASONX">
+  <span class="ketasonx__word" aria-hidden="true">KETASONX</span>
+</p>
+
+<script>
+  import { isLessMotionPreferred, perfAllows } from '../scripts/perf';
+
+  async function split(root: HTMLElement): Promise<void> {
+    if (root.dataset.split === 'true') return;
+    const narrow = window.matchMedia('(max-width: 900px)').matches;
+    const reduced =
+      isLessMotionPreferred() || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced || narrow || !perfAllows('splitChars')) return;
+    const word = root.querySelector<HTMLElement>('.ketasonx__word');
+    if (!word) return;
+    const { default: gsap } = await import('gsap');
+    const { SplitText } = await import('gsap/SplitText');
+    gsap.registerPlugin(SplitText);
+    if (!root.isConnected) return;
+    SplitText.create(word, { type: 'chars', charsClass: 'ketasonx__char', aria: 'none' });
+    root.dataset.split = 'true';
+  }
+
+  function start(): void {
+    document.querySelectorAll<HTMLElement>('[data-ketasonx]').forEach((root) => {
+      void split(root);
+    });
+  }
+  start();
+  document.addEventListener('astro:page-load', start);
+</script>
+
+<style>
+  .ketasonx {
+    margin: var(--space-4) 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 1.2rem + 6vw, 6.5rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 0.9;
+  }
+
+  .ketasonx__word,
+  :global(.ketasonx__char) {
+    -webkit-text-stroke: 1px transparent;
+  }
+
+  .ketasonx:hover :global(.ketasonx__char),
+  .ketasonx:hover .ketasonx__word {
+    -webkit-text-stroke-color: var(--accent-strong);
+    color: transparent;
+  }
+</style>

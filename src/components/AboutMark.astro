@@ -1,0 +1,74 @@
+---
+import BrandMark from './BrandMark.astro';
+---
+
+<div class="about-mark" data-about-mark aria-hidden="true">
+  <div class="about-mark__host" data-liquid-metal-host></div>
+  <span class="about-mark__fallback" data-liquid-metal-fallback>
+    <BrandMark size={120} />
+  </span>
+</div>
+
+<script>
+  let disposeMark: (() => void) | null = null;
+  let bootToken = 0;
+
+  async function boot(): Promise<void> {
+    const token = ++bootToken;
+    disposeMark?.();
+    disposeMark = null;
+    const root = document.querySelector<HTMLElement>('[data-about-mark]');
+    if (!root) return;
+    const { mountLiquidMetal } = await import('../scripts/liquid-metal');
+    if (token !== bootToken) return;
+    const handle = await mountLiquidMetal(root);
+    if (token !== bootToken) {
+      handle?.dispose();
+      return;
+    }
+    disposeMark = handle ? () => handle.dispose() : null;
+  }
+
+  function whenLoaded(): void {
+    if (document.readyState === 'complete') void boot();
+    else window.addEventListener('load', () => void boot(), { once: true });
+  }
+
+  whenLoaded();
+  document.addEventListener('astro:page-load', whenLoaded);
+  document.addEventListener('astro:before-swap', () => {
+    bootToken += 1;
+    disposeMark?.();
+    disposeMark = null;
+  });
+</script>
+
+<style>
+  .about-mark {
+    position: relative;
+    width: 7.5rem;
+    height: 7.5rem;
+    margin-top: var(--space-4);
+  }
+
+  .about-mark__host,
+  .about-mark__fallback {
+    position: absolute;
+    inset: 0;
+  }
+
+  .about-mark__host {
+    width: 100%;
+    height: 100%;
+  }
+
+  .about-mark__fallback {
+    display: grid;
+    place-items: center;
+    color: var(--fg);
+  }
+
+  .about-mark.is-shader .about-mark__fallback {
+    visibility: hidden;
+  }
+</style>
