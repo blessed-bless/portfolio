@@ -3,21 +3,17 @@ import ProjectCover from '../../components/ProjectCover.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { withTrailingSlash } from '../../lib/paths';
 import { getProjects, workStatusLabel } from '../../lib/work';
-import type { WorkTag } from '../../lib/work-types';
+import { categoriesForTags } from '../../lib/work-types';
 import { ui } from '../../i18n';
 
 const t = ui('ru');
 const listed = await getProjects();
-const tags: Array<WorkTag | 'all'> = ['all', 'Python', 'TypeScript', 'JavaScript', 'Bots', 'Infra', 'Web'];
-const tagLabels: Record<string, string> = {
-  all: t.work.tagsAll,
-  Python: 'Python',
-  TypeScript: 'TypeScript',
-  JavaScript: 'JavaScript',
-  Bots: 'Bots',
-  Infra: 'Infra',
-  Web: 'Web',
-};
+const filters = [
+  { id: 'all', label: t.work.tagsAll },
+  { id: 'sites', label: t.work.tagsSites },
+  { id: 'telegram', label: t.work.tagsTelegram },
+  { id: 'backend', label: t.work.tagsBackend },
+] as const;
 ---
 
 <BaseLayout
@@ -39,20 +35,28 @@ const tagLabels: Record<string, string> = {
             Сетка
           </button>
         </div>
-        <div class="work-index__tags" role="group" aria-label="Фильтр по тегам">
-          {
-            tags.map((tag) => (
-              <button
-                type="button"
-                class="work-index__chip mono"
-                data-work-tag={tag}
-                aria-pressed={tag === 'all' ? 'true' : 'false'}
-                data-cursor="hover"
-              >
-                {tagLabels[tag]}
-              </button>
-            ))
-          }
+        <div class="work-index__filters">
+          <div class="work-index__tags" role="group" aria-label="Фильтр работ">
+            {
+              filters.map((filter) => (
+                <button
+                  type="button"
+                  class="work-index__chip"
+                  data-work-tag={filter.id}
+                  aria-pressed={filter.id === 'all' ? 'true' : 'false'}
+                  data-cursor="hover"
+                >
+                  {filter.label}
+                </button>
+              ))
+            }
+          </div>
+          <p class="work-index__count" data-work-count data-found={t.work.found} aria-live="polite">
+            {t.work.found.replace('{count}', String(listed.length))}
+          </p>
+          <button type="button" class="work-index__chip" data-work-reset hidden data-cursor="hover">
+            {t.work.reset}
+          </button>
         </div>
       </div>
     </header>
@@ -67,7 +71,7 @@ const tagLabels: Record<string, string> = {
               class:list={['work-index__item', { 'is-stub': !project.hasPage }]}
               href={project.hasPage ? href : undefined}
               data-work-item
-              data-tags={project.tags.join(',')}
+              data-tags={categoriesForTags(project.tags).join(',')}
               data-cursor={project.hasPage ? 'hover' : undefined}
               data-cursor-open={project.hasPage ? '' : undefined}
             >
@@ -149,10 +153,21 @@ const tagLabels: Record<string, string> = {
   }
 
   .work-index__modes,
-  .work-index__tags {
+  .work-index__tags,
+  .work-index__filters {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
+    align-items: center;
+  }
+
+  .work-index__count {
+    margin: 0;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
   }
 
   .work-index__chip {
@@ -162,7 +177,6 @@ const tagLabels: Record<string, string> = {
     background: transparent;
     color: var(--fg-muted);
     font-size: var(--text-xs);
-    text-transform: uppercase;
     cursor: pointer;
   }
 

@@ -118,6 +118,15 @@ job = await enqueue_job(
 item.requeued = True
 ```
 
+<Scenario
+  title="Сценарий"
+  steps={[
+    'Нажмите «В очередь»: задача ждёт, свободный воркер забирает её и доводит до «готово».',
+    'Нажмите «Добавить падающую задачу»: после ошибки она попадает в dead letter.',
+    'Нажмите «Вернуть в очередь»: задача снова стоит в очереди и ждёт воркера.',
+  ]}
+/>
+
 ## Стек
 
 Python 3.12, FastAPI, SQLAlchemy, Postgres / SQLite, Redis, React, Docker Compose.

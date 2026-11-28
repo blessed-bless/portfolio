@@ -1,0 +1,58 @@
+---
+interface Props {
+  title: string;
+  steps: string[];
+}
+
+const { title, steps } = Astro.props;
+const items = steps.map((step) => step.trim()).filter(Boolean);
+---
+
+{
+  items.length === 3 ? (
+    <section class="scenario" data-scenario>
+      <h2>{title}</h2>
+      <ol>
+        {items.map((step) => (
+          <li>{step}</li>
+        ))}
+      </ol>
+    </section>
+  ) : null
+}
+
+<style>
+  .scenario {
+    display: grid;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  .scenario h2 {
+    margin: var(--space-6) 0 0;
+  }
+
+  .scenario ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-3);
+    counter-reset: scenario;
+  }
+
+  .scenario li {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: baseline;
+    counter-increment: scenario;
+  }
+
+  .scenario li::before {
+    content: counter(scenario, decimal-leading-zero);
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+  }
+</style>
