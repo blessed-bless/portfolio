@@ -424,6 +424,7 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
     align-content: center;
     min-width: 0;
     gap: var(--space-4);
+    container-type: inline-size;
   }
 
   .hero__brand,
@@ -444,7 +445,8 @@ const telegram = isFilled(contactLinks.telegram) ? contactLinks.telegram : null;
   }
 
   .hero__line {
-    font-size: clamp(2rem, 0.7rem + 4.4vw, 5.1rem);
+    /* Size follows the copy column so the longer H1 wraps on words, not mid-glyph. */
+    font-size: clamp(1.85rem, 9.4cqi, 3.15rem);
     font-weight: 700;
     letter-spacing: var(--tracking-display);
     line-height: 1.04;

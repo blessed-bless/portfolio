@@ -1,4 +1,3 @@
-import { serviceOffers } from '../data/order';
 import { contactLinks, telegramChannel } from '../data/home';
 import { isFilled } from './fill';
 import {
@@ -13,7 +12,6 @@ import {
   siteUrl,
 } from './site';
 import { withTrailingSlash } from './paths';
-import type { Locale } from '../i18n';
 
 export type ServiceOfferSeed = {
   name: string;
@@ -118,15 +116,3 @@ export function breadcrumbJsonLd(
     ],
   };
 }
-
-function homeServiceOffers(locale: Locale): ServiceOfferSeed[] {
-  return serviceOffers(locale).map(({ title, description, minPrice, priceLabel }) => ({
-    name: title,
-    description,
-    minPrice,
-    priceLabel,
-  }));
-}
-
-export const homeServiceOffersRu = homeServiceOffers('ru');
-export const homeServiceOffersEn = homeServiceOffers('en');
