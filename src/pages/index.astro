@@ -3,26 +3,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import WorkRows from '../components/WorkRows.astro';
 import BusinessOffers from '../components/BusinessOffers.astro';
-import Stats from '../components/Stats.astro';
+import DevQueue from '../components/DevQueue.astro';
 import Who from '../components/Who.astro';
-import StackGrid from '../components/StackGrid.astro';
 import ChannelStrip from '../components/ChannelStrip.astro';
-import Faq from '../components/Faq.astro';
 import Contact from '../components/Contact.astro';
-import { serviceOffers } from '../data/order';
 import { fetchChannelPosts } from '../lib/telegram-channel';
-import { getProjects } from '../lib/work';
-import {
-  homeServiceOffersRu,
-  personJsonLd,
-  serviceOfferJsonLd,
-  webSiteJsonLd,
-} from '../lib/jsonld';
+import { personJsonLd, webSiteJsonLd } from '../lib/jsonld';
 import { ui } from '../i18n';
 
 const t = ui('ru');
-const projects = await getProjects('ru');
-const demoCount = projects.filter((project) => project.links.demo || project.links.live || project.links.bot).length;
 const posts = await fetchChannelPosts(3);
 
 const jsonLd = [
@@ -31,7 +20,6 @@ const jsonLd = [
     '@context': 'https://schema.org',
     ...personJsonLd('ru'),
   },
-  ...homeServiceOffersRu.map((offer) => serviceOfferJsonLd('ru', offer)),
 ];
 ---
 
@@ -46,11 +34,9 @@ const jsonLd = [
     <Hero />
     <WorkRows />
     <BusinessOffers />
-    <Stats cases={projects.length} demos={demoCount} services={serviceOffers('ru').length + 1} />
+    <DevQueue />
     <Who />
-    <StackGrid />
     {posts.length ? <ChannelStrip posts={posts} /> : null}
-    <Faq />
     <Contact />
   </div>
 </BaseLayout>

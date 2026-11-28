@@ -1,11 +1,16 @@
 ---
 import ProjectCover from './ProjectCover.astro';
-import { getProjects, leadCase, workStatusLabel } from '../lib/work';
+import { getProjects, workStatusLabel } from '../lib/work';
 import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
 
 const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
 const t = ui(locale);
-const projects = leadCase(await getProjects(locale));
+const homeSlugs = ['pashot', 'smena'] as const;
+const catalog = await getProjects(locale);
+const projects = homeSlugs.flatMap((slug) => {
+  const project = catalog.find((item) => item.slug === slug);
+  return project ? [project] : [];
+});
 ---
 
 <section class="work-rows page-pad" data-work-rows data-mode="rows" data-band="ink" aria-labelledby="work-rows-title">
@@ -43,6 +48,9 @@ const projects = leadCase(await getProjects(locale));
       })
     }
   </ol>
+  <p class="work-rows__all">
+    <a href={localizedPath(locale, '/work/')}>{t.home.workAll}</a>
+  </p>
 </section>
 
 <script>
@@ -143,6 +151,18 @@ const projects = leadCase(await getProjects(locale));
     padding: 0;
     list-style: none;
     border-bottom: var(--stroke) solid var(--border);
+  }
+
+  .work-rows__all {
+    margin: var(--space-4) 0 0;
+  }
+
+  .work-rows__all a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--accent-strong);
+    font-weight: 600;
   }
 
   .work-row {

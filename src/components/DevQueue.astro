@@ -1,0 +1,100 @@
+---
+import { getProjects } from '../lib/work';
+import { defaultLocale, isLocale, localizedPath, ui, type Locale } from '../i18n';
+
+const locale: Locale = isLocale(Astro.currentLocale) ? Astro.currentLocale : defaultLocale;
+const t = ui(locale);
+const fleet = (await getProjects(locale)).find((project) => project.slug === 'fleetkit');
+const github = fleet?.links.github;
+const caseHref = localizedPath(locale, '/work/fleetkit/');
+---
+
+{
+  fleet ? (
+    <section class="dev page-pad" data-dev data-band="ink" aria-labelledby="dev-title">
+      <h2 id="dev-title" class="dev__title" data-scramble>{t.home.devTitle}</h2>
+      <div class="dev__row">
+        <p class="dev__name">{fleet.title}</p>
+        <ul class="dev__states mono" aria-label={t.home.devStates}>
+          <li>queued</li>
+          <li>processing</li>
+          <li>failed</li>
+        </ul>
+        <p class="dev__links">
+          {github ? (
+            <a href={github} target="_blank" rel="noopener noreferrer">{t.case.github}</a>
+          ) : null}
+          <a href={caseHref}>{t.home.devQueue}</a>
+        </p>
+      </div>
+    </section>
+  ) : null
+}
+
+<style>
+  .dev {
+    padding-block: var(--section-gap);
+    border-top: var(--stroke) solid var(--border);
+  }
+
+  .dev__title {
+    margin: 0 0 var(--space-6);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+  }
+
+  .dev__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-3) var(--space-5);
+    padding-block: 1.15rem;
+    border-block: var(--stroke) solid var(--border);
+  }
+
+  .dev__name,
+  .dev__links {
+    margin: 0;
+  }
+
+  .dev__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 1rem + 1.4vw, 2.4rem);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.05;
+  }
+
+  .dev__states {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--fg-muted);
+    font-size: var(--text-sm);
+  }
+
+  .dev__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-5);
+    margin-left: auto;
+  }
+
+  .dev__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--accent-strong);
+    font-weight: 600;
+  }
+
+  @media (max-width: 800px) {
+    .dev__links {
+      margin-left: 0;
+    }
+  }
+</style>
