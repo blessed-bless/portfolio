@@ -93,6 +93,27 @@ export type UiDict = {
     devTitle: string;
     devQueue: string;
     devStates: string;
+    pashotMenu: string;
+    pashotFilter: string;
+    pashotGallery: string;
+    pashotTabs: string;
+    pashotCase: string;
+    pashotDemo: string;
+    pashotAltMenu: string;
+    pashotAltFilter: string;
+    pashotAltGallery: string;
+    smenaLead: string;
+    smenaFree: string;
+    smenaBooked: string;
+    smenaNote: string;
+    smenaToggle: string;
+    smenaShowFree: string;
+    fleetFail: string;
+    fleetQueue: string;
+    fleetWorker: string;
+    fleetRetry: string;
+    fleetDlq: string;
+    fleetLogs: string[];
   };
   work: {
     title: string;
