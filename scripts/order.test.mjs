@@ -31,8 +31,9 @@ test('home and order share prices while the FAQ explains the estimate', async ()
     const prices = [...order.matchAll(/<strong[^>]*>((?:от|from)\s+[^<]+ ₽)<\/strong>/g)]
       .map(([, price]) => price);
     assert.equal(prices.length, 4);
-    const faq = home.match(/<section\b[^>]*\bid="faq"[^>]*>[\s\S]*?<\/section>/)?.[0];
+    const faq = order.match(/<section\b[^>]*\bid="faq"[^>]*>[\s\S]*?<\/section>/)?.[0];
     assert.ok(faq);
+    assert.doesNotMatch(home, /\bid="faq"/);
     assert.match(faq, prefix ? /payments or CRM sync/ : /оплата или синхронизация с CRM/);
     for (const price of prices) {
       assert.ok(home.includes(price));
